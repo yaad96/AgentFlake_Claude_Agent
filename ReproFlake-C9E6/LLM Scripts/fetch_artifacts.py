@@ -62,6 +62,7 @@ def parse_artifact_block(text: str):
 
     Returns one of:
         ("NONE",  [])           — explicit NONE; LLM is answering directly
+                                (may include checklist confirmation text)
         ("LIST",  [items, ...]) — list of {type, target, reason}
         ("ABSENT", [])          — no block at all (LLM ignored the protocol)
     """
@@ -70,7 +71,7 @@ def parse_artifact_block(text: str):
         return ("ABSENT", [])
 
     body = block_match.group(1).strip()
-    if body.upper() == "NONE":
+    if body.upper() == "NONE" or body.upper().startswith("NONE -"):
         return ("NONE", [])
 
     items = []

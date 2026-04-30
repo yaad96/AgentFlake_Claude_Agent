@@ -7,8 +7,8 @@
 #   2. Variants used: Fixed/ (deterministic pass) and Flaky/ (deterministic
 #      fail) — no FlakyCodeChange/ injection needed because OD is already
 #      deterministic given the polluter→victim order.
-#   3. Image: flaky_base_jdk8_od_cov ONLY (no jdk11/17 image exists for OD;
-#      the script rejects java != 8 explicitly).
+#   3. Image: flaky_base_jdk8_od_cov for java=8, flaky_base_jdk11_od_cov
+#      for java=11. No java=17 OD rows exist in test_config.csv.
 #   4. mvn invocation: -Dmaven.ext.class.path=$EXT_JAR
 #      -Dtest="$POLLUTER,$VICTIM" -Dsurefire.runOrder=testorder
 #      with env var SUREFIRE_VERSION=3.0.0-M8-SNAPSHOT.
@@ -92,21 +92,27 @@ if [[ -z "$POLLUTER" || -z "$VICTIM" ]]; then
   exit 1
 fi
 
-#
-# Correction #2 (verified 2026-04-29): only flaky_base_jdk8_od_cov exists in
-# this repo for OD. The CSV has 7 OD rows with java=11 and 0 with java=17 —
-# the 7 java=11 rows would need a separate flaky_base_jdk11_od_cov image to
-# be built, then this case branch updated. Reject explicitly rather than
-# pointing at a non-existent image.
-#
 case "$JAVA" in
   8)  IMAGE="flaky_base_jdk8_od_cov" ;;
+  11) IMAGE="flaky_base_jdk11_od_cov" ;;
   *)  echo "ERROR: OD with java=$JAVA is not supported by this pipeline."
-      echo "       Only java=8 has a working OD image in this repo (flaky_base_jdk8_od_cov)."
-      echo "       Per CSV: 7 of 125 OD rows have java=11; supporting them requires"
-      echo "       building a flaky_base_jdk11_od_cov image and updating this case branch."
+      echo "       test_config.csv has OD rows for java=8 and java=11 only."
       exit 1 ;;
 esac
+
+if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+  echo "ERROR: required Docker image '$IMAGE' was not found locally."
+  if [[ "$JAVA" == "11" ]]; then
+    echo "       Java 11 OD rows need an OD-specific JDK 11 image that includes"
+    echo "       the TestingResearchIllinois Surefire fork for runOrder=testorder."
+    echo "       Build/tag that image as: $IMAGE"
+    echo "       Command: docker build -t $IMAGE -f '$REPROFLAKE_DIR/Dockerfile.od11' '$REPROFLAKE_DIR'"
+  else
+    echo "       Build/tag the OD image as: $IMAGE"
+    echo "       Command: docker build -t $IMAGE -f '$REPROFLAKE_DIR/Dockerfile.od' '$REPROFLAKE_DIR'"
+  fi
+  exit 1
+fi
 
 CONTAINER="tm_${RESULT_CONTAINER//[^a-zA-Z0-9]/_}"
 
@@ -135,7 +141,18 @@ done
 
 if (( need_step1 )); then
   ZIP_PATH="$REPROFLAKE_DIR/data/${ZIP}.zip"
-  [[ -f "$ZIP_PATH" ]] || { echo "ERROR: $ZIP_PATH not found"; exit 1; }
+  if [[ ! -f "$ZIP_PATH" ]]; then
+    [[ -n "$URL" ]] || { echo "ERROR: $ZIP_PATH not found and CSV URL is empty"; exit 1; }
+    echo "[step 1a] Downloading $URL -> $ZIP_PATH"
+    mkdir -p "$REPROFLAKE_DIR/data"
+    if command -v curl >/dev/null 2>&1; then
+      curl -fL "$URL" -o "$ZIP_PATH"
+    elif command -v wget >/dev/null 2>&1; then
+      wget "$URL" -O "$ZIP_PATH"
+    else
+      echo "ERROR: need curl or wget to download $URL"; exit 1
+    fi
+  fi
 
   if [[ ! -d "$DATA_DIR/Flaky" || ! -d "$DATA_DIR/Flakym2" ]]; then
     echo "[step 1a] Unzipping $ZIP_PATH"
@@ -223,7 +240,8 @@ docker exec "$CONTAINER" bash -c "mvn install:install-file \
 #   class. Same-class OD (e.g. shardingsphere) needs 'testorder', a custom
 #   runOrder added by the TestingResearchIllinois fork (apache/maven-surefire
 #   PR #348) that sequences methods by -Dtest= order. The fork is shipped
-#   as Surefire 3.0.0-M8-SNAPSHOT and pre-installed in flaky_base_jdk8_od_cov.
+#   as Surefire 3.0.0-M8-SNAPSHOT and must be pre-installed in the selected
+#   OD image.
 #
 # The trick: by default the JavaMOP extension upgrades Surefire to 3.1.2
 # (which has no testorder), BUT it respects the env var SUREFIRE_VERSION.
@@ -252,7 +270,7 @@ run_with_tracemop() {
   #   - The extension would normally force Surefire to 3.1.2 (which doesn't
   #     support testorder), but it RESPECTS the SUREFIRE_VERSION env var,
   #     so we set it to 3.0.0-M8-SNAPSHOT (the TestingResearchIllinois fork
-  #     pre-installed in flaky_base_jdk8_od_cov) — that fork supports
+  #     pre-installed in the selected OD image) — that fork supports
   #     testorder, which sequences METHODS by -Dtest= order, which is what
   #     same-class OD requires.
   docker exec "$CONTAINER" bash -c "

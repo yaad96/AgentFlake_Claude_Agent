@@ -103,7 +103,18 @@ done
 
 if (( need_step1 )); then
   ZIP_PATH="$REPROFLAKE_DIR/data/${ZIP}.zip"
-  [[ -f "$ZIP_PATH" ]] || { echo "ERROR: $ZIP_PATH not found"; exit 1; }
+  if [[ ! -f "$ZIP_PATH" ]]; then
+    [[ -n "$URL" ]] || { echo "ERROR: $ZIP_PATH not found and CSV URL is empty"; exit 1; }
+    echo "[step 1a] Downloading $URL -> $ZIP_PATH"
+    mkdir -p "$REPROFLAKE_DIR/data"
+    if command -v curl >/dev/null 2>&1; then
+      curl -fL "$URL" -o "$ZIP_PATH"
+    elif command -v wget >/dev/null 2>&1; then
+      wget "$URL" -O "$ZIP_PATH"
+    else
+      echo "ERROR: need curl or wget to download $URL"; exit 1
+    fi
+  fi
 
   if [[ ! -d "$DATA_DIR/Flaky" || ! -d "$DATA_DIR/Flakym2" ]]; then
     echo "[step 1a] Unzipping $ZIP_PATH"
