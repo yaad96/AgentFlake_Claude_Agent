@@ -51,10 +51,12 @@ ARTIFACT_BLOCK_RE = re.compile(
 
 # Canonical schema (Claude follows this reliably):
 #   <artifact type="METHOD" target="x.y.Z#m" reason="..."/>
+# The trailing slash is optional — gpt-4o sometimes emits <artifact ...>
+# (non-self-closing) which is still unambiguous given the closed enum.
 ARTIFACT_ITEM_RE = re.compile(
     r'<artifact\s+type="(?P<type>[A-Za-z_]+)"\s+'
     r'target="(?P<target>[^"]+)"'
-    r'(?:\s+reason="(?P<reason>[^"]*)")?\s*/>',
+    r'(?:\s+reason="(?P<reason>[^"]*)")?\s*/?>',
     re.IGNORECASE,
 )
 
@@ -71,7 +73,7 @@ _ARTIFACT_TYPES = ("IMPORTS_OF", "FULL_FILE", "METHOD", "SPEC_DEFINITION", "POM_
 ARTIFACT_ITEM_TYPED_TAG_RE = re.compile(
     r"<(?P<type>" + "|".join(_ARTIFACT_TYPES) + r")\s+"
     r'target="(?P<target>[^"]+)"'
-    r'(?:\s+reason="(?P<reason>[^"]*)")?\s*/>',
+    r'(?:\s+reason="(?P<reason>[^"]*)")?\s*/?>',
     re.IGNORECASE,
 )
 

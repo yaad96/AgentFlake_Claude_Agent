@@ -256,7 +256,6 @@ def generate_summary(result_container):
     freq_specs = set(ids_to_specs(freq_eids, events_map))
 
     only_flaky_specs = sorted(flaky_specs - clean_specs)
-    shared_specs = sorted(flaky_specs & clean_specs)
     freq_only_specs = sorted(freq_specs - flaky_specs - clean_specs)
 
     # Spec → events breakdown for the flaky-only specs (so the spec list shows
@@ -358,16 +357,6 @@ def generate_summary(result_container):
             lines.append(f"  [{i}] expected={exp}  actual={act}  Δ={sign}{delta}")
             lines.append(f"      {decoded}")
         lines.append("")
-
-    # --- Specs in both runs (noise floor) ---
-    lines.append(f"=== RV SPECS IN BOTH RUNS ({len(shared_specs)}) ===")
-    lines.append("(Noise — present in both runs, not discriminative.)")
-    if shared_specs:
-        for spec in shared_specs:
-            lines.append(f"  - {spec}")
-    else:
-        lines.append("  (none)")
-    lines.append("")
 
     # --- Specs that only appear in frequency diffs ---
     if freq_only_specs:

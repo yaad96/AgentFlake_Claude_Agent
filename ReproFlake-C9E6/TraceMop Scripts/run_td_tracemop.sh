@@ -25,7 +25,7 @@
 #   8C. compare-traces-official.py       -> step_8_C_official.txt
 #   9.  generate_llm_summary.py          -> llm_trace_summary.txt
 #   10. assemble_llm_context.py          -> llm_context.txt
-#   11. call_llm.py / call_llm_openai.py -> llm_response.json
+#   11. call_llm.py (dispatches to claude or openai) -> llm_response.json
 #   12. apply_fix.py                     -> patches Flaky/ + recompiles bytecode
 #   13. re-run victim against patched Flaky/ -> verify_after_fix.log
 #
@@ -40,17 +40,15 @@ LLM_BACKEND="${2:?Usage: $0 <result_container> <claude|openai>   (second arg pic
 
 case "$LLM_BACKEND" in
   claude)
-    LLM_SCRIPT="call_llm.py"
     if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
-      echo "ERROR: ANTHROPIC_API_KEY is not set. Step 11 (call_llm.py) requires it."
+      echo "ERROR: ANTHROPIC_API_KEY is not set. Step 11 (claude backend) requires it."
       echo "       export ANTHROPIC_API_KEY=sk-ant-...   then re-run."
       exit 1
     fi
     ;;
   openai)
-    LLM_SCRIPT="call_llm_openai.py"
     if [[ -z "${OPENAI_API_KEY:-}" ]]; then
-      echo "ERROR: OPENAI_API_KEY is not set. Step 11 (call_llm_openai.py) requires it."
+      echo "ERROR: OPENAI_API_KEY is not set. Step 11 (openai backend) requires it."
       echo "       export OPENAI_API_KEY=sk-...   then re-run."
       exit 1
     fi
@@ -111,6 +109,36 @@ container        : $CONTAINER
 data dir         : $DATA_DIR
 ==========================================
 EOF
+
+# ============================================================
+# STEP 0 — START-OF-RUN CLEANUP
+#
+# We deliberately do cleanup HERE (before step 1) instead of at the end of
+# the script. Rationale: leaving the mutated source tree in place after a
+# run lets you inspect the post-patch Flaky/, the apply-stage javac errors,
+# the surefire-reports/, etc. — invaluable for debugging an LLM patch that
+# compiled but didn't actually fix the bug.
+#
+# Set KEEP_SOURCE=1 to skip this cleanup (e.g., to resume a partial run
+# without redoing step 1's unzip + patch).
+#
+# KEPT (across runs): Steps Output Files/, traces-*/, Fixed.patch +
+#                     FlakyCodeChange.patch + flaky_info.txt, original .zip.
+# REMOVED (every run, unless KEEP_SOURCE=1): Fixed/, Flaky/, FlakyCodeChange/,
+#                     Flakym2/, result/. Step 1 re-materialises them from
+#                     the zip + patches.
+# ============================================================
+if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
+  if [[ -d "$DATA_DIR/Fixed" || -d "$DATA_DIR/Flaky" || -d "$DATA_DIR/FlakyCodeChange" || -d "$DATA_DIR/Flakym2" || -d "$DATA_DIR/result" ]]; then
+    echo "[step 0 ] Cleaning mutated source dirs from previous run in $DATA_DIR/"
+    echo "          (set KEEP_SOURCE=1 to keep them and resume from existing state)"
+    rm -rf "$DATA_DIR/Fixed" \
+           "$DATA_DIR/FlakyCodeChange" \
+           "$DATA_DIR/Flaky" \
+           "$DATA_DIR/Flakym2" \
+           "$DATA_DIR/result"
+  fi
+fi
 
 # ============================================================
 # STEP 1 — lean materialisation: unzip + apply patches only
@@ -298,8 +326,8 @@ echo "[step 10] assemble_llm_context.py     -> $STEPS_REL/llm_context.txt"
 # ============================================================
 # STEP 11 — Call LLM (mandatory; backend = $LLM_BACKEND)
 # ============================================================
-echo "[step 11] $LLM_SCRIPT                 -> $STEPS_REL/llm_response.json"
-( cd "$LLM_SCRIPTS_DIR" && python3 "$LLM_SCRIPT" "$RESULT_CONTAINER" )
+echo "[step 11] call_llm.py ($LLM_BACKEND)  -> $STEPS_REL/llm_response.json"
+( cd "$LLM_SCRIPTS_DIR" && python3 call_llm.py "$RESULT_CONTAINER" "$LLM_BACKEND" )
 
 # ============================================================
 # STEP 12 — Apply the LLM-proposed fix to Flaky/ + recompile bytecode
@@ -397,38 +425,17 @@ echo
 echo "Post-fix verdict   : $VERDICT"
 
 # ============================================================
-# CLEANUP — remove regenerated source/trace dirs so the next run starts
-# fresh. Without this, apply_fix.py's mutations to Flaky/ persist into
-# the next invocation and the [sanity] block sees an already-fixed test
-# that no longer reproduces the failure.
-#
-# Set KEEP_SOURCE=1 to skip cleanup (e.g., to inspect the patched tree).
-#
-# KEPT:    Steps Output Files/   (research outputs — never deleted)
-#          traces-*/             (RV traces — kept for forensic inspection
-#                                 of the LLM context's RV TRACE ANALYSIS)
-#          Fixed.patch, FlakyCodeChange.patch, flaky_info.txt
-#                                  (ground truth — needed for manual review
-#                                   of LLM patches against the upstream fix)
-#          $REPROFLAKE_DIR/data/<zip>.zip  (avoids re-download next run)
-# REMOVED: Fixed/, Flaky/, FlakyCodeChange/, Flakym2/, result/
-#          (the mutated source trees — apply_fix.py edits Flaky/ and we want
-#           the next run to start from a clean unzip)
+# (Cleanup of mutated source dirs runs at START-OF-RUN — see STEP 0 near
+# the top of this script. Leaving Fixed/, Flaky/, FlakyCodeChange/, Flakym2/,
+# and result/ in place after the run is intentional: they are the primary
+# evidence for debugging an LLM fix that compiled but didn't behave correctly.
+# The next invocation of this script will wipe them before STEP 1.)
 # ============================================================
-if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
-  echo
-  echo "[cleanup] Removing mutated source dirs from $DATA_DIR/"
-  echo "          (set KEEP_SOURCE=1 next time to keep them for inspection)"
-  rm -rf "$DATA_DIR/Fixed" \
-         "$DATA_DIR/FlakyCodeChange" \
-         "$DATA_DIR/Flaky" \
-         "$DATA_DIR/Flakym2" \
-         "$DATA_DIR/result"
-  echo "[cleanup] Done. Kept: Steps Output Files/, traces-*/, Fixed.patch + FlakyCodeChange.patch + flaky_info.txt, original .zip."
-fi
 
 echo
-echo "Container '$CONTAINER' is left running, but its bind mount is now mostly"
-echo "empty (cleanup ran above). It is safe and recommended to remove it:"
+echo "Container '$CONTAINER' is left running with its bind mount intact for"
+echo "post-run inspection (Flaky/ now holds the LLM-patched source, target/"
+echo "holds the recompiled bytecode, surefire-reports/ holds the verify run)."
+echo "Remove the container when you're done inspecting:"
 echo "  docker rm -f $CONTAINER"
 echo "=========================================="

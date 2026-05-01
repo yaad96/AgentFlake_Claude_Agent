@@ -26,6 +26,7 @@ or against a working tree.
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -45,13 +46,66 @@ def _ensure_trailing_newline(text: str) -> str:
     return text if text.endswith("\n") else text + "\n"
 
 
+def _target_files_in_patch(patch_text: str) -> list:
+    """Extract right-hand target paths from a unified diff (`+++ b/<path>`
+    or plain `+++ <path>`). Skips /dev/null (file deletion). Order-preserving,
+    deduplicated."""
+    seen = set()
+    paths = []
+    for line in patch_text.splitlines():
+        if not line.startswith("+++ "):
+            continue
+        rest = line[4:].split("\t", 1)[0].strip()
+        if rest.startswith("b/"):
+            rest = rest[2:]
+        if not rest or rest == "/dev/null":
+            continue
+        if rest not in seen:
+            seen.add(rest)
+            paths.append(rest)
+    return paths
+
+
+def _fingerprint(root: Path, rel_paths: list) -> dict:
+    """Return {rel_path: sha1_hex_or_None} for each file (None if missing)."""
+    out = {}
+    for rp in rel_paths:
+        full = root / rp
+        if not full.is_file():
+            out[rp] = None
+            continue
+        h = hashlib.sha1()
+        with open(full, "rb") as f:
+            for chunk in iter(lambda: f.read(65536), b""):
+                h.update(chunk)
+        out[rp] = h.hexdigest()
+    return out
+
+
 def apply_patch(flaky_root: Path, patch_text: str) -> dict:
     """Try `git apply -p1`, then `git apply -p1 --recount`. Return the first
-    layer that lands or a failure record."""
+    layer that lands or a failure record.
+
+    A layer is considered successful only if BOTH (a) git's exit code is 0
+    AND (b) every target file's content actually changed on disk.
+
+    Why the post-apply hash check: when a unified diff has wildly wrong
+    `@@ -L,N +L,N @@` start lines (a common LLM hallucination — e.g. claims
+    line 20 when the method is at line 43), `git apply` outside a git repo
+    will print 'Skipped patch <path>.' to stdout, write no .rej files, and
+    return exit 0. The file is unmodified but the exit code claims success.
+    Trusting that exit code makes the next layer (recompile + verify) read
+    the unchanged flaky source and produces a misleading FAILED verdict
+    that looks like an LLM logic bug when it's actually a silent-skip from
+    the patch applier. Verifying file hashes catches this and forces fall-
+    through to layer 3 (the structured splicer), which uses the LLM's
+    @@METHOD/@@OPERATION schema and is immune to bad line numbers.
+    """
     if not patch_text or not patch_text.strip():
         return {"layer": None, "ok": False, "reason": "empty patch"}
 
     patch_text = _ensure_trailing_newline(patch_text)
+    targets = _target_files_in_patch(patch_text)
 
     layers = [
         ("git apply",            ["git", "apply", "-p1"]),
@@ -68,14 +122,30 @@ def apply_patch(flaky_root: Path, patch_text: str) -> dict:
         if check.returncode != 0:
             last_err = check.stderr.strip()
             continue
+
+        before = _fingerprint(flaky_root, targets)
         apply = subprocess.run(
             cmd,
             input=patch_text, text=True, cwd=flaky_root,
             capture_output=True,
         )
-        if apply.returncode == 0:
-            return {"layer": name, "ok": True}
-        last_err = apply.stderr.strip()
+        if apply.returncode != 0:
+            last_err = apply.stderr.strip()
+            continue
+
+        # Verify files actually changed (see docstring for the silent-skip case).
+        after = _fingerprint(flaky_root, targets)
+        unchanged = [p for p in targets if before.get(p) == after.get(p)]
+        if targets and unchanged:
+            log_tail = (apply.stdout + apply.stderr).strip().splitlines()[-3:]
+            last_err = (
+                f"{name} returned 0 but {len(unchanged)}/{len(targets)} "
+                f"target files unchanged (silent skip): {unchanged}. "
+                f"git tail: {log_tail!r}"
+            )
+            continue
+
+        return {"layer": name, "ok": True}
 
     return {"layer": None, "ok": False, "reason": last_err or "all patch layers rejected"}
 
@@ -100,12 +170,20 @@ def check_patch(flaky_root: Path, patch_text: str) -> dict:
 # Layer 3: structured splicer (output_b.fixed_code)
 # ---------------------------------------------------------------------------
 
-# Java method signature pattern: leading whitespace, optional modifiers,
+# Java method signature pattern: leading whitespace, optional INLINE
+# annotations (e.g. `@Test`, `@Test(timeout=1000)`), optional modifiers,
 # return type, name, parameter list, optional throws, opening brace.
+# Annotation prefix is required because junit-quickcheck (and many other
+# real codebases) write methods on a single line as
+#     @Test public void foo() throws Exception {
+# and without the annotation prefix the regex won't anchor at column 0
+# (it would find `public void foo` mid-line, but `re.search` over the
+# whole line is what we want — see the multiline ^ anchor).
 # Modifiers and return type intentionally permissive — we don't validate
 # Java; we just want to find the line where `<name>(...)` is declared.
 _METHOD_PATTERN_TMPL = (
     r'^([ \t]*)'                                            # leading indent
+    r'(?:@\w+(?:\([^)]*\))?\s+)*'                           # inline annotations: @Test, @Test(timeout=N), @Override, ...
     r'(?:(?:public|private|protected|static|final|'
     r'synchronized|abstract|default|native)\s+)*'           # modifiers
     r'[\w<>\[\]\?,\s\.]+\s+'                                # return type
@@ -167,22 +245,81 @@ def add_imports(src: str, new_imports: list) -> str:
     return "\n".join(to_add) + "\n\n" + src
 
 
-def find_method(src: str, name: str):
-    """Locate a method by name. Returns (head, end) byte offsets including
-    leading annotation lines, or None.
+def _normalise_param_list(params: str) -> str:
+    """'final @NotNull int x, String y' -> 'int,String'. Strips parameter
+    names, annotations, the `final` modifier, and whitespace, leaving only
+    the types in declaration order. Used to compare LLM-provided method
+    signatures against on-file overloads."""
+    if not params or not params.strip():
+        return ""
+    out = []
+    for p in params.split(","):
+        p = p.strip()
+        if not p:
+            continue
+        # Strip leading annotations like `@NotNull` or `@Param("x")`.
+        p = re.sub(r'@\w+(?:\([^)]*\))?\s*', '', p).strip()
+        # Strip 'final' modifier.
+        p = re.sub(r'\bfinal\b\s*', '', p).strip()
+        # The PARAMETER NAME is the last whitespace-separated token; the
+        # TYPE is everything before it. Generics like `List<String>` are
+        # preserved verbatim (no whitespace inside `<...>` after collapse).
+        tokens = p.split()
+        type_part = " ".join(tokens[:-1]) if len(tokens) >= 2 else tokens[0]
+        out.append(re.sub(r'\s+', '', type_part))
+    return ",".join(out)
 
-    Limitations: matches the FIRST method with this name (no overload
-    disambiguation), and assumes a top-level method in the outermost class.
-    """
-    pat = re.compile(_METHOD_PATTERN_TMPL.format(name=re.escape(name)), re.M)
-    m = pat.search(src)
-    if not m:
-        return None
+
+def _annotations_in_method_block(code: str) -> list:
+    """Extract the set of @Annotation names from the method block's prologue
+    (everything before the first `{`). Order-preserving, deduplicated."""
+    brace = code.find("{")
+    head = code if brace == -1 else code[:brace]
+    return list(dict.fromkeys(m.group(1) for m in re.finditer(r'@(\w+)', head)))
+
+
+def _params_in_method_block(code: str, name: str) -> str:
+    """Extract the parameter list for the named method's signature in the
+    LLM's code block, normalised to types-only."""
+    m = re.search(rf'\b{re.escape(name)}\s*\(([^)]*)\)', code)
+    return _normalise_param_list(m.group(1)) if m else None
+
+
+def _annotations_at_match(src: str, head_offset: int) -> list:
+    """Find @Annotation names on the signature line at head_offset PLUS any
+    annotations on contiguous preceding lines. Mirrors the file's full
+    annotation set for the method whose signature begins at head_offset."""
+    sig_end = src.find("\n", head_offset)
+    if sig_end == -1:
+        sig_end = len(src)
+    sig_line_start = src.rfind("\n", 0, head_offset) + 1
+    sig_line = src[sig_line_start:sig_end]
+
+    prior = []
+    pre_lines = src[:sig_line_start].splitlines()
+    for ln in reversed(pre_lines):
+        s = ln.strip()
+        if not s:
+            continue
+        if s.startswith("@"):
+            am = re.match(r'@(\w+)', s)
+            if am:
+                prior.append(am.group(1))
+        else:
+            break
+
+    inline = [m.group(1) for m in re.finditer(r'@(\w+)', sig_line)]
+    return list(dict.fromkeys(list(reversed(prior)) + inline))
+
+
+def _expand_method_loc(src: str, m):
+    """Given a regex match for a method-signature line, walk backwards over
+    leading @Annotation lines and forward via brace-balance to find the
+    method's full extent. Returns (head, end) byte offsets, or None if the
+    body braces don't balance."""
     body_brace = m.end() - 1
     head = m.start()
 
-    # Walk backwards, swallowing leading @Annotation lines (and any blank
-    # lines between consecutive annotations).
     pre_lines = src[:head].splitlines(keepends=True)
     while pre_lines:
         last = pre_lines[-1]
@@ -197,7 +334,6 @@ def find_method(src: str, name: str):
         else:
             break
 
-    # Brace-balance forward from the opening brace.
     depth = 0
     i = body_brace
     while i < len(src):
@@ -213,6 +349,57 @@ def find_method(src: str, name: str):
                 return (head, end)
         i += 1
     return None
+
+
+def find_method(src: str, name: str, llm_code: str = None):
+    """Locate a method by name. Returns (head, end) byte offsets including
+    leading annotation lines, or None if no match.
+
+    When `llm_code` is provided (the @@METHOD code block from output_b),
+    disambiguates among multiple file occurrences with the same name by
+    scoring each candidate against the LLM's intended annotations and
+    parameter list. This is critical for files with shared names between
+    outer test methods and inner helper classes — for example a JUnit-style
+    test class whose inner @Property class declares a method with the same
+    name as the outer @Test method. Without disambiguation, the splicer
+    would silently rewrite whichever appeared first by line number, which
+    is usually NOT the intended target.
+
+    Scoring (per candidate):
+      +1 per @Annotation name shared with the LLM's intent
+      +5 if the parameter type list matches exactly
+    Highest score wins; ties resolved by file order. Falls back to the
+    first match when llm_code is missing or no candidate scores above 0.
+    """
+    pat = re.compile(_METHOD_PATTERN_TMPL.format(name=re.escape(name)), re.M)
+    matches = list(pat.finditer(src))
+    if not matches:
+        return None
+
+    if len(matches) == 1 or not llm_code:
+        return _expand_method_loc(src, matches[0])
+
+    intent_annos = _annotations_in_method_block(llm_code)
+    intent_params = _params_in_method_block(llm_code, name)
+
+    best = matches[0]
+    best_score = -1
+    for m in matches:
+        cand_annos = _annotations_at_match(src, m.start())
+        cand_params = _normalise_param_list(
+            re.search(rf'\b{re.escape(name)}\s*\(([^)]*)\)',
+                      src[m.start():m.end()]).group(1)
+        )
+        score = 0
+        for a in intent_annos:
+            if a in cand_annos:
+                score += 1
+        if intent_params is not None and intent_params == cand_params:
+            score += 5
+        if score > best_score:
+            best_score = score
+            best = m
+    return _expand_method_loc(src, best)
 
 
 def find_outer_class_close(src: str):
@@ -241,14 +428,45 @@ def get_indent_at(src: str, offset: int) -> str:
     return re.match(r'^[ \t]*', line).group(0)
 
 
-def reindent_first_line(code: str, indent: str) -> str:
-    """If the first line of `code` is non-empty and lacks `indent`, prepend it.
-    Subsequent lines are left alone (they typically already carry the class's
-    indent baked in by the model)."""
+def reindent_block(code: str, target_indent: str) -> str:
+    """Reindent every line of `code` so the first non-empty line gets exactly
+    `target_indent`, with all other lines preserving their relative indentation
+    to that first line. Empty/whitespace-only lines pass through unchanged.
+
+    Handles both LLM authoring styles uniformly:
+      - Code at column 0 (most common — the LLM writes the method as a
+        standalone block): every line gets `target_indent` prepended.
+      - Code already pre-indented to some absolute level (e.g. the LLM
+        chose the class's indent level itself): that base indent is
+        substituted for `target_indent`, and relative indents to deeper
+        body lines are preserved.
+
+    Replaces the older reindent_first_line, which only adjusted line 1 and
+    left body lines unchanged — that produced inconsistent formatting (and
+    mis-indented closing braces) when the LLM wrote the method starting at
+    column 0, as Claude Sonnet 4.6 does in practice."""
     lines = code.split("\n")
-    if lines and lines[0].strip() and not lines[0].startswith(indent):
-        lines[0] = indent + lines[0]
-    return "\n".join(lines)
+    first_idx = next((i for i, ln in enumerate(lines) if ln.strip()), None)
+    if first_idx is None:
+        return code
+    base = re.match(r'^[ \t]*', lines[first_idx]).group(0)
+    out = []
+    for ln in lines:
+        if not ln.strip():
+            out.append(ln)
+        elif ln.startswith(base):
+            out.append(target_indent + ln[len(base):])
+        else:
+            # Line is less indented than the first non-empty line — unusual
+            # (the LLM wrote misaligned code). Pass through unchanged rather
+            # than crash; downstream javac will catch real syntax issues.
+            out.append(ln)
+    return "\n".join(out)
+
+
+# Backwards-compat alias: any external caller (none currently exist) still
+# works. Internal sites have been migrated to reindent_block.
+reindent_first_line = reindent_block
 
 
 def parse_anchor(anchor: str):
@@ -287,12 +505,14 @@ def apply_fixed_code_entry(src: str, entry: dict) -> tuple:
         raise ValueError(f"missing method or code field: {entry}")
 
     if operation == "replace_method":
-        loc = find_method(src, method_name)
+        # Pass the LLM's code so find_method can disambiguate when the file
+        # has multiple methods with this name (inner-vs-outer, overloads).
+        loc = find_method(src, method_name, llm_code=code)
         if loc is None:
             raise ValueError(
                 f"replace_method: method {method_name!r} not found in {info['file']}")
         indent = get_indent_at(src, loc[0])
-        new_code = reindent_first_line(code, indent)
+        new_code = reindent_block(code, indent)
         if not new_code.endswith("\n"):
             new_code += "\n"
         return src[:loc[0]] + new_code + src[loc[1]:], info
@@ -315,7 +535,7 @@ def apply_fixed_code_entry(src: str, entry: dict) -> tuple:
                 raise ValueError(
                     f"insert_method: anchor target {target!r} not found in {info['file']}")
             indent = get_indent_at(src, loc[0])
-            new_code = reindent_first_line(code, indent)
+            new_code = reindent_block(code, indent)
             if kind == "before_method":
                 return src[:loc[0]] + new_code + "\n\n" + src[loc[0]:], info
             else:
@@ -326,7 +546,7 @@ def apply_fixed_code_entry(src: str, entry: dict) -> tuple:
             close = find_outer_class_close(src)
             if close is None:
                 raise ValueError(f"end_of_class: outer class brace not found in {info['file']}")
-            new_code = reindent_first_line(code, "    ")
+            new_code = reindent_block(code, "    ")
             return src[:close] + "\n" + new_code + "\n" + src[close:], info
 
     raise ValueError(f"unknown operation: {operation!r}")
@@ -580,6 +800,53 @@ def _save_report(base: Path, report: dict):
     print(f"Report saved: {out}")
 
 
+def _compute_verdict(report: dict) -> tuple:
+    """Single source of truth for whether the apply pipeline as a whole
+    succeeded. Called from BOTH _print_summary (for the human-readable
+    RESULT: line) and main (for the process exit code), so they can never
+    drift out of sync.
+
+    Verdict rule:
+      PASS iff (a) some layer landed the patch AND
+              (b) the patched bytecode compiles.
+
+    Bytecode-validity signal precedence:
+      1. Container `mvn test-compile` if it ran (authoritative — uses
+         Maven's real classpath construction; matches what downstream
+         surefire reads).
+      2. Host `javac` smoke test if container recompile didn't run.
+         Brittle on real Maven projects but better than nothing.
+
+    Returns (overall_ok: bool, msg: str, landed_layer: str|None).
+    """
+    landed = report.get("result") or {}
+    landed_ok = bool(landed.get("ok"))
+    landed_layer = landed.get("layer")
+
+    rc = report.get("recompile") or {}
+    recompile_ran = bool(rc) and not rc.get("skipped")
+
+    if recompile_ran:
+        bytecode_ok = bool(rc.get("ok"))
+    else:
+        c = report.get("compile") or {}
+        bytecode_ok = bool(c) and (not c.get("skipped")) and bool(c.get("all_ok"))
+
+    overall_ok = landed_ok and bytecode_ok
+
+    if overall_ok:
+        msg = f"PASS — applied via {landed_layer}, compiles cleanly"
+    elif landed_ok:
+        if recompile_ran:
+            msg = f"FAIL — patch landed via {landed_layer}, but mvn test-compile failed (see above)"
+        else:
+            msg = f"FAIL — patch landed via {landed_layer}, but compile could not be confirmed (see above)"
+    else:
+        msg = f"FAIL — {landed.get('reason', 'no layer landed')}"
+
+    return (overall_ok, msg, landed_layer)
+
+
 def _print_summary(report: dict):
     """Binary [PASS]/[FAIL] reporting.
 
@@ -622,7 +889,7 @@ def _print_summary(report: dict):
         else:
             host_ok = c.get("all_ok")
             if recompile_ran:
-                label = "[INFO]" if host_ok else "[INFO]"  # always INFO when authoritative recompile ran
+                label = "[INFO]"  # always informational when authoritative recompile ran
             else:
                 label = "[PASS]" if host_ok else "[FAIL]"
             n_ok = sum(1 for r in c["results"] if r["ok"])
@@ -646,28 +913,9 @@ def _print_summary(report: dict):
                 for ln in tail.splitlines()[-5:]:
                     print(f"           {ln}")
 
-    # Verdict: patch must have landed AND the patched bytecode must compile.
-    # Container recompile is the authoritative compile signal; if it didn't
-    # run, fall back to host-compile.
-    landed_ok = bool(report.get("result", {}).get("ok"))
-    if recompile_ran:
-        bytecode_ok = recompile_ok
-    else:
-        c = report.get("compile") or {}
-        bytecode_ok = bool(c) and (not c.get("skipped")) and bool(c.get("all_ok"))
-    overall_ok = landed_ok and bytecode_ok
-
-    final = report.get("result", {})
+    _, msg, _ = _compute_verdict(report)
     print()
-    if overall_ok:
-        print(f"RESULT: PASS — applied via {final.get('layer')}, compiles cleanly")
-    elif landed_ok:
-        if recompile_ran:
-            print(f"RESULT: FAIL — patch landed via {final.get('layer')}, but mvn test-compile failed (see above)")
-        else:
-            print(f"RESULT: FAIL — patch landed via {final.get('layer')}, but compile could not be confirmed (see above)")
-    else:
-        print(f"RESULT: FAIL — {final.get('reason', 'no layer landed')}")
+    print(f"RESULT: {msg}")
 
 
 def main():
@@ -781,23 +1029,12 @@ def main():
     _save_report(base, report)
     _print_summary(report)
 
-    # Exit 0 only if everything PASSED end-to-end. Container `mvn test-compile`
-    # is the authoritative bytecode-validity signal (it uses Maven's real
-    # classpath construction); host `javac` is informational only, because it
-    # produces false negatives on Lombok / JDK-module-system / multi-module
-    # projects even when the project compiles fine via Maven.
-    #
-    # Rule: PASS iff (a) a layer landed AND (b) container recompile passed.
-    # Fallback when recompile didn't run: host compile must have run and passed.
-    landed_ok = bool(report["result"].get("ok"))
-    rc = report.get("recompile") or {}
-    if rc and not rc.get("skipped"):
-        bytecode_ok = bool(rc.get("ok"))
-    else:
-        c = report.get("compile") or {}
-        bytecode_ok = bool(c) and (not c.get("skipped")) and bool(c.get("all_ok"))
-
-    sys.exit(0 if (landed_ok and bytecode_ok) else 1)
+    # Exit code is driven by the same verdict logic the summary printed —
+    # see _compute_verdict for the full rule. Keeping a single source of
+    # truth prevents the printed RESULT and the shell exit code from
+    # disagreeing if the verdict logic changes later.
+    overall_ok, _, _ = _compute_verdict(report)
+    sys.exit(0 if overall_ok else 1)
 
 
 if __name__ == "__main__":
