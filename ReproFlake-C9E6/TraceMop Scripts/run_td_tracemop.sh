@@ -96,6 +96,17 @@ case "$JAVA" in
   *)  echo "ERROR: unsupported java=$JAVA"; exit 1 ;;
 esac
 
+# Auto-build the JDK 8 base image if missing (the only TD/NIO JDK with a
+# Dockerfile in the repo — the bare `Dockerfile`). JDK 11/17 images must be
+# preinstalled; if missing, the docker run below will fail with a clear
+# Docker-side error.
+if [[ "$JAVA" == "8" ]] && ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+  echo "[setup] Docker image '$IMAGE' not found — building from Dockerfile"
+  echo "[setup] (one-time setup, takes a few minutes)"
+  docker build -t "$IMAGE" -f "$REPROFLAKE_DIR/Dockerfile" "$REPROFLAKE_DIR"
+  echo "[setup] image '$IMAGE' built successfully"
+fi
+
 CONTAINER="tm_${RESULT_CONTAINER//[^a-zA-Z0-9]/_}"
 
 # Cleanup trap — kills the container on ANY exit (success, error, signal)
@@ -336,8 +347,14 @@ echo "[step 7 ] generate_llm_summary.py     -> $STEPS_REL/llm_trace_summary.txt"
 # ============================================================
 # STEP 8 — Assemble LLM context
 # ============================================================
-echo "[step 8 ] assemble_llm_context_td.py  -> $STEPS_REL/llm_context.txt"
-( cd "$LLM_SCRIPTS_DIR" && python3 assemble_llm_context_td.py "$RESULT_CONTAINER" ) >/dev/null
+# Pick the assembler variant based on the RV-traces ablation switch set by
+# run_pass_at_k.py. ${RV_TRACES:-yes} preserves the historical behavior
+# (include the RV TRACE ANALYSIS section) for any direct caller that doesn't
+# set the var.
+ASSEMBLER_VARIANT="rv"
+[[ "${RV_TRACES:-yes}" == "no" ]] && ASSEMBLER_VARIANT="no_rv"
+echo "[step 8 ] $ASSEMBLER_VARIANT/assemble_llm_context_td.py  -> $STEPS_REL/llm_context.txt"
+( cd "$LLM_SCRIPTS_DIR" && python3 "$ASSEMBLER_VARIANT/assemble_llm_context_td.py" "$RESULT_CONTAINER" ) >/dev/null
 
 # ============================================================
 # STEP 9 — Call LLM (mandatory; backend = $LLM_BACKEND)

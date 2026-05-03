@@ -10,12 +10,16 @@ This is a SMOKE-TEST version: minimal pre-flight, no lock file, no disk
 check, no progress ETA. Verify the core loop works, then add hardening.
 
 Usage:
-  ./run_pass_at_k.py <container> [--models claude,openai] [--runs 3] [--skip-existing]
+  ./run_pass_at_k.py <container> --rv-traces <yes|no> [--models claude,openai] [--runs 3]
 
-Default: every invocation re-runs the requested (model, run) combinations
-end-to-end, overwriting any prior per-run folder for those combinations.
-Pass --skip-existing to keep per-run folders that already have a complete
-sentinel + PASSED/FAILED verdict (useful for resuming a partial batch).
+--rv-traces selects the LLM-context variant for the ablation:
+  yes -> include the RV TRACE ANALYSIS section; archive under
+         data/FULL RUNS: RV/<container> runs/
+  no  -> omit the RV TRACE ANALYSIS section from the LLM context; archive
+         under data/FULL RUNS: NO RV/<container> runs/
+
+Every invocation re-runs all requested (model, run) combinations end-to-end,
+overwriting any prior per-run folder for those combinations.
 """
 
 import argparse
@@ -55,7 +59,8 @@ MODEL_DIR_NAME = {"claude": "Claude", "openai": "OpenAI"}
 DIR_NAME_TO_MODEL = {v: k for k, v in MODEL_DIR_NAME.items()}
 
 # Per-run sentinel file written ONLY after the archive is fully complete.
-# Skip-detection requires this AND a verdict file in {PASSED, FAILED}.
+# Records `exit_code` and `elapsed` (in seconds); parse_run reads `elapsed`
+# back out for rows picked up off disk by collect_all_rows_on_disk.
 SENTINEL = ".run_complete"
 
 # Cross-invocation per-run log appended at the end of every run_pass_at_k.py
@@ -68,11 +73,11 @@ SENTINEL = ".run_complete"
 # config, url) is NOT duplicated here — join back to test_config.csv on the
 # `container` column. We do keep `test_type` here as a convenience for
 # slicing without a join.
-COMPLETE_SUMMARY_FILE = REPROFLAKE_DIR / "Complete Containers Summary: With RV.csv"
+COMPLETE_SUMMARY_FILE = REPROFLAKE_DIR / "Complete Containers Summary.csv"
 COMPLETE_SUMMARY_COLS = [
     "timestamp", "container", "test_type", "model", "run", "verdict",
     "turns_taken", "input_tokens", "output_tokens", "total_tokens",
-    "llm_seconds",
+    "llm_seconds", "rv_traces_used",
 ]
 
 
@@ -105,11 +110,10 @@ def preflight(container, models):
     for m in models:
         if m not in MODEL_API_KEY:
             sys.exit(f"ERROR: unknown model '{m}'")
-    # NB: API-key check is DEFERRED to per-run execution time. A wrapper
-    # invocation with already-completed runs (skip path) doesn't make any
-    # LLM calls, so it shouldn't fail just because some other model's key
-    # is missing. If a run actually needs to execute, we check that
-    # specific model's key right before calling the per-type script.
+    # NB: API-key check is DEFERRED to per-run execution time so that a
+    # `--models claude` invocation doesn't fail just because OPENAI_API_KEY
+    # is missing (and vice-versa). The check happens inside the per-(model,
+    # run) loop, right before the per-type script is called.
 
     if subprocess.run(["docker", "info"], capture_output=True).returncode != 0:
         sys.exit("ERROR: Docker daemon not reachable")
@@ -245,10 +249,11 @@ def parse_run(per_run_dir: Path, container, test_type, model, run_n):
                     fail_snippet = line.strip()[:200]
                     break
 
-    # Recover elapsed_total_seconds from the sentinel for runs that
-    # weren't executed in this invocation (skip path) — we wrote it to
-    # the sentinel as `elapsed=<float>`. Without this, avg wall time in
-    # the summary collapses to 0 for any skipped run.
+    # Recover elapsed_total_seconds from the sentinel for runs parsed off
+    # disk that weren't executed in this invocation (e.g., picked up by
+    # collect_all_rows_on_disk from a prior batch with a different --models
+    # selection). The sentinel was written as `elapsed=<float>`; without
+    # this, avg wall time in the summary collapses to 0 for those rows.
     elapsed_total = 0.0
     sentinel_file = per_run_dir / SENTINEL
     if sentinel_file.is_file():
@@ -391,16 +396,15 @@ def collect_all_rows_on_disk(runs_root: Path, container: str, test_type: str) ->
     return rows
 
 
-def append_complete_summary(rows):
+def append_complete_summary(rows, rv_traces):
     """Append one row per (model, run) from THIS invocation to the
     cross-invocation log at COMPLETE_SUMMARY_FILE. Creates the file with a
     header on first invocation; subsequent invocations only append.
 
     All rows from a single invocation share one timestamp so they're easy to
-    group later. We log every row in `rows` — including runs that were
-    skipped via --skip-existing — because the user's intent is to track each
-    invocation, and a skipped row still reflects the (container, model, run)
-    state observed by THIS invocation.
+    group later. The `rv_traces_used` column ('yes'/'no') records whether
+    the ablation included the RV TRACE ANALYSIS section in the LLM context
+    for this invocation.
 
     Container-level metadata other than test_type (victim FQN, polluter,
     module, java, nondex seed, etc.) is NOT duplicated here — join back to
@@ -430,6 +434,7 @@ def append_complete_summary(rows):
                 "output_tokens": r["output_tokens_total"],
                 "total_tokens": r["total_tokens"],
                 "llm_seconds": round(r["elapsed_llm_seconds"], 1),
+                "rv_traces_used": rv_traces,
             })
     print(f"[wrapper] appended {len(rows)} row(s) to "
           f"{COMPLETE_SUMMARY_FILE.name}")
@@ -526,20 +531,14 @@ def write_summary(rows, runs_root: Path, container, row_meta, runs_per_model):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("container")
+    ap.add_argument("--rv-traces", choices=["yes", "no"], required=True,
+                    help="ablation switch: 'yes' includes the RV TRACE "
+                         "ANALYSIS section in the LLM context and archives "
+                         "under data/FULL RUNS: RV/; 'no' omits the section "
+                         "and archives under data/FULL RUNS: NO RV/. "
+                         "Required, no default.")
     ap.add_argument("--models", default="claude,openai")
     ap.add_argument("--runs", type=int, default=3)
-    ap.add_argument("--skip-existing", action="store_true",
-                    help="skip per-run folders that already have a complete "
-                         "sentinel + PASSED/FAILED verdict (useful for "
-                         "resuming a partially-completed batch). "
-                         "Default: overwrite — every invocation re-runs all "
-                         "requested (model, run) combinations end-to-end.")
-    # Backwards-compat: --force used to be the explicit overwrite opt-in. It
-    # is now the default behavior, so the flag is a no-op kept only so any
-    # existing scripts that pass it don't break.
-    ap.add_argument("--force", action="store_true",
-                    help="(deprecated; overwrite is now the default — kept "
-                         "for backwards compatibility, has no effect)")
     ap.add_argument("--keep-workspace", action="store_true",
                     help="don't clean up data/<container>/ scratch workspace + "
                          "docker container after the batch (default: clean up; "
@@ -552,11 +551,13 @@ def main():
     # Place the runs folder INSIDE data/ so it inherits the project's existing
     # `data/` gitignore. Putting it at REPROFLAKE_DIR/ would make every
     # archived source tree show up as untracked (thousands of files) until
-    # the user adds a separate gitignore entry.
-    runs_root = DATA_DIR / f"{args.container} runs"
-    runs_root.mkdir(exist_ok=True)
+    # the user adds a separate gitignore entry. The RV/NO-RV split keeps the
+    # two ablation modes' archives in separate trees so they don't collide.
+    rv_dir_name = "FULL RUNS: RV" if args.rv_traces == "yes" else "FULL RUNS: NO RV"
+    runs_root = DATA_DIR / rv_dir_name / f"{args.container} runs"
+    runs_root.mkdir(parents=True, exist_ok=True)
     print(f"[wrapper] container={args.container}  test_type={test_type}  "
-          f"models={models}  runs={args.runs}")
+          f"models={models}  runs={args.runs}  rv_traces={args.rv_traces}")
     print(f"[wrapper] runs_root={runs_root}")
 
     data_container_dir = DATA_DIR / args.container
@@ -566,31 +567,13 @@ def main():
         for run_n in range(1, args.runs + 1):
             per_run_dir = runs_root / MODEL_DIR_NAME[model] / f"run {run_n}"
             sentinel = per_run_dir / SENTINEL
-            verdict_file = per_run_dir / "Steps Output Files" / "verify_after_fix.verdict"
 
-            # Skip-detection (opt-in via --skip-existing): when a previous run
-            # has a complete sentinel + verdict in {PASSED, FAILED}, reuse it
-            # and skip re-execution. Default is overwrite — every invocation
-            # of the wrapper re-runs requested (model, run) combinations
-            # end-to-end, which matches the common interactive use case
-            # ("I just changed something, re-run this container fresh").
-            verdict_ok = verdict_file.is_file() and verdict_file.read_text(encoding="utf-8").strip() in ("PASSED", "FAILED")
-            if args.skip_existing and sentinel.is_file() and verdict_ok:
-                print(f"[wrapper] skipping {model}/run {run_n} (already complete: "
-                      f"{verdict_file.read_text(encoding='utf-8').strip()}; "
-                      f"--skip-existing is set)")
-                rows.append(parse_run(per_run_dir, args.container, test_type, model, run_n))
-                continue
-
-            # API-key check deferred to here so that already-skipped runs
-            # don't need keys for unrelated models.
             if not os.environ.get(MODEL_API_KEY[model]):
                 sys.exit(f"ERROR: {MODEL_API_KEY[model]} env var not set "
                          f"(required to execute {model}/run {run_n})")
 
             if per_run_dir.exists():
-                print(f"[wrapper] clearing {per_run_dir} for fresh run "
-                      f"(use --skip-existing to keep an already-complete run)")
+                print(f"[wrapper] clearing {per_run_dir} for fresh run")
                 shutil.rmtree(per_run_dir, ignore_errors=True)
             per_run_dir.mkdir(parents=True, exist_ok=True)
 
@@ -605,6 +588,11 @@ def main():
             # overhead is amortized across runs. Container is finally
             # removed by the wrapper's end-of-batch cleanup below.
             env["KEEP_CONTAINER"] = "1"
+            # Tells run_<type>_tracemop.sh which assembler subfolder to use
+            # (rv/ or no_rv/) for the LLM-context ablation. Read by the bash
+            # script as ${RV_TRACES:-yes}, so a missing/empty value defaults
+            # to including the RV section.
+            env["RV_TRACES"] = args.rv_traces
 
             with open(pipeline_log, "w", encoding="utf-8") as logf:
                 p = subprocess.Popen(
@@ -644,10 +632,10 @@ def main():
             all_rows = collect_all_rows_on_disk(runs_root, args.container, test_type)
             write_summary(all_rows, runs_root, args.container, row, args.runs)
 
-    # Always write summary at the end too, so a fully-skipped invocation
-    # still refreshes the report (e.g., after extractor changes in this
-    # script that the user wants applied to existing runs). Same disk-walk
-    # rationale as the incremental write.
+    # Always refresh summary at the end too, picking up any prior on-disk
+    # runs (e.g., from earlier invocations with different --models or after
+    # extractor changes the user wants reflected in existing runs). Same
+    # disk-walk rationale as the incremental write.
     all_rows = collect_all_rows_on_disk(runs_root, args.container, test_type)
     if all_rows:
         write_summary(all_rows, runs_root, args.container, row, args.runs)
@@ -659,7 +647,7 @@ def main():
     # it. `rows` contains ONLY this invocation's results (not all-time rows
     # on disk), which is what we want — the file accumulates one batch per
     # call.
-    append_complete_summary(rows)
+    append_complete_summary(rows, args.rv_traces)
 
     # Clean up the scratch workspace at data/<container>/ — it's just the
     # last run's state, redundant with the archived per-run snapshots.

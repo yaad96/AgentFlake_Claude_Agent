@@ -110,25 +110,21 @@ if [[ -z "$POLLUTER" || -z "$VICTIM" ]]; then
 fi
 
 case "$JAVA" in
-  8)  IMAGE="flaky_base_jdk8_od_cov" ;;
-  11) IMAGE="flaky_base_jdk11_od_cov" ;;
+  8)  IMAGE="flaky_base_jdk8_od_cov";  DOCKERFILE="Dockerfile.od" ;;
+  11) IMAGE="flaky_base_jdk11_od_cov"; DOCKERFILE="Dockerfile.od11" ;;
   *)  echo "ERROR: OD with java=$JAVA is not supported by this pipeline."
       echo "       test_config.csv has OD rows for java=8 and java=11 only."
       exit 1 ;;
 esac
 
+# Auto-build the OD image on first use. Both JDK 8 and JDK 11 OD images have
+# Dockerfiles in the repo. After the build, subsequent invocations short-
+# circuit at the `docker image inspect` check above and reuse the cached image.
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
-  echo "ERROR: required Docker image '$IMAGE' was not found locally."
-  if [[ "$JAVA" == "11" ]]; then
-    echo "       Java 11 OD rows need an OD-specific JDK 11 image that includes"
-    echo "       the TestingResearchIllinois Surefire fork for runOrder=testorder."
-    echo "       Build/tag that image as: $IMAGE"
-    echo "       Command: docker build -t $IMAGE -f '$REPROFLAKE_DIR/Dockerfile.od11' '$REPROFLAKE_DIR'"
-  else
-    echo "       Build/tag the OD image as: $IMAGE"
-    echo "       Command: docker build -t $IMAGE -f '$REPROFLAKE_DIR/Dockerfile.od' '$REPROFLAKE_DIR'"
-  fi
-  exit 1
+  echo "[setup] Docker image '$IMAGE' not found — building from $DOCKERFILE"
+  echo "[setup] (one-time setup, takes a few minutes)"
+  docker build -t "$IMAGE" -f "$REPROFLAKE_DIR/$DOCKERFILE" "$REPROFLAKE_DIR"
+  echo "[setup] image '$IMAGE' built successfully"
 fi
 
 CONTAINER="tm_${RESULT_CONTAINER//[^a-zA-Z0-9]/_}"
@@ -480,8 +476,14 @@ echo "[step 7 ] generate_llm_summary.py     -> $STEPS_REL/llm_trace_summary.txt"
 # ============================================================
 # STEP 8 — Assemble LLM context
 # ============================================================
-echo "[step 8 ] assemble_llm_context_od.py  -> $STEPS_REL/llm_context.txt"
-( cd "$LLM_SCRIPTS_DIR" && python3 assemble_llm_context_od.py "$RESULT_CONTAINER" ) >/dev/null
+# Pick the assembler variant based on the RV-traces ablation switch set by
+# run_pass_at_k.py. ${RV_TRACES:-yes} preserves the historical behavior
+# (include the RV TRACE ANALYSIS section) for any direct caller that doesn't
+# set the var.
+ASSEMBLER_VARIANT="rv"
+[[ "${RV_TRACES:-yes}" == "no" ]] && ASSEMBLER_VARIANT="no_rv"
+echo "[step 8 ] $ASSEMBLER_VARIANT/assemble_llm_context_od.py  -> $STEPS_REL/llm_context.txt"
+( cd "$LLM_SCRIPTS_DIR" && python3 "$ASSEMBLER_VARIANT/assemble_llm_context_od.py" "$RESULT_CONTAINER" ) >/dev/null
 
 # ============================================================
 # STEP 9 — Call LLM (mandatory; backend = $LLM_BACKEND)

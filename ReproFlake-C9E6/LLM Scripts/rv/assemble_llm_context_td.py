@@ -32,8 +32,10 @@ import os
 import sys
 
 # Reuse data-extraction helpers from the shared module. We only import pure
-# functions; the shared module is no longer a runnable assembler.
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# functions; the shared module is no longer a runnable assembler. The shared
+# module lives one directory up (in `LLM Scripts/`); this file lives in
+# `LLM Scripts/rv/` (or its `no_rv/` sibling), so we add the parent dir.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from assemble_llm_context import (  # type: ignore
     DATA_DIR,
     load_csv_row,

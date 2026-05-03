@@ -180,7 +180,13 @@ VICTIM_CLASS_FULL="${VICTIM%#*}"            # com.pholser.junit.quickcheck.Shrin
 VICTIM_METHOD="${VICTIM##*#}"               # disablingShrinking
 VICTIM_CLASS_SIMPLE="${VICTIM_CLASS_FULL##*.}"   # ShrinkingTest
 VICTIM_PKG="${VICTIM_CLASS_FULL%.*}"        # com.pholser.junit.quickcheck
-VICTIM_PKG_PATH="${VICTIM_PKG//./\/}"       # com/pholser/junit/quickcheck
+# Use `tr` instead of bash parameter substitution `${VICTIM_PKG//./\/}` —
+# the latter emits literal `\/` on bash 3.2 (Apple-shipped /bin/bash on macOS),
+# which materialized real `com\/pholser\/...` directories next to the legit
+# package tree. Silent for execution (javac follows the package declaration)
+# but pollutes the source tree and breaks any tool that maps source paths
+# back to package names.
+VICTIM_PKG_PATH="$(echo "$VICTIM_PKG" | tr '.' '/')"   # com/pholser/junit/quickcheck
 
 # Wrapper class name: capitalize first letter of the method, append NioReproTest.
 # Two NIO containers in the same Flaky/ tree would never collide because each
@@ -198,10 +204,20 @@ case "$JAVA" in
   *)  echo "ERROR: NIO with java=$JAVA is not supported by this pipeline."; exit 1 ;;
 esac
 
+# Auto-build the JDK 8 base image if missing (the only TD/NIO JDK with a
+# Dockerfile in the repo — the bare `Dockerfile`). JDK 11/17 images must be
+# preinstalled; if missing for those, exit with a clear error.
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
-  echo "ERROR: required Docker image '$IMAGE' was not found locally."
-  echo "       Build/tag the image as: $IMAGE"
-  exit 1
+  if [[ "$JAVA" == "8" ]]; then
+    echo "[setup] Docker image '$IMAGE' not found — building from Dockerfile"
+    echo "[setup] (one-time setup, takes a few minutes)"
+    docker build -t "$IMAGE" -f "$REPROFLAKE_DIR/Dockerfile" "$REPROFLAKE_DIR"
+    echo "[setup] image '$IMAGE' built successfully"
+  else
+    echo "ERROR: required Docker image '$IMAGE' was not found locally."
+    echo "       (No Dockerfile for JDK $JAVA in this repo — supply the image manually.)"
+    exit 1
+  fi
 fi
 
 CONTAINER="tm_${RESULT_CONTAINER//[^a-zA-Z0-9]/_}"
@@ -657,8 +673,14 @@ echo "[step 7 ] generate_llm_summary.py     -> $STEPS_REL/llm_trace_summary.txt"
 #   - Ask for a fix to the VICTIM's source: a cleanup line at the end of the
 #     test method that resets the polluted static state.
 # ============================================================
-echo "[step 8 ] assemble_llm_context_nio.py -> $STEPS_REL/llm_context.txt"
-( cd "$LLM_SCRIPTS_DIR" && python3 assemble_llm_context_nio.py "$RESULT_CONTAINER" ) >/dev/null
+# Pick the assembler variant based on the RV-traces ablation switch set by
+# run_pass_at_k.py. ${RV_TRACES:-yes} preserves the historical behavior
+# (include the RV TRACE ANALYSIS section) for any direct caller that doesn't
+# set the var.
+ASSEMBLER_VARIANT="rv"
+[[ "${RV_TRACES:-yes}" == "no" ]] && ASSEMBLER_VARIANT="no_rv"
+echo "[step 8 ] $ASSEMBLER_VARIANT/assemble_llm_context_nio.py -> $STEPS_REL/llm_context.txt"
+( cd "$LLM_SCRIPTS_DIR" && python3 "$ASSEMBLER_VARIANT/assemble_llm_context_nio.py" "$RESULT_CONTAINER" ) >/dev/null
 
 # ============================================================
 # STEP 9 — Call LLM

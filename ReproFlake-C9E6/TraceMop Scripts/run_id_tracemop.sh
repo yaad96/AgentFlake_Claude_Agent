@@ -133,10 +133,15 @@ case "$JAVA" in
       exit 1 ;;
 esac
 
+# Auto-build the ID image on first use. All three JDKs have a matching
+# Dockerfile in the repo (Dockerfile{8,11,17}.id). After the build, subsequent
+# invocations short-circuit here and reuse the cached image.
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
-  echo "ERROR: required Docker image '$IMAGE' was not found locally."
-  echo "       Build it with: docker build -t $IMAGE -f Dockerfile${JAVA}.id $REPROFLAKE_DIR"
-  exit 1
+  DOCKERFILE="Dockerfile${JAVA}.id"
+  echo "[setup] Docker image '$IMAGE' not found — building from $DOCKERFILE"
+  echo "[setup] (one-time setup, takes a few minutes)"
+  docker build -t "$IMAGE" -f "$REPROFLAKE_DIR/$DOCKERFILE" "$REPROFLAKE_DIR"
+  echo "[setup] image '$IMAGE' built successfully"
 fi
 
 CONTAINER="tm_${RESULT_CONTAINER//[^a-zA-Z0-9]/_}"
@@ -506,8 +511,14 @@ echo "[step 7 ] generate_llm_summary.py     -> $STEPS_REL/llm_trace_summary.txt"
 # ============================================================
 # STEP 8 — Assemble LLM context (ID-specific)
 # ============================================================
-echo "[step 8 ] assemble_llm_context_id.py  -> $STEPS_REL/llm_context.txt"
-( cd "$LLM_SCRIPTS_DIR" && python3 assemble_llm_context_id.py "$RESULT_CONTAINER" ) >/dev/null
+# Pick the assembler variant based on the RV-traces ablation switch set by
+# run_pass_at_k.py. ${RV_TRACES:-yes} preserves the historical behavior
+# (include the RV TRACE ANALYSIS section) for any direct caller that doesn't
+# set the var.
+ASSEMBLER_VARIANT="rv"
+[[ "${RV_TRACES:-yes}" == "no" ]] && ASSEMBLER_VARIANT="no_rv"
+echo "[step 8 ] $ASSEMBLER_VARIANT/assemble_llm_context_id.py  -> $STEPS_REL/llm_context.txt"
+( cd "$LLM_SCRIPTS_DIR" && python3 "$ASSEMBLER_VARIANT/assemble_llm_context_id.py" "$RESULT_CONTAINER" ) >/dev/null
 
 # ============================================================
 # STEP 9 — Call LLM (mandatory; backend = $LLM_BACKEND)
