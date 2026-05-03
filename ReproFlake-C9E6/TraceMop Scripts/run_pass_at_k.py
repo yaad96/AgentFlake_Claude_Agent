@@ -75,9 +75,16 @@ SENTINEL = ".run_complete"
 # slicing without a join.
 COMPLETE_SUMMARY_FILE = REPROFLAKE_DIR / "Complete Containers Summary.csv"
 COMPLETE_SUMMARY_COLS = [
-    "timestamp", "container", "test_type", "model", "run", "verdict",
-    "turns_taken", "input_tokens", "output_tokens", "total_tokens",
-    "llm_seconds", "rv_traces_used",
+    "timestamp", "container", "test_type", "model", "run", "final verdict",
+    "turns_taken", "rv_traces_used",
+    # Phase 5 feedback-round columns. Pre-feedback rows in the existing CSV
+    # leave these empty; csv.DictWriter handles missing keys via
+    # extrasaction="ignore" without complaint. Reading consumers (pandas etc)
+    # see "" / NaN for old rows and "yes"/"no" for new ones.
+    "feedback_used", "verdict_pre_feedback", "feedback_category",
+    # Cost/perf columns at the end so the verdict + feedback-status columns
+    # are visible without horizontal scroll in spreadsheet viewers.
+    "input_tokens", "output_tokens", "total_tokens", "llm_seconds",
 ]
 
 
@@ -179,9 +186,15 @@ def parse_run(per_run_dir: Path, container, test_type, model, run_n):
     llm_resp = steps / "llm_response.json"
     llm_t1 = steps / "llm_response_turn1.json"
     llm_t2 = steps / "llm_response_turn2.json"
+    llm_t3 = steps / "llm_response_turn3.json"
+    llm_t4 = steps / "llm_response_turn4.json"
     artifacts_t2 = steps / "llm_artifacts_turn2.txt"
     verify_log = steps / "verify_after_fix.log"
     pipeline = per_run_dir / "pipeline.log"
+
+    # Feedback-round artifacts (only present when feedback fired).
+    pre_verdict_file = steps / "verify_after_fix_pre_feedback.verdict"
+    fail_category_file = steps / "fail_category.txt"
 
     verdict = "INCOMPLETE"
     if verdict_file.is_file():
@@ -193,28 +206,48 @@ def parse_run(per_run_dir: Path, container, test_type, model, run_n):
     resp = safe_json(llm_resp) or {}
     t1 = safe_json(llm_t1) or {}
     t2 = safe_json(llm_t2) or {}
+    t3 = safe_json(llm_t3) or {}
+    t4 = safe_json(llm_t4) or {}
 
     # Token shape varies (claude vs openai). Claude with prompt caching
     # splits input across `input_tokens` (uncached new), `cache_creation_input_tokens`
     # (newly cached), and `cache_read_input_tokens` (re-used from cache); the
     # full input charge is the SUM of these three. OpenAI uses `prompt_tokens`.
+    # turn3 (when feedback fired) and turn4 (Option B: when feedback's turn 3
+    # requested artifacts) use the same shape as turns 1-2 for their backend,
+    # so the same key list works for all four.
     def toks(d, *keys):
         u = d.get("usage") or {}
         return sum((u.get(k) or 0) for k in keys)
 
-    in_tokens = (
-        toks(t1, "input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "prompt_tokens")
-        + toks(t2, "input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens", "prompt_tokens")
-    )
-    out_tokens = (
-        toks(t1, "output_tokens", "completion_tokens")
-        + toks(t2, "output_tokens", "completion_tokens")
-    )
+    INPUT_KEYS = ("input_tokens", "cache_creation_input_tokens",
+                  "cache_read_input_tokens", "prompt_tokens")
+    OUTPUT_KEYS = ("output_tokens", "completion_tokens")
+
+    in_tokens = (toks(t1, *INPUT_KEYS) + toks(t2, *INPUT_KEYS)
+                 + toks(t3, *INPUT_KEYS) + toks(t4, *INPUT_KEYS))
+    out_tokens = (toks(t1, *OUTPUT_KEYS) + toks(t2, *OUTPUT_KEYS)
+                  + toks(t3, *OUTPUT_KEYS) + toks(t4, *OUTPUT_KEYS))
     total = in_tokens + out_tokens
 
-    turns = resp.get("turns_taken", 1 if not llm_t2.is_file() else 2)
-    finish = (t2 or t1).get("stop_reason") or (t2 or t1).get("finish_reason") or ""
-    elapsed_llm = float((t1.get("elapsed_seconds") or 0) + (t2.get("elapsed_seconds") or 0))
+    # Default turns: 1/2/3/4 depending on which turn files exist.
+    # llm_response.json's turns_taken (set by call_llm scripts) takes
+    # precedence; the default fires only on malformed prior state.
+    default_turns = (4 if llm_t4.is_file() else
+                     3 if llm_t3.is_file() else
+                     2 if llm_t2.is_file() else 1)
+    turns = resp.get("turns_taken", default_turns)
+    # `(t4 or t3 or t2 or t1)` picks the latest turn that actually ran for
+    # the canonical finish reason — feedback's turn4 (when artifact retrieval
+    # fired) supersedes turn3, which supersedes turn2/1.
+    finish = ((t4 or t3 or t2 or t1).get("stop_reason")
+              or (t4 or t3 or t2 or t1).get("finish_reason") or "")
+    elapsed_llm = float(
+        (t1.get("elapsed_seconds") or 0)
+        + (t2.get("elapsed_seconds") or 0)
+        + (t3.get("elapsed_seconds") or 0)
+        + (t4.get("elapsed_seconds") or 0)
+    )
 
     artifacts_req = len(t1.get("artifacts_requested") or [])
     artifacts_miss = 0
@@ -278,6 +311,31 @@ def parse_run(per_run_dir: Path, container, test_type, model, run_n):
         if not fail_snippet:
             fail_snippet = result.get("reason", "")[:200]
 
+    # Feedback-round status. Existence of llm_response_turn3.json is the
+    # canonical signal — only _feedback_main writes that file, and the
+    # call_llm scripts' stale-cleanup at top of main() removes it from a
+    # prior run. We previously gated on verify_after_fix_pre_feedback.verdict,
+    # but that file is written by feedback_loop.sh's snapshot step (which
+    # also doesn't get cleaned by the orchestrator's step 0), so a clean
+    # iter-1 PASS in run N+1 would inherit run N's pre_feedback files and
+    # be falsely tagged feedback_used=yes with turns_taken=1 or 2 (impossible
+    # for a real feedback round, where turns_taken >= 3).
+    if llm_t3.is_file():
+        feedback_used = "yes"
+        if pre_verdict_file.is_file():
+            pv = pre_verdict_file.read_text(encoding="utf-8", errors="replace").strip()
+            verdict_pre_feedback = pv if pv in ("PASSED", "FAILED", "INCOMPLETE") else "INCOMPLETE"
+        else:
+            verdict_pre_feedback = "INCOMPLETE"
+        feedback_category = (
+            fail_category_file.read_text(encoding="utf-8", errors="replace").strip()
+            if fail_category_file.is_file() else ""
+        )
+    else:
+        feedback_used = "no"
+        verdict_pre_feedback = verdict
+        feedback_category = ""
+
     return {
         "container": container,
         "test_type": test_type,
@@ -307,6 +365,13 @@ def parse_run(per_run_dir: Path, container, test_type, model, run_n):
         "failure_markers": markers,
         "fail_snippet": fail_snippet,
         "elapsed_total_seconds": round(elapsed_total, 1),
+        # Phase 5 feedback-round columns. Populated only when feedback fired
+        # (presence of verify_after_fix_pre_feedback.verdict is the signal).
+        # For older runs that predate the feedback loop, feedback_used stays
+        # "no" and verdict_pre_feedback == verdict.
+        "feedback_used": feedback_used,
+        "verdict_pre_feedback": verdict_pre_feedback,
+        "feedback_category": feedback_category,
     }
 
 
@@ -359,6 +424,8 @@ CSV_COLS = [
     "recompile_ok", "host_compile_ok",
     "verify_tests", "verify_failures", "verify_errors", "failure_markers",
     "fail_snippet",
+    # Phase 5 feedback-round columns.
+    "feedback_used", "verdict_pre_feedback", "feedback_category",
 ]
 
 
@@ -398,8 +465,7 @@ def collect_all_rows_on_disk(runs_root: Path, container: str, test_type: str) ->
 
 def append_complete_summary(rows, rv_traces):
     """Append one row per (model, run) from THIS invocation to the
-    cross-invocation log at COMPLETE_SUMMARY_FILE. Creates the file with a
-    header on first invocation; subsequent invocations only append.
+    cross-invocation log at COMPLETE_SUMMARY_FILE.
 
     All rows from a single invocation share one timestamp so they're easy to
     group later. The `rv_traces_used` column ('yes'/'no') records whether
@@ -409,35 +475,68 @@ def append_complete_summary(rows, rv_traces):
     Container-level metadata other than test_type (victim FQN, polluter,
     module, java, nondex seed, etc.) is NOT duplicated here — join back to
     test_config.csv on the `container` column to look it up.
+
+    Schema migration: when COMPLETE_SUMMARY_COLS gains new columns (e.g.
+    Phase 5 added feedback_used / verdict_pre_feedback / feedback_category)
+    a plain append would corrupt the file's column structure. So instead of
+    appending, we always read existing rows and rewrite the file with the
+    current schema, atomically via tmp-then-rename. Old rows that lacked
+    the new columns get empty strings in those cells — interpretable by
+    pandas/csv as NaN/"". Rewriting an N-row file is O(N) per call but N
+    is hundreds, not millions; trivially fast.
     """
     if not rows:
         return
     timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    file_existed = COMPLETE_SUMMARY_FILE.is_file()
-    with open(COMPLETE_SUMMARY_FILE, "a", encoding="utf-8", newline="") as f:
+
+    new_row_dicts = []
+    for r in rows:
+        new_row_dicts.append({
+            "timestamp": timestamp,
+            "container": r["container"],
+            "test_type": r["test_type"],
+            "model": r["model"],
+            "run": f"run {r['run']}",
+            "final verdict": r["verdict"],
+            "turns_taken": r["turns_taken"],
+            "rv_traces_used": rv_traces,
+            "feedback_used": r.get("feedback_used", "no"),
+            "verdict_pre_feedback": r.get("verdict_pre_feedback", r["verdict"]),
+            "feedback_category": r.get("feedback_category", ""),
+            "input_tokens": r["input_tokens_total"],
+            "output_tokens": r["output_tokens_total"],
+            "total_tokens": r["total_tokens"],
+            "llm_seconds": round(r["elapsed_llm_seconds"], 1),
+        })
+
+    existing_rows = []
+    if COMPLETE_SUMMARY_FILE.is_file():
+        with open(COMPLETE_SUMMARY_FILE, encoding="utf-8", newline="") as f:
+            existing_rows = list(csv.DictReader(f))
+
+    # Schema rename: column "verdict" → "final verdict". Without this,
+    # extrasaction="ignore" would silently drop the old column's data on
+    # migrated rows, leaving "final verdict" empty for every pre-rename row.
+    for r in existing_rows:
+        if "verdict" in r and "final verdict" not in r:
+            r["final verdict"] = r.pop("verdict")
+
+    tmp_path = COMPLETE_SUMMARY_FILE.with_suffix(COMPLETE_SUMMARY_FILE.suffix + ".tmp")
+    with open(tmp_path, "w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(
             f, fieldnames=COMPLETE_SUMMARY_COLS,
             quoting=csv.QUOTE_ALL, extrasaction="ignore",
         )
-        if not file_existed:
-            w.writeheader()
-        for r in rows:
-            w.writerow({
-                "timestamp": timestamp,
-                "container": r["container"],
-                "test_type": r["test_type"],
-                "model": r["model"],
-                "run": f"run {r['run']}",
-                "verdict": r["verdict"],
-                "turns_taken": r["turns_taken"],
-                "input_tokens": r["input_tokens_total"],
-                "output_tokens": r["output_tokens_total"],
-                "total_tokens": r["total_tokens"],
-                "llm_seconds": round(r["elapsed_llm_seconds"], 1),
-                "rv_traces_used": rv_traces,
-            })
+        w.writeheader()
+        for r in existing_rows:
+            w.writerow(r)   # missing keys → empty cells; extras dropped
+        for r in new_row_dicts:
+            w.writerow(r)
+    tmp_path.replace(COMPLETE_SUMMARY_FILE)
+
     print(f"[wrapper] appended {len(rows)} row(s) to "
-          f"{COMPLETE_SUMMARY_FILE.name}")
+          f"{COMPLETE_SUMMARY_FILE.name}  "
+          f"(total: {len(existing_rows) + len(new_row_dicts)} rows)")
 
 
 def write_summary(rows, runs_root: Path, container, row_meta, runs_per_model):
@@ -632,22 +731,22 @@ def main():
             all_rows = collect_all_rows_on_disk(runs_root, args.container, test_type)
             write_summary(all_rows, runs_root, args.container, row, args.runs)
 
-    # Always refresh summary at the end too, picking up any prior on-disk
-    # runs (e.g., from earlier invocations with different --models or after
-    # extractor changes the user wants reflected in existing runs). Same
-    # disk-walk rationale as the incremental write.
+            # Append THIS run's row to the cross-invocation log immediately
+            # so a mid-batch crash (or Ctrl+C) preserves partial progress and
+            # downstream readers can tail the file live. append_complete_summary
+            # does an atomic .tmp+rename rewrite, so calling it 6× per batch
+            # (typical 2 models × 3 runs) is safe and adds <100ms total on a
+            # ~100-row file. Each row gets its own completion-time timestamp
+            # — different from the previous batch-shared-timestamp behavior.
+            append_complete_summary([row_data], args.rv_traces)
+
+    # Always refresh per-container summary at the end too, picking up any
+    # prior on-disk runs (e.g., from earlier invocations with different
+    # --models or after extractor changes the user wants reflected in
+    # existing runs). Same disk-walk rationale as the incremental write.
     all_rows = collect_all_rows_on_disk(runs_root, args.container, test_type)
     if all_rows:
         write_summary(all_rows, runs_root, args.container, row, args.runs)
-
-    # Append this invocation's per-run rows to the cross-invocation log
-    # BEFORE workspace cleanup. Cleanup can take a long time (rmtree of a
-    # multi-gigabyte data/<container>/ tree, plus a docker container
-    # stop/remove), and there's no reason to make CSV consumers wait for
-    # it. `rows` contains ONLY this invocation's results (not all-time rows
-    # on disk), which is what we want — the file accumulates one batch per
-    # call.
-    append_complete_summary(rows, args.rv_traces)
 
     # Clean up the scratch workspace at data/<container>/ — it's just the
     # last run's state, redundant with the archived per-run snapshots.

@@ -181,13 +181,17 @@ EOF
 #                     the zip + patches.
 # ============================================================
 if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
-  if [[ -d "$DATA_DIR/Fixed" || -d "$DATA_DIR/Flaky" || -d "$DATA_DIR/FlakyCodeChange" || -d "$DATA_DIR/Flakym2" || -d "$DATA_DIR/result" ]]; then
+  if [[ -d "$DATA_DIR/Fixed" || -d "$DATA_DIR/Flaky" || -d "$DATA_DIR/FlakyCodeChange" || -d "$DATA_DIR/Flakym2" || -d "$DATA_DIR/Flaky.pristine" || -d "$DATA_DIR/result" ]]; then
     echo "[step 0 ] Cleaning mutated source dirs from previous run in $DATA_DIR/"
     echo "          (set KEEP_SOURCE=1 to keep them and resume from existing state)"
+    # Flaky.pristine is the snapshot taken in step 9.5 for the feedback
+    # round's clean re-apply. It's a duplicate of the unzipped Flaky/, so
+    # cleaning it here is safe and keeps disk usage bounded across runs.
     rm -rf "$DATA_DIR/Fixed" \
            "$DATA_DIR/FlakyCodeChange" \
            "$DATA_DIR/Flaky" \
            "$DATA_DIR/Flakym2" \
+           "$DATA_DIR/Flaky.pristine" \
            "$DATA_DIR/result"
   fi
 fi
@@ -492,52 +496,43 @@ echo "[step 9 ] call_llm.py ($LLM_BACKEND)  -> $STEPS_REL/llm_response.json"
 ( cd "$LLM_SCRIPTS_DIR" && python3 call_llm.py "$RESULT_CONTAINER" "$LLM_BACKEND" )
 
 # ============================================================
-# STEP 10 — Apply the LLM-proposed fix to Flaky/ + recompile bytecode
+# STEP 9.5 — Snapshot Flaky/ for potential feedback re-apply
 #
-# apply_fix.py:
-#   1. tries `git apply` (then `--recount`) on output_a.patch
-#   2. falls back to splicing output_b.fixed_code via the operation/anchor schema
-#   3. host-side javac smoke-tests touched .java files
-#   4. runs `mvn test-compile -pl <module> -am` INSIDE the container so
-#      target/test-classes/ holds the patched bytecode (without this,
-#      step 13's surefire run would silently execute stale .class files
-#      and report a false negative).
+# The feedback loop (see feedback_loop.sh) restores Flaky/ from this
+# snapshot before re-applying a corrected patch. Cheap (~1-3s on SSD)
+# and avoids needing to re-unzip from $ZIP_PATH or reverse-apply the
+# previous patch. Cleaned up at end-of-run (or by step 0 of the next run).
 # ============================================================
-echo "[step 10] apply_fix.py                 -> $STEPS_REL/apply_report.json"
-STEP12_OK=1
-( cd "$LLM_SCRIPTS_DIR" && python3 apply_fix.py "$RESULT_CONTAINER" \
-    --docker-container "$CONTAINER" ) || STEP12_OK=0
-
-if (( ! STEP12_OK )); then
-  echo "[step 10] apply_fix.py exited non-zero — LLM patch did not land cleanly."
-  echo "          See $STEPS_REL/apply_report.json for details."
-  echo "          Verdict will be FAILED (no compiled fix to verify)."
-fi
+echo "[step 9.5] snapshotting Flaky/ → $DATA_DIR/Flaky.pristine (for feedback re-apply)"
+rm -rf "$DATA_DIR/Flaky.pristine"
+cp -r "$DATA_DIR/Flaky" "$DATA_DIR/Flaky.pristine"
 
 # ============================================================
-# STEP 11 — Verify the LLM fix actually breaks the OD pair
+# verify_victim() — extracted from the inline step-11 block so the
+# feedback loop can call it twice (once for iter 1's apply, once for
+# iter 2's post-feedback apply) without code duplication.
 #
-# Strict binary verdict:
-#   PASSED iff step 12 landed AND the patched Flaky/ now produces
-#          Tests>0, Failures=0, Errors=0 on the polluter -> victim sequence.
-#   FAILED in all other cases (compile failure in step 12, missing surefire
-#          summary, or any failing/erroring test).
+# Reads:  patched /app/work/Flaky/ inside the container
+# Writes: $STEPS_OUT_DIR/verify_after_fix.log
+# Sets:   VERDICT global to "PASSED" or "FAILED"
 #
-# Same surefire invocation as step 6c (extension + SUREFIRE_VERSION +
-# runOrder=testorder) so we run on the testorder-capable Surefire fork.
-# TraceMOP attaches harmlessly — we don't read its traces here.
+# Uses the SAME surefire invocation as step 6c (extension +
+# SUREFIRE_VERSION + runOrder=testorder) so we run on the
+# testorder-capable Surefire fork. TraceMOP attaches harmlessly — we
+# don't read its traces here.
+#
+# -Dsurefire.timeout=180 caps the forked test JVM at 3 minutes. Without
+# it, an LLM-patched test that busy-loops or deadlocks (e.g. a
+# `while (!cond) {}` retry without bound) hangs the wrapper indefinitely.
+# 180s is ~3× the longest known-good OD test wall time; large enough not
+# to cause false-failure on slow tests, small enough that runaway patches
+# surface within minutes instead of hours.
 # ============================================================
-VERDICT="FAILED"
-if (( STEP12_OK )); then
+verify_victim() {
+  local VERIFY_LOG VSUM VTESTS VFAIL VERR MARKERS
   VERIFY_LOG="$STEPS_OUT_DIR/verify_after_fix.log"
   echo "[step 11] Re-running '${POLLUTER},${VICTIM}' against patched Flaky/  -> $STEPS_REL/verify_after_fix.log"
 
-  # -Dsurefire.timeout=180 caps the forked test JVM at 3 minutes. Without
-  # it, an LLM-patched test that busy-loops or deadlocks (e.g. a
-  # `while (!cond) {}` retry without bound) hangs the wrapper indefinitely.
-  # 180s is ~3× the longest known-good OD test wall time; large enough not
-  # to cause false-failure on slow tests, small enough that runaway patches
-  # surface within minutes instead of hours.
   docker exec "$CONTAINER" bash -c "
     cd /app/work/Flaky
     export SUREFIRE_VERSION=3.0.0-M8-SNAPSHOT
@@ -553,6 +548,7 @@ if (( STEP12_OK )); then
   VSUM=$(grep -E "Tests run:[[:space:]]+[0-9]+,[[:space:]]+Failures:[[:space:]]+[0-9]+,[[:space:]]+Errors:[[:space:]]+[0-9]+" \
             "$VERIFY_LOG" 2>/dev/null | tail -1 || true)
 
+  VERDICT="FAILED"
   if [[ -n "$VSUM" ]]; then
     VTESTS=$(   sed -nE 's/.*Tests run:[[:space:]]+([0-9]+).*/\1/p'   <<<"$VSUM")
     VFAIL=$(    sed -nE 's/.*Failures:[[:space:]]+([0-9]+).*/\1/p'    <<<"$VSUM")
@@ -570,7 +566,6 @@ if (( STEP12_OK )); then
         echo "[step 11] WARNING: summary claims 0 failures but log has $MARKERS per-test"
         echo "          failure marker(s) (<<< FAILURE! / <<< ERROR!). Summary is unreliable;"
         echo "          treating as FAILED."
-        VERDICT="FAILED"
       else
         VERDICT="PASSED"
       fi
@@ -579,8 +574,36 @@ if (( STEP12_OK )); then
   else
     echo "[step 11] No Surefire summary line in verify log — verdict FAILED."
   fi
+}
+
+# ============================================================
+# STEP 10 + 11 — apply_fix.py + verify, with optional feedback round
+#
+# feedback_loop.sh's run_apply_verify_feedback_loop() does:
+#   iter 1: apply_fix.py reads llm_response.json, applies onto Flaky/,
+#           recompiles. Then verify_victim() runs the OD polluter,victim
+#           pair. If PASSED → done. If FAILED + retriable category
+#           (compile_failed | test_failed) → feedback round.
+#   between iters: snapshot pre-feedback artifacts, build_feedback.py
+#           writes feedback_payload.txt, call_llm.py --feedback-from
+#           overwrites llm_response.json with the corrected patch,
+#           Flaky/ is restored from Flaky.pristine.
+#   iter 2: same apply_fix.py + verify_victim, against the corrected patch.
+#
+# After the loop, $STEPS_OUT_DIR/verify_after_fix.{log,verdict} hold the
+# FINAL attempt's results. *_pre_feedback siblings (if feedback fired)
+# capture the original attempt for audit + Phase 5 CSV columns.
+# ============================================================
+# shellcheck source=feedback_loop.sh
+source "$SCRIPT_DIR/feedback_loop.sh"
+run_apply_verify_feedback_loop
+
+# Cleanup the snapshot. KEEP_SOURCE=1 preserves it for post-run inspection
+# (and step 0 will wipe it on the next run anyway). Default behavior
+# reclaims the disk now to keep batch runs bounded.
+if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
+  rm -rf "$DATA_DIR/Flaky.pristine"
 fi
-printf '%s\n' "$VERDICT" > "$STEPS_OUT_DIR/verify_after_fix.verdict"
 
 # ============================================================
 # Summary

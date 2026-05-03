@@ -274,13 +274,16 @@ EOF
 #                     the zip + patches; step 4c re-generates the wrapper.
 # ============================================================
 if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
-  if [[ -d "$DATA_DIR/Fixed" || -d "$DATA_DIR/Flaky" || -d "$DATA_DIR/FlakyCodeChange" || -d "$DATA_DIR/Flakym2" || -d "$DATA_DIR/result" ]]; then
+  if [[ -d "$DATA_DIR/Fixed" || -d "$DATA_DIR/Flaky" || -d "$DATA_DIR/FlakyCodeChange" || -d "$DATA_DIR/Flakym2" || -d "$DATA_DIR/Flaky.pristine" || -d "$DATA_DIR/result" ]]; then
     echo "[step 0 ] Cleaning mutated source dirs from previous run in $DATA_DIR/"
     echo "          (set KEEP_SOURCE=1 to keep them and resume from existing state)"
+    # Flaky.pristine is the snapshot taken in step 9.5 for the feedback
+    # round's clean re-apply.
     rm -rf "$DATA_DIR/Fixed" \
            "$DATA_DIR/FlakyCodeChange" \
            "$DATA_DIR/Flaky" \
            "$DATA_DIR/Flakym2" \
+           "$DATA_DIR/Flaky.pristine" \
            "$DATA_DIR/result"
   fi
 fi
@@ -333,6 +336,64 @@ fi
 for d in Fixed Flaky Flakym2; do
   [[ -d "$DATA_DIR/$d" ]] || { echo "ERROR: $DATA_DIR/$d missing after step 1"; exit 1; }
 done
+
+# ----- preflight: victim method must exist in resolved source -------
+# Catches CSV rows whose flaky_test method name is absent from the unpacked
+# tree. Without this, the failure surfaces ~90s later as a confusing
+# "No tests found matching Method ..." inside the Fixed+wrapper sanity step,
+# where the existing error message attributes the fault to either Fixed.patch
+# or wrapper-invocation logic — neither of which is the actual cause.
+VICTIM_FILE_REL="${MODULE}/src/test/java/${VICTIM_PKG_PATH}/${VICTIM_CLASS_SIMPLE}.java"
+VICTIM_FILE_ABS="$DATA_DIR/Fixed/$VICTIM_FILE_REL"
+
+if [[ ! -f "$VICTIM_FILE_ABS" ]]; then
+  echo "ERROR: victim source file not found at $VICTIM_FILE_REL"
+  echo "       (full path: $VICTIM_FILE_ABS)"
+  echo "       The CSV row references a class FQN or module that doesn't"
+  echo "       resolve under the unpacked Fixed/ tree. Check the 'module'"
+  echo "       and 'flaky_test' columns of $CSV for $RESULT_CONTAINER."
+  exit 1
+fi
+
+if ! grep -qwF "$VICTIM_METHOD" "$VICTIM_FILE_ABS"; then
+  echo "ERROR: victim method '$VICTIM_METHOD' is not present in $VICTIM_FILE_REL."
+  echo
+  echo "       The CSV row '$RESULT_CONTAINER' names a method that does not"
+  echo "       exist anywhere in the resolved source tree (Flaky/Fixed unpacked"
+  echo "       from ${ZIP}.zip)."
+  echo
+  echo "       The auto-generated NIO wrapper would call"
+  echo "         Request.method($VICTIM_CLASS_SIMPLE.class, \"$VICTIM_METHOD\")"
+  echo "       and JUnit would respond with 'No tests found matching Method ...',"
+  echo "       failing both the Fixed+wrapper and Flaky+wrapper sanity runs."
+  echo
+  echo "       Methods that ARE declared in $VICTIM_CLASS_SIMPLE:"
+  # Two-pass awk: catches single-line ("public void NAME(") AND multi-line
+  # ("public void" \n "NAME(") declarations — the latter is common in
+  # junit-quickcheck-style test classes where the @Test annotation +
+  # modifiers + return type sit on one line and the method name is on the
+  # next. A plain grep misses the second case, hiding the closest-name
+  # candidate from the diagnostic output (e.g., for quickcheckc1c34 the
+  # most-similar real method is wrapped that way).
+  awk '
+    match($0, /void[[:space:]]+[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\(/) {
+      s = substr($0, RSTART, RLENGTH)
+      sub(/^void[[:space:]]+/, "", s); sub(/[[:space:]]*\(.*$/, "", s)
+      print s; next
+    }
+    /[^a-zA-Z0-9_]void[[:space:]]*$/ { saw_void = NR; next }
+    saw_void == NR-1 && match($0, /^[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\(/) {
+      s = substr($0, RSTART, RLENGTH)
+      sub(/^[[:space:]]*/, "", s); sub(/[[:space:]]*\(.*$/, "", s)
+      print s; saw_void = 0
+    }
+  ' "$VICTIM_FILE_ABS" | sort -u | sed 's/^/         - /' || true
+  echo
+  echo "       To proceed: either skip $RESULT_CONTAINER, correct the 'flaky_test'"
+  echo "       column in $CSV, or verify the dataset's claimed commit hashes"
+  echo "       against upstream (see flaky_info.txt)."
+  exit 1
+fi
 
 # ----- detect surefire version pinned by the project --------
 # Parse the surefire-plugin <version> from Flaky/pom.xml. If any of the parsing
@@ -693,30 +754,22 @@ echo "[step 9 ] call_llm.py ($LLM_BACKEND)  -> $STEPS_REL/llm_response.json"
 # (apply_fix.py handles the patch; recompile is done in-container so step 13
 #  doesn't run stale .class files)
 # ============================================================
-echo "[step 10] apply_fix.py                -> $STEPS_REL/apply_report.json"
-STEP12_OK=1
-( cd "$LLM_SCRIPTS_DIR" && python3 apply_fix.py "$RESULT_CONTAINER" \
-    --docker-container "$CONTAINER" ) || STEP12_OK=0
-
-if (( ! STEP12_OK )); then
-  echo "[step 10] apply_fix.py exited non-zero — LLM patch did not land cleanly."
-  echo "          See $STEPS_REL/apply_report.json for details."
-  echo "          Verdict will be FAILED (no compiled fix to verify)."
-fi
+# ============================================================
+# STEP 9.5 — Snapshot Flaky/ for potential feedback re-apply
+# ============================================================
+echo "[step 9.5] snapshotting Flaky/ → $DATA_DIR/Flaky.pristine (for feedback re-apply)"
+rm -rf "$DATA_DIR/Flaky.pristine"
+cp -r "$DATA_DIR/Flaky" "$DATA_DIR/Flaky.pristine"
 
 # ============================================================
-# STEP 11 — Verify the LLM fix actually removes the NIO failure
-#
-# Strict binary verdict (preserves the cross-script invariant):
-#   PASSED iff step 12 landed AND the patched Flaky/ runs the wrapper with
-#          Tests=1, Failures=0, Errors=0 (i.e., both invocations now pass).
-#   FAILED in all other cases.
-#
-# Same surefire invocation as step 6c (extension + SUREFIRE_VERSION + wrapper)
-# so the verification mirrors the diff-collection runs exactly.
+# verify_victim() — NIO: invoke the auto-generated wrapper's runTwice()
+# method. The wrapper (created in step 4c) runs the victim twice in one
+# JVM via Request.method() + JUnitCore.run(); PASSED requires Tests=1,
+# Failures=0, Errors=0 (both invocations passed inside that single
+# wrapper test).
 # ============================================================
-VERDICT="FAILED"
-if (( STEP12_OK )); then
+verify_victim() {
+  local VERIFY_LOG VTESTS VFAIL VERR MARKERS
   VERIFY_LOG="$STEPS_OUT_DIR/verify_after_fix.log"
   echo "[step 11] Re-running wrapper '${WRAPPER_FQCN}#runTwice' against patched Flaky/  -> $STEPS_REL/verify_after_fix.log"
 
@@ -738,26 +791,32 @@ if (( STEP12_OK )); then
   " > "$VERIFY_LOG" 2>&1 || true
 
   read -r VTESTS VFAIL VERR <<< "$(parse_summary "$VERIFY_LOG")"
+  VERDICT="FAILED"
   if (( VTESTS > 0 && VFAIL == 0 && VERR == 0 )); then
-    # Defensive cross-check: even if surefire's summary line claims 0
-    # failures, scan the log for per-test failure markers. Discrepancy
-    # would indicate the summary is unreliable (rare but possible with
-    # surefire forks, custom providers, or accounting bugs). Treat any
-    # discrepancy as FAILED — false-positive PASS is the worst outcome.
     MARKERS=$(grep -cE '<<< FAILURE!|<<< ERROR!' "$VERIFY_LOG" 2>/dev/null || true)
     MARKERS=${MARKERS:-0}
     if (( MARKERS > 0 )); then
       echo "[step 11] WARNING: summary claims 0 failures but log has $MARKERS per-test"
       echo "          failure marker(s) (<<< FAILURE! / <<< ERROR!). Summary is unreliable;"
       echo "          treating as FAILED."
-      VERDICT="FAILED"
     else
       VERDICT="PASSED"
     fi
   fi
   echo "[step 11] Tests=$VTESTS Failures=$VFAIL Errors=$VERR"
+}
+
+# ============================================================
+# STEP 10 + 11 — apply_fix.py + verify, with optional feedback round
+# ============================================================
+# shellcheck source=feedback_loop.sh
+source "$SCRIPT_DIR/feedback_loop.sh"
+run_apply_verify_feedback_loop
+
+# Cleanup the snapshot. KEEP_SOURCE=1 preserves it for post-run inspection.
+if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
+  rm -rf "$DATA_DIR/Flaky.pristine"
 fi
-printf '%s\n' "$VERDICT" > "$STEPS_OUT_DIR/verify_after_fix.verdict"
 
 # ============================================================
 # Summary

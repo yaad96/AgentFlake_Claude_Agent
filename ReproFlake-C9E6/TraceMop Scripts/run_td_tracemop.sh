@@ -156,13 +156,16 @@ EOF
 #                     the zip + patches.
 # ============================================================
 if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
-  if [[ -d "$DATA_DIR/Fixed" || -d "$DATA_DIR/Flaky" || -d "$DATA_DIR/FlakyCodeChange" || -d "$DATA_DIR/Flakym2" || -d "$DATA_DIR/result" ]]; then
+  if [[ -d "$DATA_DIR/Fixed" || -d "$DATA_DIR/Flaky" || -d "$DATA_DIR/FlakyCodeChange" || -d "$DATA_DIR/Flakym2" || -d "$DATA_DIR/Flaky.pristine" || -d "$DATA_DIR/result" ]]; then
     echo "[step 0 ] Cleaning mutated source dirs from previous run in $DATA_DIR/"
     echo "          (set KEEP_SOURCE=1 to keep them and resume from existing state)"
+    # Flaky.pristine is the snapshot taken in step 9.5 for the feedback
+    # round's clean re-apply. Cleaning it here keeps disk bounded across runs.
     rm -rf "$DATA_DIR/Fixed" \
            "$DATA_DIR/FlakyCodeChange" \
            "$DATA_DIR/Flaky" \
            "$DATA_DIR/Flakym2" \
+           "$DATA_DIR/Flaky.pristine" \
            "$DATA_DIR/result"
   fi
 fi
@@ -374,32 +377,24 @@ echo "[step 9 ] call_llm.py ($LLM_BACKEND)  -> $STEPS_REL/llm_response.json"
 #      step 13's surefire run would silently execute stale .class files
 #      and report a false negative).
 # ============================================================
-echo "[step 10] apply_fix.py                 -> $STEPS_REL/apply_report.json"
-STEP12_OK=1
-( cd "$LLM_SCRIPTS_DIR" && python3 apply_fix.py "$RESULT_CONTAINER" \
-    --docker-container "$CONTAINER" ) || STEP12_OK=0
-
-if (( ! STEP12_OK )); then
-  echo "[step 10] apply_fix.py exited non-zero — LLM patch did not land cleanly."
-  echo "          See $STEPS_REL/apply_report.json for details."
-  echo "          Verdict will be FAILED (no compiled fix to verify)."
-fi
+# ============================================================
+# STEP 9.5 — Snapshot Flaky/ for potential feedback re-apply
+# ============================================================
+echo "[step 9.5] snapshotting Flaky/ → $DATA_DIR/Flaky.pristine (for feedback re-apply)"
+rm -rf "$DATA_DIR/Flaky.pristine"
+cp -r "$DATA_DIR/Flaky" "$DATA_DIR/Flaky.pristine"
 
 # ============================================================
-# STEP 11 — Re-run the victim against patched Flaky/ to gauge the LLM fix
+# verify_victim() — TD: run the victim alone (no polluter, no testorder).
+# Same parse-and-set-VERDICT logic as OD, with a single-test invocation.
 #
-# Strict binary verdict:
-#   PASSED iff step 12 landed AND the patched Flaky/ runs the victim with
-#          Tests>0, Failures=0, Errors=0.
-#   FAILED in all other cases.
-#
-# CAVEAT (informational only — does not change the verdict): TD failures are
-# non-deterministic, so a single passing run is necessary-but-not-sufficient
-# evidence the fix worked. For rigorous verification, run the project's
-# NonDex/iteration config from the CSV row separately.
+# CAVEAT (preserved from inline step 11): TD failures are non-deterministic,
+# so a single passing run is necessary-but-not-sufficient evidence the fix
+# worked. For rigorous verification, run the project's NonDex/iteration
+# config from the CSV row separately.
 # ============================================================
-VERDICT="FAILED"
-if (( STEP12_OK )); then
+verify_victim() {
+  local VERIFY_LOG VSUM VTESTS VFAIL VERR MARKERS
   VERIFY_LOG="$STEPS_OUT_DIR/verify_after_fix.log"
   echo "[step 11] Re-running '${VICTIM}' against patched Flaky/  -> $STEPS_REL/verify_after_fix.log"
 
@@ -420,24 +415,19 @@ if (( STEP12_OK )); then
   VSUM=$(grep -E "Tests run:[[:space:]]+[0-9]+,[[:space:]]+Failures:[[:space:]]+[0-9]+,[[:space:]]+Errors:[[:space:]]+[0-9]+" \
             "$VERIFY_LOG" 2>/dev/null | tail -1 || true)
 
+  VERDICT="FAILED"
   if [[ -n "$VSUM" ]]; then
     VTESTS=$(   sed -nE 's/.*Tests run:[[:space:]]+([0-9]+).*/\1/p'   <<<"$VSUM")
     VFAIL=$(    sed -nE 's/.*Failures:[[:space:]]+([0-9]+).*/\1/p'    <<<"$VSUM")
     VERR=$(     sed -nE 's/.*Errors:[[:space:]]+([0-9]+).*/\1/p'      <<<"$VSUM")
     VTESTS=${VTESTS:-0}; VFAIL=${VFAIL:-0}; VERR=${VERR:-0}
     if (( VTESTS > 0 && VFAIL == 0 && VERR == 0 )); then
-      # Defensive cross-check: even if surefire's summary line claims 0
-      # failures, scan the log for per-test failure markers. Discrepancy
-      # would indicate the summary is unreliable (rare but possible with
-      # surefire forks, custom providers, or accounting bugs). Treat any
-      # discrepancy as FAILED — false-positive PASS is the worst outcome.
       MARKERS=$(grep -cE '<<< FAILURE!|<<< ERROR!' "$VERIFY_LOG" 2>/dev/null || true)
       MARKERS=${MARKERS:-0}
       if (( MARKERS > 0 )); then
         echo "[step 11] WARNING: summary claims 0 failures but log has $MARKERS per-test"
         echo "          failure marker(s) (<<< FAILURE! / <<< ERROR!). Summary is unreliable;"
         echo "          treating as FAILED."
-        VERDICT="FAILED"
       else
         VERDICT="PASSED"
       fi
@@ -446,8 +436,25 @@ if (( STEP12_OK )); then
   else
     echo "[step 11] No Surefire summary line in verify log — verdict FAILED."
   fi
+}
+
+# ============================================================
+# STEP 10 + 11 — apply_fix.py + verify, with optional feedback round
+#
+# See feedback_loop.sh and the analogous block in run_od_tracemop.sh for
+# the full mechanism. After the loop, $STEPS_OUT_DIR/verify_after_fix.{log,
+# verdict} hold the FINAL attempt's results; *_pre_feedback siblings (if
+# feedback fired) capture the original attempt for audit + Phase 5 CSV
+# columns.
+# ============================================================
+# shellcheck source=feedback_loop.sh
+source "$SCRIPT_DIR/feedback_loop.sh"
+run_apply_verify_feedback_loop
+
+# Cleanup the snapshot. KEEP_SOURCE=1 preserves it for post-run inspection.
+if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
+  rm -rf "$DATA_DIR/Flaky.pristine"
 fi
-printf '%s\n' "$VERDICT" > "$STEPS_OUT_DIR/verify_after_fix.verdict"
 
 # ============================================================
 # Summary
