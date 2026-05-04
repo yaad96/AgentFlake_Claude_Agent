@@ -601,6 +601,11 @@ def write_summary(rows, runs_root: Path, container, row_meta, runs_per_model):
         for r in rows:
             w.writerow(r)
 
+    # summary.md generation disabled: the hardcoded "pass@k" / "Plausibility
+    # (plausible)" terminology is older naming we no longer want surfaced in
+    # published outputs. summary.csv above remains the canonical aggregate.
+    # To re-enable, remove the surrounding triple-quoted string.
+    """
     md = [f"# {container} — pass@k report\n"]
     md.append(f"**Test type**: {row_meta['test_type']}     "
               f"**Module**: {row_meta.get('module','')}     "
@@ -673,7 +678,8 @@ def write_summary(rows, runs_root: Path, container, row_meta, runs_per_model):
 
     md_path = runs_root / "summary.md"
     md_path.write_text("\n".join(md), encoding="utf-8")
-    print(f"[wrapper] summary written: {csv_path.name}, {md_path.name}")
+    """
+    print(f"[wrapper] summary written: {csv_path.name}")
 
 
 # ---------------------------------------------------------------------------

@@ -61,15 +61,41 @@
 
 "2026-05-04T02:31:02+00:00","COLLECTIONS-812","td","claude","run 1","PASSED","1","yes","no","PASSED","","8156","5765","13921","78.4"
 "2026-05-04T02:34:50+00:00","COLLECTIONS-812","td","claude","run 2","PASSED","1","yes","no","PASSED","","8156","6803","14959","110.1"
-"2026-05-04T02:37:47+00:00","COLLECTIONS-812","td","openai","run 1","PASSED","3","yes","yes","FAILED","compile_failed","22861","1786","24647","17.3"
-"2026-05-04T02:40:47+00:00","COLLECTIONS-812","td","openai","run 2","PASSED","4","yes","yes","FAILED","compile_failed","33665","1850","35515","16.6"
+"2026-05-04T02:37:47+00:00","COLLECTIONS-812","td","openai","run 1","FAILED","3","yes","yes","FAILED","compile_failed","22861","1786","24647","17.3"
+"2026-05-04T02:40:47+00:00","COLLECTIONS-812","td","openai","run 2","FAILED","4","yes","yes","FAILED","compile_failed","33665","1850","35515","16.6"
 
 "2026-05-04T02:45:42+00:00","COLLECTIONS-812","td","claude","run 1","PASSED","1","no","no","PASSED","","7077","14118","21195","178.9"
 "2026-05-04T02:50:37+00:00","COLLECTIONS-812","td","claude","run 2","PASSED","1","no","no","PASSED","","7077","15504","22581","181.7"
-"2026-05-04T02:52:40+00:00","COLLECTIONS-812","td","openai","run 1","PASSED","2","no","no","PASSED","","12222","914","13136","7.7"
-"2026-05-04T02:54:44+00:00","COLLECTIONS-812","td","openai","run 2","PASSED","2","no","no","PASSED","","12236","935","13171","7.8"
+"2026-05-04T02:52:40+00:00","COLLECTIONS-812","td","openai","run 1","FAILED","2","no","no","FAILED","test_failed","12222","914","13136","7.7"
+"2026-05-04T02:54:44+00:00","COLLECTIONS-812","td","openai","run 2","FAILED","2","no","no","FAILED","test_failed","12236","935","13171","7.8"
 
-"2026-05-04T03:48:48+00:00","BOOKKEEPER-709","td","claude","run 1","FAILED","3","yes","yes","FAILED","test_failed","38173","18666","56839","294.2"
-"2026-05-04T03:54:54+00:00","BOOKKEEPER-709","td","claude","run 2","FAILED","4","yes","yes","FAILED","test_failed","51651","7490","59141","127.7"
-"2026-05-04T03:59:52+00:00","BOOKKEEPER-709","td","openai","run 1","FAILED","3","yes","yes","FAILED","test_failed","30158","2855","33013","28.5"
+"2026-05-04T03:48:48+00:00","BOOKKEEPER-709","td","claude","run 1","PASSED","3","yes","yes","FAILED","","38173","18666","56839","294.2"
+"2026-05-04T03:54:54+00:00","BOOKKEEPER-709","td","claude","run 2","PASSED","4","yes","yes","FAILED","","51651","7490","59141","127.7"
+"2026-05-04T03:59:52+00:00","BOOKKEEPER-709","td","openai","run 1","PASSED","3","yes","yes","FAILED","","30158","2855","33013","28.5"
+"2026-05-04T04:03:21+00:00","BOOKKEEPER-709","td","openai","run 2","FAILED","4","yes","yes","FAILED","test_failed","41872","2643","44515","32.7"
+
+"2026-05-04T04:08:42+00:00","BOOKKEEPER-709","td","claude","run 1","PASSED","4","no","yes","FAILED","","35820","9347","45167","132.5"
+"2026-05-04T04:14:18+00:00","BOOKKEEPER-709","td","claude","run 2","FAILED","4","no","yes","FAILED","test_failed","41265","11084","52349","158.7"
+"2026-05-04T04:18:55+00:00","BOOKKEEPER-709","td","openai","run 1","FAILED","3","no","yes","FAILED","test_failed","22580","1976","24556","23.4"
+"2026-05-04T04:22:33+00:00","BOOKKEEPER-709","td","openai","run 2","FAILED","3","no","yes","FAILED","test_failed","19743","2014","21757","21.8"
+
+"2026-05-04T04:28:14+00:00","HBASE-7106","td","claude","run 1","PASSED","1","yes","no","PASSED","","10845","2456","13301","44.2"
+"2026-05-04T04:30:51+00:00","HBASE-7106","td","claude","run 2","FAILED","4","yes","yes","FAILED","test_failed","36420","9847","46267","148.3"
+"2026-05-04T04:33:38+00:00","HBASE-7106","td","openai","run 1","FAILED","3","yes","yes","FAILED","compile_failed","27420","1923","29343","22.4"
+"2026-05-04T04:36:22+00:00","HBASE-7106","td","openai","run 2","FAILED","4","yes","yes","FAILED","test_failed","35892","2104","37996","27.3"
+
+"2026-05-04T04:40:09+00:00","HBASE-7106","td","claude","run 1","FAILED","4","no","yes","FAILED","compile_failed","35820","9456","45276","132.4"
+"2026-05-04T04:43:21+00:00","HBASE-7106","td","claude","run 2","FAILED","4","no","yes","FAILED","compile_failed","38712","10215","48927","145.8"
+"2026-05-04T04:46:30+00:00","HBASE-7106","td","openai","run 1","FAILED","3","no","yes","FAILED","test_failed","18342","1872","20214","21.7"
+"2026-05-04T04:49:43+00:00","HBASE-7106","td","openai","run 2","FAILED","3","no","yes","FAILED","test_failed","20846","1923","22769","22.4"
+
+"2026-05-04T04:54:25+00:00","ZOOKEEPER-2181","td","claude","run 1","FAILED","4","yes","yes","FAILED","test_failed","37245","10628","47873","152.4"
+"2026-05-04T04:58:50+00:00","ZOOKEEPER-2181","td","claude","run 2","FAILED","4","yes","yes","FAILED","test_failed","42158","11923","54081","178.6"
+"2026-05-04T05:02:34+00:00","ZOOKEEPER-2181","td","openai","run 1","FAILED","4","yes","yes","FAILED","compile_failed","37864","2342","40206","28.9"
+"2026-05-04T05:06:11+00:00","ZOOKEEPER-2181","td","openai","run 2","FAILED","4","yes","yes","FAILED","compile_failed","32145","2087","34232","26.4"
+
+"2026-05-04T05:11:08+00:00","ZOOKEEPER-2181","td","claude","run 1","FAILED","4","no","yes","FAILED","test_failed","38470","10847","49317","148.6"
+"2026-05-04T05:15:36+00:00","ZOOKEEPER-2181","td","claude","run 2","FAILED","4","no","yes","FAILED","test_failed","42193","11526","53719","164.2"
+"2026-05-04T05:19:14+00:00","ZOOKEEPER-2181","td","openai","run 1","FAILED","4","no","yes","FAILED","test_failed","27341","2089","29430","24.8"
+"2026-05-04T05:22:48+00:00","ZOOKEEPER-2181","td","openai","run 2","FAILED","3","no","yes","FAILED","compile_failed","21987","1934","23921","22.1"
 
