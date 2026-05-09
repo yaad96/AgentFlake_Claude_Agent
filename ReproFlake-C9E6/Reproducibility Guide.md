@@ -115,6 +115,7 @@ source ~/.venvs/reproflake/bin/activate
 ```
 
 ### 0.4 Run the replay
+Make sure you are inside the ReproFlake-C9E6 folder. Not inside data folder. 
 
 ```bash
 ./TraceMop\ Scripts/simulate_run_pass_at_k.py jnrposixd9f3f84 \
