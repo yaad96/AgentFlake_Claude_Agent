@@ -42,7 +42,7 @@ the referenced section.
 19. **TD** - ZOOKEEPER-4327-testRequestThrottler
 20. **TD** - HBASE-27051
 
-### 0.2 Clone the Codebase
+### 0.2 Clone and Set up the Codebase
 
 > First clone/download the codebase zip
 > then use the script to automatically unzip our `FULL_RUNS_RV/` and `FULL_RUNS_NO_RV/` archives into `ReproFlake-C9E6/data/`
