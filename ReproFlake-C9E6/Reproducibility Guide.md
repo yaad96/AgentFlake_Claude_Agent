@@ -53,10 +53,10 @@ the referenced section.
 > does this for you; if you'd rather download manually, see Section 1.3.
 
 1. First, Download the zipped codebase: https://anonymous.4open.science/r/CS691Project
-2. Second, unzip the codebase do the following:
+2. Second, unzip the codebase, open terminal in the unzipped folder and do the following:
 ```bash
 
-cd CS691Project/ReproFlake-C9E6
+cd ReproFlake-C9E6
 mkdir data
 cd data
 ../TraceMop\ Scripts/bootstrap_archives.sh
