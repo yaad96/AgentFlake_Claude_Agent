@@ -59,9 +59,9 @@ In general, OD and NIO containers take around 10-15 mins to complete each execut
 3. open terminal in the unzipped folder ("CS691Project") and do the following:
 ```bash
 cd ReproFlake-C9E6
+chmod +x "TraceMop Scripts"/*.sh "TraceMop Scripts"/*.py
 mkdir data
 cd data
-chmod +x "../TraceMop Scripts/bootstrap_archives.sh"
 ../TraceMop\ Scripts/bootstrap_archives.sh
 ```
 
