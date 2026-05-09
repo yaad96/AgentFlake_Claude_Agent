@@ -53,9 +53,9 @@ the referenced section.
 > does this for you; if you'd rather download manually, see Section 1.3.
 
 1. First, Download the zipped codebase: https://anonymous.4open.science/r/CS691Project
-2. Second, unzip the codebase, open terminal in the unzipped folder and do the following:
+2. Second, unzip the codebase. After unzipping, you should have a folder called “CS691Project”
+3. open terminal in the unzipped folder ("CS691Project") and do the following:
 ```bash
-
 cd ReproFlake-C9E6
 mkdir data
 cd data
