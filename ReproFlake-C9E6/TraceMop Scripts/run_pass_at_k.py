@@ -602,82 +602,83 @@ def write_summary(rows, runs_root: Path, container, row_meta, runs_per_model,
         for r in rows:
             w.writerow(r)
 
-    md = [f"# {container} — pass@k report\n"]
-    md.append(f"**Test type**: {row_meta['test_type']}     "
-              f"**Module**: {row_meta.get('module','')}     "
-              f"**JDK**: {row_meta.get('java','')}\n")
-    md.append(f"**Polluter**: {row_meta.get('polluter/state setter','') or 'n/a'}\n"
-              f"**Victim**:   {row_meta.get('flaky_test','')}\n")
-    md.append(f"\n## Aggregate (n={runs_per_model} per model)\n")
-    md.append("### Plausibility (test-passing rate; pass@k Chen et al.)\n")
-    md.append("| Model | runs passed | pass@1 (plausible) | pass@N (plausible) "
-              "| avg tokens | avg wall time |")
-    md.append("|---|---|---|---|---|---|")
-    for m in sorted(set(r["model"] for r in rows)):
-        m_rows = [r for r in rows if r["model"] == m]
-        n = sum(1 for r in m_rows if r["verdict"] in ("PASSED", "FAILED"))
-        c = sum(1 for r in m_rows if r["verdict"] == "PASSED")
-        avg_tok = sum(r["total_tokens"] for r in m_rows) // max(1, len(m_rows))
-        avg_wall = sum(r.get("elapsed_total_seconds", 0) for r in m_rows) / max(1, len(m_rows))
-        p1 = pass_at_k(n, c, 1) if n else 0.0
-        pN = pass_at_k(n, c, n) if n else 0.0
-        md.append(f"| {m} | {c}/{n} | {p1:.0%} | {pN:.0%} | "
-                  f"{avg_tok:,} | {avg_wall:.0f}s |")
-
-    md.append("\n### Failure breakdown by category\n")
-    cats = ["passed", "incomplete", "sanity_failed", "llm_failed",
-            "patch_apply_failed", "compile_failed", "test_failed", "unknown_failure"]
-    md.append("| Model | " + " | ".join(cats) + " |")
-    md.append("|" + "---|" * (len(cats) + 1))
-    for m in sorted(set(r["model"] for r in rows)):
-        cells = []
-        for c in cats:
-            n = sum(1 for r in rows if r["model"] == m and r["fail_category"] == c)
-            cells.append(str(n))
-        md.append(f"| {m} | " + " | ".join(cells) + " |")
-
-    md.append("\n## Per-run details\n")
-    for r in rows:
-        diag = ""
-        model_dir_name = MODEL_DIR_NAME.get(r["model"], r["model"])
-        d = safe_json(
-            runs_root / model_dir_name / f"run {r['run']}"
-            / "Steps Output Files" / "llm_response.json"
-        ) or {}
-        resp = d.get("response") or {}
-        if isinstance(resp, dict):
-            # `.get("diagnosis", "")` returns None (not "") when the key exists
-            # with a None value — common in the parsed-LLM-output shape. Use
-            # `or ""` to coerce both missing-key and None-value to empty string.
-            diag = ((resp.get("output_0") or {}).get("diagnosis") or "")[:250]
-        md.append(f"### {r['model']} / run {r['run']} — {r['verdict']} [{r['fail_category']}]\n")
-        md.append(f"- **LLM**: {r['turns_taken']} turn(s), "
-                  f"{r['input_tokens_total']:,} in / {r['output_tokens_total']:,} out tokens; "
-                  f"finish={r['llm_finish_reason']}")
-        md.append(f"- **Apply**: layer=`{r['apply_layer']}` · "
-                  f"path_rewritten={r['apply_path_rewritten']} · "
-                  f"imports_inferred=`{r['apply_imports_inferred'] or '—'}`")
-        md.append(f"- **Compile**: recompile_ok={r['recompile_ok']} · "
-                  f"host_compile_ok={r['host_compile_ok']}")
-        md.append(f"- **Verify**: tests={r['verify_tests']} failures={r['verify_failures']} "
-                  f"errors={r['verify_errors']} · markers={r['failure_markers']}")
-        if diag:
-            md.append(f"- **Diagnosis (first 250 chars)**:\n  > {diag.replace(chr(10), ' ')}\n")
-        if r["fail_snippet"]:
-            md.append(f"- **Fail snippet**: `{r['fail_snippet']}`")
-        # Markdown link — model dir name has no spaces, only the `run N`
-        # segment needs URL-encoded spaces. TD test type archives the patched
-        # variant under FlakyCodeChange/ instead of Flaky/, so the source-link
-        # leaf name follows the test_type.
-        link_dir = f"{model_dir_name}/run%20{r['run']}"
-        src_dir = "FlakyCodeChange" if r["test_type"] == "td" else "Flaky"
-        md.append(f"- 📁 [pipeline.log]({link_dir}/pipeline.log) · "
-                  f"[Steps Output Files/]({link_dir}/Steps%20Output%20Files/) · "
-                  f"[{src_dir}/]({link_dir}/{src_dir}/)\n")
-
-    md_path = runs_root / "summary.md"
-    md_path.write_text("\n".join(md), encoding="utf-8")
-    print(f"{log_prefix} summary written: {csv_path.name}, {md_path.name}")
+    # summary.md generation disabled — only summary.csv is written.
+    # md = [f"# {container} — pass@k report\n"]
+    # md.append(f"**Test type**: {row_meta['test_type']}     "
+    #           f"**Module**: {row_meta.get('module','')}     "
+    #           f"**JDK**: {row_meta.get('java','')}\n")
+    # md.append(f"**Polluter**: {row_meta.get('polluter/state setter','') or 'n/a'}\n"
+    #           f"**Victim**:   {row_meta.get('flaky_test','')}\n")
+    # md.append(f"\n## Aggregate (n={runs_per_model} per model)\n")
+    # md.append("### Plausibility (test-passing rate; pass@k Chen et al.)\n")
+    # md.append("| Model | runs passed | pass@1 (plausible) | pass@N (plausible) "
+    #           "| avg tokens | avg wall time |")
+    # md.append("|---|---|---|---|---|---|")
+    # for m in sorted(set(r["model"] for r in rows)):
+    #     m_rows = [r for r in rows if r["model"] == m]
+    #     n = sum(1 for r in m_rows if r["verdict"] in ("PASSED", "FAILED"))
+    #     c = sum(1 for r in m_rows if r["verdict"] == "PASSED")
+    #     avg_tok = sum(r["total_tokens"] for r in m_rows) // max(1, len(m_rows))
+    #     avg_wall = sum(r.get("elapsed_total_seconds", 0) for r in m_rows) / max(1, len(m_rows))
+    #     p1 = pass_at_k(n, c, 1) if n else 0.0
+    #     pN = pass_at_k(n, c, n) if n else 0.0
+    #     md.append(f"| {m} | {c}/{n} | {p1:.0%} | {pN:.0%} | "
+    #               f"{avg_tok:,} | {avg_wall:.0f}s |")
+    #
+    # md.append("\n### Failure breakdown by category\n")
+    # cats = ["passed", "incomplete", "sanity_failed", "llm_failed",
+    #         "patch_apply_failed", "compile_failed", "test_failed", "unknown_failure"]
+    # md.append("| Model | " + " | ".join(cats) + " |")
+    # md.append("|" + "---|" * (len(cats) + 1))
+    # for m in sorted(set(r["model"] for r in rows)):
+    #     cells = []
+    #     for c in cats:
+    #         n = sum(1 for r in rows if r["model"] == m and r["fail_category"] == c)
+    #         cells.append(str(n))
+    #     md.append(f"| {m} | " + " | ".join(cells) + " |")
+    #
+    # md.append("\n## Per-run details\n")
+    # for r in rows:
+    #     diag = ""
+    #     model_dir_name = MODEL_DIR_NAME.get(r["model"], r["model"])
+    #     d = safe_json(
+    #         runs_root / model_dir_name / f"run {r['run']}"
+    #         / "Steps Output Files" / "llm_response.json"
+    #     ) or {}
+    #     resp = d.get("response") or {}
+    #     if isinstance(resp, dict):
+    #         # `.get("diagnosis", "")` returns None (not "") when the key exists
+    #         # with a None value — common in the parsed-LLM-output shape. Use
+    #         # `or ""` to coerce both missing-key and None-value to empty string.
+    #         diag = ((resp.get("output_0") or {}).get("diagnosis") or "")[:250]
+    #     md.append(f"### {r['model']} / run {r['run']} — {r['verdict']} [{r['fail_category']}]\n")
+    #     md.append(f"- **LLM**: {r['turns_taken']} turn(s), "
+    #               f"{r['input_tokens_total']:,} in / {r['output_tokens_total']:,} out tokens; "
+    #               f"finish={r['llm_finish_reason']}")
+    #     md.append(f"- **Apply**: layer=`{r['apply_layer']}` · "
+    #               f"path_rewritten={r['apply_path_rewritten']} · "
+    #               f"imports_inferred=`{r['apply_imports_inferred'] or '—'}`")
+    #     md.append(f"- **Compile**: recompile_ok={r['recompile_ok']} · "
+    #               f"host_compile_ok={r['host_compile_ok']}")
+    #     md.append(f"- **Verify**: tests={r['verify_tests']} failures={r['verify_failures']} "
+    #               f"errors={r['verify_errors']} · markers={r['failure_markers']}")
+    #     if diag:
+    #         md.append(f"- **Diagnosis (first 250 chars)**:\n  > {diag.replace(chr(10), ' ')}\n")
+    #     if r["fail_snippet"]:
+    #         md.append(f"- **Fail snippet**: `{r['fail_snippet']}`")
+    #     # Markdown link — model dir name has no spaces, only the `run N`
+    #     # segment needs URL-encoded spaces. TD test type archives the patched
+    #     # variant under FlakyCodeChange/ instead of Flaky/, so the source-link
+    #     # leaf name follows the test_type.
+    #     link_dir = f"{model_dir_name}/run%20{r['run']}"
+    #     src_dir = "FlakyCodeChange" if r["test_type"] == "td" else "Flaky"
+    #     md.append(f"- 📁 [pipeline.log]({link_dir}/pipeline.log) · "
+    #               f"[Steps Output Files/]({link_dir}/Steps%20Output%20Files/) · "
+    #               f"[{src_dir}/]({link_dir}/{src_dir}/)\n")
+    #
+    # md_path = runs_root / "summary.md"
+    # md_path.write_text("\n".join(md), encoding="utf-8")
+    print(f"{log_prefix} summary written: {csv_path.name}")
 
 
 # ---------------------------------------------------------------------------
