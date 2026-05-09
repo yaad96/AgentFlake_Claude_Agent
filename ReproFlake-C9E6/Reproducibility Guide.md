@@ -65,6 +65,8 @@ cd data
 ../TraceMop\ Scripts/bootstrap_archives.sh
 ```
 
+If for some reason, ```bootstrap_archives.sh``` is not working or taking too long, please refer to section 1.3 for manual way. 
+
 Zenodo record (clickable for manual browser download, ~2.4 GB):
 [zenodo.org/records/20100590](https://zenodo.org/records/20100590)
 
