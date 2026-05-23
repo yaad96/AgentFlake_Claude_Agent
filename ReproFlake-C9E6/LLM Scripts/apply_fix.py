@@ -14,7 +14,7 @@ After a successful apply:
     - container-side `mvn test-compile` regenerates bytecode in target/
       so downstream surefire runs don't read stale .class files
 The applier modifies Flaky/ in-place and writes a JSON report to
-Steps Output Files/apply_report.json.
+Steps_Output_Files/apply_report.json.
 
 Usage:
     python apply_fix.py <result_container> [--no-verify] [--no-recompile]
@@ -1209,7 +1209,7 @@ def _touched_files_from_fixed_code(flaky_root: Path, entries: list) -> list:
 
 
 def _save_report(base: Path, report: dict):
-    out = base / "Steps Output Files" / "apply_report.json"
+    out = base / "Steps_Output_Files" / "apply_report.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
     print(f"Report saved: {out}")
@@ -1367,7 +1367,7 @@ def main():
     if not flaky.is_dir():
         sys.exit(f"ERROR: {flaky} not found")
 
-    response_path = base / "Steps Output Files" / "llm_response.json"
+    response_path = base / "Steps_Output_Files" / "llm_response.json"
     if not response_path.is_file():
         sys.exit(f"ERROR: {response_path} not found")
 
