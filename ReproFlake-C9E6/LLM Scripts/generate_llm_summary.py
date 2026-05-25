@@ -306,12 +306,25 @@ def ids_to_specs(event_ids, events_map):
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
-def generate_summary(result_container):
+def generate_summary(result_container, steps_dir=None, compare_file=None,
+                     output_file=None):
+    """Decode a compare-traces diff into an LLM-readable summary.
+
+    Defaults reproduce the original non-agentic layout: the diff is read from
+    `<data>/<container>/Steps Output Files/step_8_C_official.txt` and the
+    summary written next to it. The agentic pipeline overrides these so it can
+    point at its own `Steps_Output_Files/rv_trace_diff.log` and write the
+    summary where `get_rv_trace_diff` expects it. Overriding the paths does not
+    change any parsing behaviour.
+    """
     base = os.path.join(DATA_DIR, result_container)
-    steps_dir = os.path.join(base, "Steps Output Files")
+    if steps_dir is None:
+        steps_dir = os.path.join(base, "Steps Output Files")
     os.makedirs(steps_dir, exist_ok=True)
-    compare_file = os.path.join(steps_dir, "step_8_C_official.txt")
-    output_file = os.path.join(steps_dir, "llm_trace_summary.txt")
+    if compare_file is None:
+        compare_file = os.path.join(steps_dir, "step_8_C_official.txt")
+    if output_file is None:
+        output_file = os.path.join(steps_dir, "llm_trace_summary.txt")
 
     if not os.path.isfile(compare_file):
         print(f"ERROR: {compare_file} not found. Run Step 8C first.", file=sys.stderr)
@@ -517,7 +530,18 @@ def generate_summary(result_container):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print(f"Usage: {sys.argv[0]} <result_container>")
-        sys.exit(1)
-    generate_summary(sys.argv[1])
+    import argparse
+    ap = argparse.ArgumentParser(
+        description="Decode a compare-traces diff into an LLM-readable summary.")
+    ap.add_argument("result_container")
+    ap.add_argument("--steps-dir",
+                    help="output dir for llm_trace_summary.txt "
+                         "(default: <data>/<container>/Steps Output Files)")
+    ap.add_argument("--compare-file",
+                    help="path to the compare-traces diff to decode "
+                         "(default: <steps-dir>/step_8_C_official.txt)")
+    ap.add_argument("--out-file",
+                    help="explicit output path (default: <steps-dir>/llm_trace_summary.txt)")
+    a = ap.parse_args()
+    generate_summary(a.result_container, steps_dir=a.steps_dir,
+                     compare_file=a.compare_file, output_file=a.out_file)

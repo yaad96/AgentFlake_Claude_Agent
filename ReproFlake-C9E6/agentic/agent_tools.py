@@ -490,10 +490,17 @@ mvn test -Dmaven.ext.class.path={_EXT_JAR} \\
     rv_log = steps / "rv_trace_diff.log"
     rv_log.write_text(cmp.stdout, encoding="utf-8")
 
-    # Run generate_llm_summary → llm_trace_summary.txt
+    # Run generate_llm_summary → llm_trace_summary.txt. We must pass explicit
+    # paths: the agentic pipeline uses "Steps_Output_Files" (underscore) and
+    # names the diff "rv_trace_diff.log", whereas the script defaults to the
+    # non-agentic "Steps Output Files" (space) + "step_8_C_official.txt". The
+    # diff format is identical (both are compare-traces-official.py output), so
+    # only the paths differ.
     subprocess.run(
         [sys.executable,
-         str(LLM_SCRIPTS_DIR / "generate_llm_summary.py"), container],
+         str(LLM_SCRIPTS_DIR / "generate_llm_summary.py"), container,
+         "--steps-dir", str(steps),
+         "--compare-file", str(rv_log)],
         cwd=str(LLM_SCRIPTS_DIR), capture_output=True, text=True)
 
     summary_path = steps / "llm_trace_summary.txt"
@@ -513,7 +520,8 @@ def get_rv_trace_diff(container: str, test_name: str | None = None) -> str:
     logs are already sufficient to identify the root cause.
     """
     base = _container_base(container)
-    summary_path = base / "Steps_Output_Files" / "llm_trace_summary.txt"
+    steps = base / "Steps_Output_Files"
+    summary_path = steps / "llm_trace_summary.txt"
     if summary_path.is_file():
         body = read_file_safe(str(summary_path)).strip()
         if body:
@@ -521,7 +529,18 @@ def get_rv_trace_diff(container: str, test_name: str | None = None) -> str:
         return ("(llm_trace_summary.txt is empty — no spec violations recorded. "
                 "For NIO this can happen when the bug is driven by primitive-field "
                 "pollution rather than control-flow events the AspectJ specs monitor.)")
-    # Lazy: compute now.
+    # Defensive cache guard: if the trace diff was already computed (rv_trace_diff.log
+    # present and non-empty) but no decoded summary exists, DO NOT recompute — the
+    # TraceMOP collection is very expensive on large projects (e.g. two multi-module
+    # Maven builds on Hadoop), and the diff is invariant across iterations. Return
+    # the raw diff instead of paying that cost again.
+    rv_log = steps / "rv_trace_diff.log"
+    if rv_log.is_file() and rv_log.stat().st_size > 0:
+        body = read_file_safe(str(rv_log)).strip()
+        if body:
+            return ("(decoded summary unavailable; returning the raw TraceMOP "
+                    "trace diff)\n\n" + body + "\n")
+    # Nothing cached yet — compute now (first call only).
     return _compute_rv_traces_lazy(container, base)
 
 

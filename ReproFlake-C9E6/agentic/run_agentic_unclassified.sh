@@ -205,7 +205,11 @@ for f in run_summary.csv trace_config.json llm_context.txt llm_response.json app
   fi
 done
 if [[ -f "$STEPS_OUT_DIR/verify_after_fix.verdict" ]]; then
-  echo "Final verdict: $(cat "$STEPS_OUT_DIR/verify_after_fix.verdict")"
+  if [[ -f "$STEPS_OUT_DIR/run_verdict.txt" ]]; then
+    echo "Final verdict: $(cat "$STEPS_OUT_DIR/run_verdict.txt")   (verification: $(cat "$STEPS_OUT_DIR/verify_after_fix.verdict" 2>/dev/null))"
+  else
+    echo "Final verdict: $(cat "$STEPS_OUT_DIR/verify_after_fix.verdict")"
+  fi
 fi
 echo "=========================================="
 exit $AGENT_RC

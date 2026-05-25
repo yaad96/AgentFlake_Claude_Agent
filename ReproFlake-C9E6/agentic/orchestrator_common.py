@@ -423,6 +423,7 @@ _RUN_SUMMARY_COLS = [
     "iteration", "verdict", "category", "applied_ok",
     "tools_sequence", "tool_counts", "confirm_runs",
     "elapsed_seconds", "tokens_in", "tokens_out", "cache_read",
+    "test_integrity",
 ]
 
 
@@ -431,7 +432,8 @@ def write_run_summary(path: Path, container: str, model: str,
                       iter_rows: list[dict],
                       final_verdict: str, submit_attempts: int,
                       total_elapsed: float,
-                      cumulative_usage: dict) -> None:
+                      cumulative_usage: dict,
+                      test_integrity: str = "") -> None:
     """Write run_summary.csv — one row per submit_patch attempt plus a
     SUMMARY row with aggregated totals."""
     import csv as _csv
@@ -471,6 +473,7 @@ def write_run_summary(path: Path, container: str, model: str,
             "tokens_in":      cumulative_usage.get("input_tokens", 0),
             "tokens_out":     cumulative_usage.get("output_tokens", 0),
             "cache_read":     cumulative_usage.get("cache_read_input_tokens", 0),
+            "test_integrity": test_integrity,
         })
 
 
@@ -576,10 +579,59 @@ def finalize_run(*, ctx: RunContext, container: str, model: str, provider: str,
     summary, prints the done line, and returns the process exit code."""
     steps_dir = ctx.steps_dir
 
-    if final_verdict != "PASSED" and submit_attempts == 0:
-        (steps_dir / "verify_after_fix.verdict").write_text(
-            "INCOMPLETE\n", encoding="utf-8")
-        final_verdict = "INCOMPLETE"
+    # Canonical run-level verdict — unambiguous, exactly one of:
+    #   PASSED      a submitted patch verified
+    #   FAILED      >=1 patch was submitted, none verified
+    #   INCOMPLETE  the agent never submitted a patch (stalled / no attempt)
+    if final_verdict == "PASSED":
+        run_verdict = "PASSED"
+    elif submit_attempts > 0:
+        run_verdict = "FAILED"
+    else:
+        run_verdict = "INCOMPLETE"
+    final_verdict = run_verdict
+
+    # Two-file separation (kept deliberately distinct so neither is ambiguous):
+    #   verify_after_fix.verdict  — strictly binary VERIFICATION result:
+    #                               PASSED only if a patch verified, else FAILED.
+    #   run_verdict.txt           — authoritative three-state RUN outcome, shown
+    #                               in [done], llm_response.json, the per-type
+    #                               script, and the dispatcher.
+    (steps_dir / "verify_after_fix.verdict").write_text(
+        ("PASSED" if run_verdict == "PASSED" else "FAILED") + "\n",
+        encoding="utf-8")
+    (steps_dir / "run_verdict.txt").write_text(
+        run_verdict + "\n", encoding="utf-8")
+
+    # Test-integrity guard — only meaningful for a PASSED run (where a fake
+    # green could hide). Emits flags only; never changes the verdict.
+    if run_verdict == "PASSED":
+        try:
+            import test_integrity  # type: ignore
+            integrity = test_integrity.evaluate(
+                container=container, row=ctx.row, test_type=ctx.test_type,
+                base=ctx.base, steps_dir=steps_dir)
+        except Exception as exc:  # noqa: BLE001 — never let the guard break a run
+            integrity = {"checked": False, "severity": "unknown",
+                         "flags": [], "review": [], "note": f"guard error: {exc}"}
+    else:
+        integrity = {"checked": False, "severity": "n/a", "flags": [],
+                     "review": [], "reason": "run did not pass"}
+    # One-line summary for run_summary.csv, derived from the dict (no import dep).
+    _sig = (integrity.get("flags") or []) + (integrity.get("review") or [])
+    integrity_str = (integrity.get("severity", "unknown") if not _sig
+                     else f"{integrity.get('severity')}: {','.join(_sig)}")
+    if not integrity.get("checked") and integrity.get("severity") != "n/a":
+        integrity_str = f"not_checked ({integrity.get('note', '')})".strip()
+    (steps_dir / "test_integrity.json").write_text(
+        json.dumps(integrity, indent=2, ensure_ascii=False), encoding="utf-8")
+    if integrity.get("severity") == "suspect":
+        print(f"[integrity] ⚠ SUSPECT — patch may have weakened the test: "
+              f"{','.join(integrity.get('flags', []))}. Review llm_response.json.")
+    elif integrity.get("severity") == "review":
+        print(f"[integrity] review — {','.join(integrity.get('review', []))}")
+    elif integrity.get("checked"):
+        print("[integrity] clean — victim test/assertions not weakened.")
 
     final_response_path = steps_dir / "llm_response.json"
     if final_response_path.is_file():
@@ -598,6 +650,7 @@ def finalize_run(*, ctx: RunContext, container: str, model: str, provider: str,
             "submit_attempts": submit_attempts,
             "final_verdict": final_verdict,
             "final_category": final_category,
+            "test_integrity": integrity,
         })
         final_response_path.write_text(
             json.dumps(existing, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -635,6 +688,7 @@ def finalize_run(*, ctx: RunContext, container: str, model: str, provider: str,
         submit_attempts  = submit_attempts,
         total_elapsed    = total_elapsed,
         cumulative_usage = cumulative_usage,
+        test_integrity   = integrity_str,
     )
 
     print(f"\n[done ] verdict={final_verdict}  attempts={submit_attempts}  "

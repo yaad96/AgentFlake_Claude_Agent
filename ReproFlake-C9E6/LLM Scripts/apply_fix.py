@@ -653,11 +653,64 @@ def _annotations_at_match(src: str, head_offset: int) -> list:
     return list(dict.fromkeys(list(reversed(prior)) + inline))
 
 
+def _code_mask(src: str) -> str:
+    r"""Return a copy of `src` with the *contents* of string literals, char
+    literals, and comments replaced by spaces (newlines preserved), leaving
+    all real code — including braces — intact. Length and byte offsets are
+    preserved, so an offset found in the mask is valid against `src`.
+
+    This lets brace/structure scanners ignore braces inside strings or
+    comments — e.g. a malformed-JSON fixture like "{\"k\":\"v\"" whose '{'
+    has no matching '}' and would otherwise unbalance a naive counter.
+
+    Not handled: Java text blocks (\"\"\" ... \"\"\", Java 15+). The JDK 8/11
+    corpus in this benchmark does not use them.
+    """
+    out = []
+    i, n = 0, len(src)
+    NORMAL, LINE, BLOCK, STR, CHAR = range(5)
+    state = NORMAL
+    while i < n:
+        c = src[i]
+        nxt = src[i + 1] if i + 1 < n else ""
+        if state == NORMAL:
+            if c == "/" and nxt == "/":
+                state = LINE; out.append("  "); i += 2; continue
+            if c == "/" and nxt == "*":
+                state = BLOCK; out.append("  "); i += 2; continue
+            if c == '"':
+                state = STR; out.append(" "); i += 1; continue
+            if c == "'":
+                state = CHAR; out.append(" "); i += 1; continue
+            out.append(c); i += 1; continue
+        if state == LINE:
+            out.append("\n" if c == "\n" else " ")
+            if c == "\n":
+                state = NORMAL
+            i += 1; continue
+        if state == BLOCK:
+            if c == "*" and nxt == "/":
+                state = NORMAL; out.append("  "); i += 2; continue
+            out.append("\n" if c == "\n" else " "); i += 1; continue
+        # STR or CHAR: handle escapes so an escaped quote does not close it.
+        if c == "\\":
+            if nxt:
+                out.append("  "); i += 2
+            else:
+                out.append(" "); i += 1
+            continue
+        if (state == STR and c == '"') or (state == CHAR and c == "'"):
+            state = NORMAL; out.append(" "); i += 1; continue
+        out.append("\n" if c == "\n" else " "); i += 1; continue
+    return "".join(out)
+
+
 def _expand_method_loc(src: str, m):
     """Given a regex match for a method-signature line, walk backwards over
     leading @Annotation lines and forward via brace-balance to find the
     method's full extent. Returns (head, end) byte offsets, or None if the
-    body braces don't balance."""
+    body braces don't balance. Brace-balance runs over a string/comment mask
+    so braces inside literals or comments don't throw off the count."""
     body_brace = m.end() - 1
     head = m.start()
 
@@ -675,10 +728,11 @@ def _expand_method_loc(src: str, m):
         else:
             break
 
+    mask = _code_mask(src)
     depth = 0
     i = body_brace
     while i < len(src):
-        c = src[i]
+        c = mask[i]
         if c == "{":
             depth += 1
         elif c == "}":
@@ -713,7 +767,9 @@ def find_method(src: str, name: str, llm_code: str = None):
     first match when llm_code is missing or no candidate scores above 0.
     """
     pat = re.compile(_METHOD_PATTERN_TMPL.format(name=re.escape(name)), re.M)
-    matches = list(pat.finditer(src))
+    # Match signatures against the string/comment mask so a method-like line
+    # inside a comment or string can't be picked up. Offsets stay valid in src.
+    matches = list(pat.finditer(_code_mask(src)))
     if not matches:
         return None
 
@@ -744,11 +800,14 @@ def find_method(src: str, name: str, llm_code: str = None):
 
 
 def find_outer_class_close(src: str):
-    """Return the offset of the outermost class's closing '}', or None."""
+    """Return the offset of the outermost class's closing '}', or None.
+    Scans a string/comment mask so braces inside literals/comments are
+    ignored (offsets remain valid against the original src)."""
+    mask = _code_mask(src)
     depth = 0
     in_class = False
     last = -1
-    for i, c in enumerate(src):
+    for i, c in enumerate(mask):
         if c == "{":
             in_class = True
             depth += 1

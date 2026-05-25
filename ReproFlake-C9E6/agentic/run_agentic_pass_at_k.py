@@ -151,18 +151,23 @@ def parse_run(per_run_dir: Path, container, test_type, run_n, model="claude"):
     harness so downstream summary writers don't need to branch.
     """
     steps = per_run_dir / "Steps_Output_Files"
-    verdict_file = steps / "verify_after_fix.verdict"
+    run_verdict_file = steps / "run_verdict.txt"          # authoritative 3-state
+    verdict_file = steps / "verify_after_fix.verdict"     # binary fallback
     apply_file = steps / "apply_report.json"
     llm_resp = steps / "llm_response.json"
     iter_log = steps / "agentic_iterations.jsonl"
     verify_log = steps / "verify_after_fix.log"
     pipeline = per_run_dir / "pipeline.log"
 
+    # Prefer the authoritative run verdict; fall back to the binary verify
+    # file for older runs that predate run_verdict.txt.
     verdict = "INCOMPLETE"
-    if verdict_file.is_file():
-        v = verdict_file.read_text(encoding="utf-8").strip()
-        if v in ("PASSED", "FAILED", "INCOMPLETE"):
-            verdict = v
+    for vf in (run_verdict_file, verdict_file):
+        if vf.is_file():
+            v = vf.read_text(encoding="utf-8").strip()
+            if v in ("PASSED", "FAILED", "INCOMPLETE"):
+                verdict = v
+                break
 
     apply_rep = safe_json(apply_file) or {}
     resp = safe_json(llm_resp) or {}
@@ -497,6 +502,9 @@ def main():
         env["KEEP_CONTAINER"] = "1"
         env["AGENTIC_MAX_ITERATIONS"] = str(args.max_iterations)
         env["AGENTIC_MODEL"] = args.model
+        # Stream the orchestrator's stdout live instead of block-buffering it
+        # through this pipe, so [iter]/[apply]/[verify] lines appear in real time.
+        env["PYTHONUNBUFFERED"] = "1"
 
         with open(pipeline_log, "w", encoding="utf-8") as logf:
             p = subprocess.Popen(

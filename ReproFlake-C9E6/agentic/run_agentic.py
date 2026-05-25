@@ -218,7 +218,7 @@ def main() -> None:
     print(f"{'='*60}")
     print("[dispatcher] All models done.")
     for model_id, rc in exit_codes.items():
-        status = "PASSED (at least one run)" if rc == 0 else "FAILED / INCOMPLETE"
+        status = "PASSED (≥1 run)" if rc == 0 else "no run passed"
         print(f"  {model_id:40s}  {status}")
     print(f"{'='*60}")
 
