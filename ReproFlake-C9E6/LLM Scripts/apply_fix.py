@@ -7,7 +7,20 @@ Apply an llm_response.json fix to the Flaky/ source tree of a result container.
 Pipeline (stops at first success):
     1. git apply -p1                  (strict)
     2. git apply -p1 --recount        (tolerates wrong @@ counts)
-    3. Splice output_b.fixed_code     (uses operation/anchor schema)
+    3. Splice output_b.fixed_code via tree-sitter-java  (AST/CST locator)
+    4. Splice output_b.fixed_code via regex + masked brace scan  (fallback)
+
+Layers 3 and 4 consume the SAME output_b.fixed_code (operation/anchor schema).
+Layer 3 uses a real Java parser to locate the method / class body, so it is
+immune to braces inside string-literals or comments, to call-sites that share
+a method's name, and to generics / lambdas / nested classes. It is OPTIONAL:
+if `tree-sitter` + `tree-sitter-java` are not importable (see requirements.txt;
+needs a py-tree-sitter supporting Parser(Language(capsule)), ~>=0.22) it is
+skipped and Layer 4 — the regex splicer whose brace scan is string/comment
+masked — does the job exactly as before. Layer 3 is transactional (snapshots
+all target files and rolls back every partial write if any entry fails, so the
+fallback starts from a clean tree) and defers ambiguous cases to Layer 4 (e.g.
+an `end_of_class` insert in a file with more than one top-level type).
 
 After a successful apply:
     - host-side `javac` smoke-tests each touched .java file (syntax check)
@@ -1029,6 +1042,280 @@ def apply_fixed_code(flaky_root: Path, entries: list) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Layer (tree-sitter): structured splice via a real Java parser
+#
+# Same job as apply_fixed_code (the output_b.fixed_code splicer), but locates
+# methods and the class-body close with tree-sitter-java instead of regex +
+# brace counting. Immune to braces in strings/comments, call-sites that share
+# a method's name, generics, lambdas, nested/inner classes and enums. Optional:
+# if tree-sitter isn't installed it's skipped and the regex splicer remains the
+# fallback. Reuses the regex splicer's import handling for parity.
+# ---------------------------------------------------------------------------
+
+_TS_STATE = {"tried": False, "parser": None}
+_TS_TYPE_DECLS = ("class_declaration", "interface_declaration",
+                  "enum_declaration", "record_declaration",
+                  "annotation_type_declaration")
+_TS_METHOD_DECLS = ("method_declaration", "constructor_declaration")
+
+
+def _ts_parser():
+    """Lazily build a cached tree-sitter-java parser; None if unavailable."""
+    if not _TS_STATE["tried"]:
+        _TS_STATE["tried"] = True
+        try:
+            import tree_sitter_java
+            from tree_sitter import Language, Parser
+            _TS_STATE["parser"] = Parser(Language(tree_sitter_java.language()))
+        except Exception:
+            _TS_STATE["parser"] = None
+    return _TS_STATE["parser"]
+
+
+def _ts_walk(node):
+    stack = [node]
+    while stack:
+        n = stack.pop()
+        yield n
+        stack.extend(n.children)
+
+
+def _ts_method_name(node):
+    nm = node.child_by_field_name("name")
+    return nm.text.decode("utf-8", "replace") if nm is not None else None
+
+
+def _ts_method_annotations(node):
+    """Annotation simple-names on a method node (from its modifiers child)."""
+    out = []
+    for c in node.children:
+        if c.type == "modifiers":
+            for d in _ts_walk(c):
+                if d.type in ("marker_annotation", "annotation"):
+                    nm = d.child_by_field_name("name")
+                    if nm is not None:
+                        out.append(nm.text.decode("utf-8", "replace").split(".")[-1])
+            break
+    return out
+
+
+def _ts_method_param_norm(node):
+    fp = node.child_by_field_name("parameters")
+    if fp is None:
+        return ""
+    inner = fp.text.decode("utf-8", "replace").strip()
+    if inner.startswith("(") and inner.endswith(")"):
+        inner = inner[1:-1]
+    return _normalise_param_list(inner)
+
+
+def _ts_indent_of(src_bytes, offset):
+    line_start = src_bytes.rfind(b"\n", 0, offset) + 1
+    i = line_start
+    while i < offset and src_bytes[i:i + 1] in (b" ", b"\t"):
+        i += 1
+    return src_bytes[line_start:i].decode("utf-8", "replace")
+
+
+def _ts_find_method(tree, name, llm_code=None):
+    """Method/constructor node named `name`, disambiguating among multiple by
+    annotation overlap + param match (mirrors find_method's scoring)."""
+    cands = [n for n in _ts_walk(tree.root_node)
+             if n.type in _TS_METHOD_DECLS and _ts_method_name(n) == name]
+    if not cands:
+        return None
+    if len(cands) == 1 or not llm_code:
+        return cands[0]
+    intent_annos = _annotations_in_method_block(llm_code)
+    intent_params = _params_in_method_block(llm_code, name)
+    best, best_score = cands[0], -1
+    for n in cands:
+        score = sum(1 for a in intent_annos if a in _ts_method_annotations(n))
+        if intent_params is not None and intent_params == _ts_method_param_norm(n):
+            score += 5
+        if score > best_score:
+            best_score, best = score, n
+    return best
+
+
+def _ts_outer_class_close(tree):
+    """Byte offset of the sole top-level type's class-body closing brace.
+    Returns None for 0 or >1 top-level types — end_of_class is ambiguous in
+    a multi-type file, so we defer to the regex layer rather than guess."""
+    types = [c for c in tree.root_node.children if c.type in _TS_TYPE_DECLS]
+    if len(types) != 1:
+        return None
+    body = types[0].child_by_field_name("body")
+    if body is None or body.child_count == 0:
+        return None
+    last = body.children[-1]
+    return last.start_byte if last.type == "}" else body.end_byte - 1
+
+
+def apply_fixed_code_entry_ts(src: str, entry: dict) -> tuple:
+    """tree-sitter variant of apply_fixed_code_entry. Same (new_src, info)
+    contract; raises ValueError on schema/anchor problems (so the driver
+    records a per-entry failure and the regex splicer can still try)."""
+    parser = _ts_parser()
+    if parser is None:
+        raise RuntimeError("tree-sitter unavailable")
+
+    info = {
+        "file": entry.get("file"),
+        "method": entry.get("method"),
+        "operation": entry.get("operation") or "replace_method",
+        "engine": "tree-sitter",
+    }
+
+    # Phase 1: explicit imports (string-level, identical to the regex splicer).
+    imports = parse_imports_field(entry.get("imports"))
+    src = add_imports(src, imports)
+    info["imports_added"] = len(imports)
+
+    operation = info["operation"]
+    method_name = entry.get("method")
+    code = entry.get("code") or ""
+    if not method_name or not code:
+        raise ValueError(f"missing method or code field: {entry}")
+
+    src_bytes = src.encode("utf-8")
+    tree = parser.parse(src_bytes)
+    result_bytes = None
+
+    if operation == "replace_method":
+        node = _ts_find_method(tree, method_name, llm_code=code)
+        if node is None:
+            raise ValueError(
+                f"replace_method: method {method_name!r} not found in {info['file']}")
+        indent = _ts_indent_of(src_bytes, node.start_byte)
+        line_start = src_bytes.rfind(b"\n", 0, node.start_byte) + 1
+        new_code = reindent_block(code, indent)
+        if not new_code.endswith("\n"):
+            new_code += "\n"
+        # Replace from column 0 of the method's first line (node.start_byte is
+        # after the indent) so the reindented block isn't double-indented.
+        result_bytes = (src_bytes[:line_start]
+                        + new_code.encode("utf-8")
+                        + src_bytes[node.end_byte:])
+
+    elif operation == "insert_method":
+        if _ts_find_method(tree, method_name) is not None:
+            raise ValueError(
+                f"insert_method: a method named {method_name!r} already exists "
+                f"in {info['file']} — operation contradicts file state")
+        anchor = parse_anchor(entry.get("anchor"))
+        if anchor is None:
+            info["anchor_warning"] = "missing or invalid anchor; defaulting to end_of_class"
+            anchor = ("end_of_class", None)
+        kind, target = anchor
+
+        if kind in ("before_method", "after_method"):
+            tnode = _ts_find_method(tree, target)
+            if tnode is None:
+                raise ValueError(
+                    f"insert_method: anchor target {target!r} not found in {info['file']}")
+            indent = _ts_indent_of(src_bytes, tnode.start_byte)
+            new_code = reindent_block(code, indent)
+            if kind == "before_method":
+                line_start = src_bytes.rfind(b"\n", 0, tnode.start_byte) + 1
+                result_bytes = (src_bytes[:line_start]
+                                + new_code.encode("utf-8") + b"\n\n"
+                                + src_bytes[line_start:])
+            else:
+                end = tnode.end_byte
+                if src_bytes[end:end + 1] == b"\n":
+                    end += 1
+                result_bytes = (src_bytes[:end] + b"\n"
+                                + new_code.encode("utf-8") + b"\n"
+                                + src_bytes[end:])
+        elif kind == "end_of_class":
+            close = _ts_outer_class_close(tree)
+            if close is None:
+                raise ValueError(f"end_of_class: class body not found in {info['file']}")
+            new_code = reindent_block(code, "    ")
+            result_bytes = (src_bytes[:close] + b"\n"
+                            + new_code.encode("utf-8") + b"\n"
+                            + src_bytes[close:])
+
+    if result_bytes is None:
+        raise ValueError(f"unknown operation: {operation!r}")
+
+    result_src = result_bytes.decode("utf-8", "replace")
+
+    # Phase 3: auto-import inference (identical to the regex splicer).
+    inferred = _infer_imports_for_inserted_code(result_src, code)
+    if inferred:
+        result_src = add_imports(result_src, inferred)
+        info["imports_inferred"] = inferred
+
+    return result_src, info
+
+
+def apply_fixed_code_ts(flaky_root: Path, entries: list):
+    """tree-sitter splice layer. Returns a layer-result dict, or None when
+    tree-sitter is unavailable (caller falls through to the regex splicer).
+
+    All-or-nothing: snapshots every target file up front and rolls them ALL
+    back if any entry fails. This is essential because the regex splice layer
+    runs AFTER this one — a partial apply here would otherwise hand a dirtied
+    tree to that fallback (e.g. an inserted method making its re-insert fail
+    with 'already exists'). Mirrors apply_patch's transactional behaviour."""
+    if _ts_parser() is None:
+        return None
+    if not entries:
+        return {"layer": "splice tree-sitter", "ok": False,
+                "reason": "no fixed_code entries"}
+
+    # Snapshot all resolvable targets first, so a mid-batch failure rolls back.
+    snap_targets = []
+    for entry in entries:
+        rel = entry.get("file")
+        if rel:
+            r = _resolve_path(flaky_root, rel)
+            if r:
+                snap_targets.append(r)
+    snap = _snapshot(flaky_root, snap_targets)
+
+    applied, failed = [], []
+    for entry in entries:
+        rel = entry.get("file")
+        if not rel:
+            failed.append({"entry": entry, "reason": "missing file field"})
+            continue
+        resolved = _resolve_path(flaky_root, rel)
+        if resolved is None:
+            failed.append({
+                "entry": {k: v for k, v in entry.items() if k != "code"},
+                "reason": f"file not found: {rel} (no unique suffix match in flaky tree)",
+            })
+            continue
+        if resolved != rel:
+            entry = dict(entry, file=resolved)
+        target = flaky_root / resolved
+        try:
+            src = target.read_text(encoding="utf-8")
+            new_src, info = apply_fixed_code_entry_ts(src, entry)
+            target.write_text(new_src, encoding="utf-8")
+            info["abs_path"] = str(target)
+            if resolved != rel:
+                info["path_resolved"] = {"original": rel, "resolved": resolved}
+            applied.append(info)
+        except Exception as e:
+            failed.append({
+                "entry": {k: v for k, v in entry.items() if k != "code"},
+                "reason": str(e),
+            })
+
+    if failed:
+        # Roll back any partial writes so the regex fallback starts clean.
+        _rollback(flaky_root, snap)
+        return {"layer": "splice tree-sitter", "ok": False,
+                "applied": [], "failed": failed, "rolled_back": True}
+    return {"layer": "splice tree-sitter", "ok": len(applied) > 0,
+            "applied": applied, "failed": failed}
+
+
+# ---------------------------------------------------------------------------
 # Compile verification (smoke test, not full build)
 # ---------------------------------------------------------------------------
 
@@ -1465,7 +1752,18 @@ def main():
         report["layers_attempted"].append(
             {"layer": "output_a", "ok": False, "reason": "no patch in response"})
 
-    # ---- Layer 3: splice output_b.fixed_code ----
+    # ---- Layer 3: tree-sitter structured splice (preferred over regex) ----
+    # Consumes the same output_b.fixed_code as Layer 4 but locates methods /
+    # class-close with a real Java parser. Skipped silently if tree-sitter is
+    # not installed (returns None) -> Layer 4 then handles it as before.
+    if landed is None and fixed_code and not args.dry_run:
+        r = apply_fixed_code_ts(flaky, fixed_code)
+        if r is not None:
+            report["layers_attempted"].append(r)
+            if r.get("ok"):
+                landed = r
+
+    # ---- Layer 4: regex splice output_b.fixed_code (fallback) ----
     if landed is None and fixed_code:
         if args.dry_run:
             report["layers_attempted"].append({

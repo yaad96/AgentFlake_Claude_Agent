@@ -106,6 +106,56 @@ def find_source_file(base_dir, module, rel_path, search_dirs=("src/test/java", "
     return None
 
 
+def _code_mask(src):
+    r"""Return a copy of `src` with the *contents* of string/char literals and
+    comments replaced by spaces (newlines preserved), leaving real code —
+    including braces — intact. Length and offsets are preserved.
+
+    This lets brace/structure scanning ignore braces inside literals/comments
+    (e.g. a malformed-JSON fixture like "{\"k\":\"v\"" whose unmatched '{'
+    would otherwise unbalance the count). Mirrors apply_fix._code_mask; kept
+    self-contained here to avoid coupling this base module to the applier.
+    Java text blocks (\"\"\" ... \"\"\", Java 15+) are not special-cased.
+    """
+    out = []
+    i, n = 0, len(src)
+    NORMAL, LINE, BLOCK, STR, CHAR = range(5)
+    state = NORMAL
+    while i < n:
+        c = src[i]
+        nxt = src[i + 1] if i + 1 < n else ""
+        if state == NORMAL:
+            if c == "/" and nxt == "/":
+                state = LINE; out.append("  "); i += 2; continue
+            if c == "/" and nxt == "*":
+                state = BLOCK; out.append("  "); i += 2; continue
+            if c == '"':
+                state = STR; out.append(" "); i += 1; continue
+            if c == "'":
+                state = CHAR; out.append(" "); i += 1; continue
+            out.append(c); i += 1; continue
+        if state == LINE:
+            out.append("\n" if c == "\n" else " ")
+            if c == "\n":
+                state = NORMAL
+            i += 1; continue
+        if state == BLOCK:
+            if c == "*" and nxt == "/":
+                state = NORMAL; out.append("  "); i += 2; continue
+            out.append("\n" if c == "\n" else " "); i += 1; continue
+        # STR or CHAR: handle escapes so an escaped quote doesn't close it.
+        if c == "\\":
+            if nxt:
+                out.append("  "); i += 2
+            else:
+                out.append(" "); i += 1
+            continue
+        if (state == STR and c == '"') or (state == CHAR and c == "'"):
+            state = NORMAL; out.append(" "); i += 1; continue
+        out.append("\n" if c == "\n" else " "); i += 1; continue
+    return "".join(out)
+
+
 def extract_java_method(file_path, method_name, target_line=None):
     """
     Extract a single method from a Java file by matching the method signature
@@ -113,6 +163,10 @@ def extract_java_method(file_path, method_name, target_line=None):
 
     If target_line is provided (1-indexed), picks the overload whose body
     contains that line. Otherwise picks the first match.
+
+    Brace depth and the signature search run over a string/comment-masked
+    view so a brace (or a method-name-like token) inside a literal or comment
+    can't mis-bound the method.
 
     Returns the method source code as a string, or None.
     """
@@ -122,9 +176,15 @@ def extract_java_method(file_path, method_name, target_line=None):
     with open(file_path, encoding="utf-8") as f:
         lines = f.readlines()
 
-    # Find ALL method declarations matching method_name
+    # Masked view for structure scanning; same length/line-count as `lines`
+    # so indices line up 1:1. Fall back to raw lines if anything is off.
+    masked_lines = _code_mask("".join(lines)).splitlines(keepends=True)
+    if len(masked_lines) != len(lines):
+        masked_lines = lines
+
+    # Find ALL method declarations matching method_name (on the masked view)
     candidates = []
-    for i, line in enumerate(lines):
+    for i, line in enumerate(masked_lines):
         if re.search(r'\b' + re.escape(method_name) + r'\s*\(', line):
             # Walk backwards to include annotations
             start = i
@@ -156,7 +216,7 @@ def extract_java_method(file_path, method_name, target_line=None):
     method_end = None
 
     for i in range(method_start, len(lines)):
-        for ch in lines[i]:
+        for ch in masked_lines[i]:
             if ch == '{':
                 brace_depth += 1
                 found_open = True

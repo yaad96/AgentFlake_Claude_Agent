@@ -47,11 +47,19 @@ if [[ -z "$NONDEXSEED" ]]; then
 fi
 
 case "$JAVA" in
-  8)  IMAGE="flaky_base_jdk_8_id_cover_new" ;;
-  11) IMAGE="flaky_base_jdk_11_id_cover_new" ;;
-  17) IMAGE="flaky_base_jdk_17_id_cover_new" ;;
+  8)  IMAGE="flaky_base_jdk_8_id_cover_new";  DOCKERFILE="Dockerfile8.id" ;;
+  11) IMAGE="flaky_base_jdk_11_id_cover_new"; DOCKERFILE="Dockerfile11.id" ;;
+  17) IMAGE="flaky_base_jdk_17_id_cover_new"; DOCKERFILE="Dockerfile17.id" ;;
   *)  echo "ERROR: unsupported java=$JAVA"; exit 1 ;;
 esac
+
+# Build the per-JDK ID image if it isn't present locally (these are local
+# build images, never pushed to a registry — so a plain `docker run` would
+# otherwise try to pull and fail). Mirrors the other run_agentic_*.sh scripts.
+if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+  echo "[setup] Docker image '$IMAGE' not found — building from $DOCKERFILE"
+  docker build -t "$IMAGE" -f "$REPROFLAKE_DIR/$DOCKERFILE" "$REPROFLAKE_DIR"
+fi
 
 CONTAINER="tm_${RESULT_CONTAINER//[^a-zA-Z0-9]/_}"
 cleanup_container() {

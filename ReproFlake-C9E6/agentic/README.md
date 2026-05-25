@@ -6,11 +6,23 @@ The agent reads test code, production code, error logs, and RV traces on demand,
 ## Prerequisites
 
 ```bash
-pip install anthropic
-export ANTHROPIC_API_KEY=sk-ant-...
+# from ReproFlake-C9E6/
+python3 -m pip install -r requirements.txt
+
+# set the key for whichever backend you run:
+export ANTHROPIC_API_KEY=sk-ant-...     # for claude-* models
+export OPENAI_API_KEY=sk-...            # for gpt-* / o-series models
 ```
 
-Docker must be running and the per-type image must exist (see the parent `ReproFlake-C9E6/` setup guide).  
+`requirements.txt` installs the LLM SDKs (`anthropic`, `openai`) plus
+`tree-sitter` + `tree-sitter-java`. The tree-sitter packages are **optional**:
+they enable the AST-based patch-application layer in `../LLM Scripts/apply_fix.py`
+(more robust method splicing). Without them the applier falls back to its
+regex/brace splicer and everything still works. At minimum you need the SDK for
+the provider you use (`anthropic` for Claude, `openai` for GPT).
+
+Docker must be running and the per-type image must exist — the `run_agentic_*.sh`
+scripts auto-build it from the matching `Dockerfile*` if it isn't present.  
 The container under test must have an entry in `test_config.csv`.
 
 ---
