@@ -34,9 +34,10 @@ set -euo pipefail
 
 RESULT_CONTAINER="${1:?Usage: $0 <result_container>}"
 
-if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
-  echo "ERROR: ANTHROPIC_API_KEY is not set. The agentic orchestrator requires it."
-  echo "       export ANTHROPIC_API_KEY=sk-ant-...   then re-run."
+if [[ -z "${ANTHROPIC_API_KEY:-}" && -z "${OPENAI_API_KEY:-}" ]]; then
+  echo "ERROR: no LLM API key is set. The agentic orchestrator requires one."
+  echo "       export ANTHROPIC_API_KEY=sk-ant-...   (for claude-* models)"
+  echo "       export OPENAI_API_KEY=sk-...          (for gpt-* models)"
   exit 1
 fi
 

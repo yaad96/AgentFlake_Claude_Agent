@@ -4,9 +4,8 @@ run_agentic_pass_at_k.py — pass@k harness for the agentic pipeline.
 
 Direct counterpart to TraceMop Scripts/run_pass_at_k.py, adapted for:
   - Per-type entry points under `agentic/` (run_agentic_<type>.sh)
-  - Only `claude` as a model (the agentic loop is Claude tool-use based;
-    OpenAI's tool-use schema differs and is out of scope for the agentic
-    workflow doc — Claude Sonnet 4.6 is the doc's chosen LLM)
+  - Both Claude (Messages API) and OpenAI (Chat Completions) models; the
+    orchestrator routes to the matching backend based on the model id.
   - Per-run archive layout that includes the agentic conversation
     transcript + per-iteration log produced by agentic_orchestrator.py
   - Reusing the existing CSV writer / pass@k metric so the agentic
@@ -55,11 +54,12 @@ TYPE_TO_SCRIPT = {
 
 # Map model IDs (or short aliases) to the Anthropic API key env var.
 # Any model starting with "claude" uses ANTHROPIC_API_KEY.
-# (OpenAI support would add "gpt"/"openai" → OPENAI_API_KEY here.)
+# gpt-*/o-series route to OPENAI_API_KEY; everything else to ANTHROPIC_API_KEY.
 def _api_key_var(model_id: str) -> str:
-    if model_id.startswith("claude"):
-        return "ANTHROPIC_API_KEY"
-    return "ANTHROPIC_API_KEY"  # default
+    key = (model_id or "").strip().lower()
+    if key.startswith(("gpt", "o1", "o3", "o4")):
+        return "OPENAI_API_KEY"
+    return "ANTHROPIC_API_KEY"  # default (claude-* and any other)
 
 SENTINEL = ".run_complete"
 
@@ -557,6 +557,11 @@ def main():
     pN = pass_at_k(n, c, n) if n else 0.0
     print(f"[wrapper] DONE. {c}/{n} runs PASSED  "
           f"pass@1={p1:.0%}  pass@{n}={pN:.0%}")
+
+    # Exit nonzero when no run passed, so the dispatcher (run_agentic.py) and
+    # any CI caller reflect the real repair outcome rather than just "the
+    # batch completed". c = number of PASSED runs.
+    sys.exit(0 if c > 0 else 1)
 
 
 if __name__ == "__main__":

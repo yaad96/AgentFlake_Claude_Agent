@@ -19,7 +19,7 @@ Common aliases:
     claude / claude-sonnet  ->  claude-sonnet-4-6   (default)
     claude-opus / opus      ->  claude-opus-4-7
     haiku                   ->  claude-haiku-4-5-20251001
-    openai / gpt-4o         ->  gpt-4o  (OpenAI orchestrator — not yet implemented)
+    openai / gpt-4o         ->  gpt-4o  (routed to the OpenAI backend)
     Any full model ID is passed through unchanged.
 
 API keys are read from agentic_config.py first, then the environment.
@@ -163,11 +163,6 @@ def main() -> None:
     resolved: list[tuple[str, str, str]] = []  # (alias, model_id, provider)
     for alias in raw_models:
         model_id, provider = resolve_model(alias)
-
-        if provider == "openai":
-            print(f"[dispatcher] WARNING: OpenAI model '{model_id}' requested but "
-                  f"the OpenAI orchestrator is not yet implemented. Skipping.")
-            continue
 
         api_key, source = get_api_key(provider)
         if not api_key:
