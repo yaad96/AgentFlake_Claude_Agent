@@ -13,14 +13,14 @@ anthropic>=0.40        # Claude backend  (agentic/agentic_orchestrator_anthropic
 openai>=1.0            # OpenAI backend  (agentic/agentic_orchestrator_openai.py)
 
 # --- Patch application: tree-sitter AST splice layer ------------------------
-# OPTIONAL but recommended. Enables Layer 3 in "LLM Scripts/apply_fix.py" — a
-# real Java parser that locates methods / class bodies for the structured
-# (output_b.fixed_code) splice, instead of regex + brace counting. Immune to
-# braces inside strings/comments, call-sites sharing a method name, generics,
-# nested/inner classes, etc.
+# REQUIRED. Powers Layer 3 in "LLM Scripts/apply_fix.py" — a real Java parser
+# that locates methods / class bodies for the structured (output_b.fixed_code)
+# splice instead of regex + brace counting. Immune to braces inside strings/
+# comments, call-sites sharing a method name, generics, and nested classes.
 #
-# If these are NOT installed, apply_fix.py silently skips Layer 3 and falls
-# back to the regex/brace splicer (Layer 4) — everything still works, just
-# less robustly. Needs a py-tree-sitter that supports Parser(Language(capsule)).
+# apply_fix.py raises ImportError (with these install instructions) if either
+# package is missing. The silent-fallback design was rejected because it makes
+# apply reports inconsistent between machines and hides environmental drift in
+# a research pipeline. Needs py-tree-sitter that supports Parser(Language(capsule)).
 tree-sitter>=0.22
 tree-sitter-java>=0.23

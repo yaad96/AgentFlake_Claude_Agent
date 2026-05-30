@@ -15,11 +15,12 @@ export OPENAI_API_KEY=sk-...            # for gpt-* / o-series models
 ```
 
 `requirements.txt` installs the LLM SDKs (`anthropic`, `openai`) plus
-`tree-sitter` + `tree-sitter-java`. The tree-sitter packages are **optional**:
-they enable the AST-based patch-application layer in `../LLM Scripts/apply_fix.py`
-(more robust method splicing). Without them the applier falls back to its
-regex/brace splicer and everything still works. At minimum you need the SDK for
-the provider you use (`anthropic` for Claude, `openai` for GPT).
+`tree-sitter` + `tree-sitter-java`, which are **required** — they power the
+AST-based patch-application layer in `../LLM Scripts/apply_fix.py`. If they're
+missing, `apply_fix.py` raises `ImportError` with the install command instead
+of silently falling back; this is intentional, to keep apply reports
+reproducible across machines. At minimum you also need the SDK for the
+provider you use (`anthropic` for Claude, `openai` for GPT).
 
 Docker must be running and the per-type image must exist — the `run_agentic_*.sh`
 scripts auto-build it from the matching `Dockerfile*` if it isn't present.  

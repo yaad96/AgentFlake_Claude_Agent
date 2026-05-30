@@ -13,14 +13,17 @@ Pipeline (stops at first success):
 Layers 3 and 4 consume the SAME output_b.fixed_code (operation/anchor schema).
 Layer 3 uses a real Java parser to locate the method / class body, so it is
 immune to braces inside string-literals or comments, to call-sites that share
-a method's name, and to generics / lambdas / nested classes. It is OPTIONAL:
-if `tree-sitter` + `tree-sitter-java` are not importable (see requirements.txt;
-needs a py-tree-sitter supporting Parser(Language(capsule)), ~>=0.22) it is
-skipped and Layer 4 — the regex splicer whose brace scan is string/comment
-masked — does the job exactly as before. Layer 3 is transactional (snapshots
-all target files and rolls back every partial write if any entry fails, so the
-fallback starts from a clean tree) and defers ambiguous cases to Layer 4 (e.g.
-an `end_of_class` insert in a file with more than one top-level type).
+a method's name, and to generics / lambdas / nested classes. It is REQUIRED:
+`tree-sitter` + `tree-sitter-java` must be importable (see requirements.txt;
+needs a py-tree-sitter supporting Parser(Language(capsule)), >=0.22). If they
+are missing the layer raises ImportError with install instructions rather than
+silently falling through — silent absence would produce inconsistent apply
+reports across machines and hide environmental drift in a research pipeline.
+Layer 3 is transactional (snapshots all target files and rolls back every
+partial write if any entry fails, so Layer 4 starts from a clean tree) and
+defers genuinely ambiguous cases to Layer 4 (e.g. an `end_of_class` insert in
+a file with more than one top-level type). Layer 4 — the regex splicer whose
+brace scan is string/comment masked — is the fallback for those deferrals.
 
 After a successful apply:
     - host-side `javac` smoke-tests each touched .java file (syntax check)
@@ -1052,7 +1055,7 @@ def apply_fixed_code(flaky_root: Path, entries: list) -> dict:
 # fallback. Reuses the regex splicer's import handling for parity.
 # ---------------------------------------------------------------------------
 
-_TS_STATE = {"tried": False, "parser": None}
+_TS_STATE = {"tried": False, "parser": None, "error": None}
 _TS_TYPE_DECLS = ("class_declaration", "interface_declaration",
                   "enum_declaration", "record_declaration",
                   "annotation_type_declaration")
@@ -1060,15 +1063,30 @@ _TS_METHOD_DECLS = ("method_declaration", "constructor_declaration")
 
 
 def _ts_parser():
-    """Lazily build a cached tree-sitter-java parser; None if unavailable."""
+    """Lazily build a cached tree-sitter-java parser. REQUIRED — raises a
+    clear ImportError with install instructions if tree-sitter or
+    tree-sitter-java is missing or too old. Failing loud is intentional: a
+    silent fallback to the regex splicer would hide environmental drift and
+    make reports inconsistent across machines."""
     if not _TS_STATE["tried"]:
         _TS_STATE["tried"] = True
         try:
             import tree_sitter_java
             from tree_sitter import Language, Parser
             _TS_STATE["parser"] = Parser(Language(tree_sitter_java.language()))
-        except Exception:
-            _TS_STATE["parser"] = None
+        except Exception as exc:
+            _TS_STATE["error"] = exc
+    if _TS_STATE["parser"] is None:
+        raise ImportError(
+            "apply_fix.py requires the tree-sitter Java parser for its "
+            "structured (output_b.fixed_code) splice layer.\n"
+            "Install with:\n"
+            "    python3 -m pip install -r requirements.txt\n"
+            "or directly:\n"
+            "    python3 -m pip install tree-sitter>=0.22 tree-sitter-java>=0.23\n"
+            "(on Homebrew / PEP-668 Python add --break-system-packages)\n"
+            f"Underlying import error: {_TS_STATE['error']!r}"
+        )
     return _TS_STATE["parser"]
 
 
@@ -1252,16 +1270,15 @@ def apply_fixed_code_entry_ts(src: str, entry: dict) -> tuple:
 
 
 def apply_fixed_code_ts(flaky_root: Path, entries: list):
-    """tree-sitter splice layer. Returns a layer-result dict, or None when
-    tree-sitter is unavailable (caller falls through to the regex splicer).
+    """tree-sitter splice layer. Raises ImportError (with install hint) if
+    tree-sitter / tree-sitter-java are not installed — see _ts_parser().
 
     All-or-nothing: snapshots every target file up front and rolls them ALL
     back if any entry fails. This is essential because the regex splice layer
     runs AFTER this one — a partial apply here would otherwise hand a dirtied
     tree to that fallback (e.g. an inserted method making its re-insert fail
     with 'already exists'). Mirrors apply_patch's transactional behaviour."""
-    if _ts_parser() is None:
-        return None
+    _ts_parser()   # raises with a clear install hint if the deps are missing
     if not entries:
         return {"layer": "splice tree-sitter", "ok": False,
                 "reason": "no fixed_code entries"}
@@ -1754,14 +1771,17 @@ def main():
 
     # ---- Layer 3: tree-sitter structured splice (preferred over regex) ----
     # Consumes the same output_b.fixed_code as Layer 4 but locates methods /
-    # class-close with a real Java parser. Skipped silently if tree-sitter is
-    # not installed (returns None) -> Layer 4 then handles it as before.
+    # class-close with a real Java parser. REQUIRED: raises ImportError with
+    # an install hint if tree-sitter / tree-sitter-java aren't present. We
+    # deliberately do NOT silently fall through — silent absence would hide
+    # environmental drift between machines and produce inconsistent reports.
+    # Layer 4 (regex) remains as the fallback for cases this layer DEFERS
+    # (e.g. ambiguous end_of_class in a multi-top-level-type file).
     if landed is None and fixed_code and not args.dry_run:
         r = apply_fixed_code_ts(flaky, fixed_code)
-        if r is not None:
-            report["layers_attempted"].append(r)
-            if r.get("ok"):
-                landed = r
+        report["layers_attempted"].append(r)
+        if r.get("ok"):
+            landed = r
 
     # ---- Layer 4: regex splice output_b.fixed_code (fallback) ----
     if landed is None and fixed_code:
