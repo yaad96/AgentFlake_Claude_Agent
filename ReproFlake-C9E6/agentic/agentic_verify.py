@@ -116,11 +116,19 @@ def _build_command(test_type: str, row: dict) -> str:
         if not seed or not runs:
             sys.exit("ERROR: ID verify requires NONDEXSEED + NONDEX_RUNS env "
                      "vars set by the per-type orchestrator.")
+        # NOTE: deliberately NO `-Dmaven.ext.class.path={EXT_JAR}` here.
+        # NonDex only needs to shuffle iteration orders and run surefire; it
+        # doesn't need the JavaMOP/TraceMOP instrumentation. Passing the ext
+        # jar perturbs the effective surefire version, which breaks on projects
+        # whose poms use parameters newer surefire removed (e.g. dubbo's
+        # <forkMode> -> "Cannot find 'forkMode'" -> 0 surefire summary lines
+        # -> _interpret() defaults to FAILED even when no test actually failed).
+        # Trace collection still uses the ext jar in _compute_rv_traces_lazy.
         return (
             "cd /app/work/Flaky\n"
             f"mvn edu.illinois:nondex-maven-plugin:2.1.1:nondex "
             f"-DnondexSeed={seed} -DnondexRuns={runs} "
-            f"-Dmaven.ext.class.path={EXT_JAR} -pl '{module}' "
+            f"-pl '{module}' "
             f"-Dtest='{victim}' {timeout} {MVNOPTS_ID} 2>&1"
         )
     if test_type == "nio":
