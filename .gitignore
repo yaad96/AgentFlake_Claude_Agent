@@ -1,5 +1,8 @@
 ReproFlake-C9E6/data/
 
+# Per-user generated run summary
+ReproFlake-C9E6/Complete Containers Summary.csv
+
 # Python bytecode caches — auto-generated, must never be committed
 __pycache__/
 *.pyc
