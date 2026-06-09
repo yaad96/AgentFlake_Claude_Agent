@@ -138,6 +138,18 @@ def archive_run(data_dir: Path, per_run_dir: Path):
             shutil.copy2(src, per_run_dir / f)
 
 
+def restore_workspace_owner(container_name: str):
+    """Return bind-mounted outputs created by Docker root to the host user."""
+    if not hasattr(os, "getuid") or not hasattr(os, "getgid"):
+        return
+    uid, gid = os.getuid(), os.getgid()
+    subprocess.run(
+        ["docker", "exec", "-u", "0", container_name,
+         "chown", "-R", f"{uid}:{gid}", "/app/work"],
+        capture_output=True,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Per-run parse
 # ---------------------------------------------------------------------------
@@ -482,6 +494,7 @@ def main():
 
     rows = []
     for run_n in range(1, args.runs + 1):
+        container_name = "tm_" + re.sub(r"[^a-zA-Z0-9]", "_", args.container)
         per_run_dir = runs_root / model_dir_label / f"run_{run_n}"
         sentinel = per_run_dir / SENTINEL
 
@@ -524,6 +537,8 @@ def main():
             p.wait()
             exit_code = p.returncode
 
+        restore_workspace_owner(container_name)
+
         elapsed = time.time() - t0
         print(f"[wrapper] === finished {args.model}/run_{run_n} "
               f"(exit={exit_code}, wall={elapsed:.0f}s) ===")
@@ -558,7 +573,7 @@ def main():
         write_summary(all_rows, runs_root, args.container, row, args.runs)
 
     if not args.keep_workspace:
-        container_name = "tm_" + re.sub(r"[^a-zA-Z0-9]", "_", args.container)
+        restore_workspace_owner(container_name)
         subprocess.run(["docker", "rm", "-f", container_name],
                        capture_output=True)
         if data_container_dir.is_dir():
