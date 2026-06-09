@@ -178,10 +178,9 @@ if [[ ! -f "$COMPARE_TRACES_LOCAL" ]]; then
   elif command -v wget >/dev/null; then wget -q "$COMPARE_TRACES_URL" -O "$COMPARE_TRACES_LOCAL"
   else echo "ERROR: need curl or wget"; exit 1; fi
 fi
+python3 "$LLM_SCRIPTS/patch_compare.py" "$COMPARE_TRACES_LOCAL" >/dev/null
 docker cp "$COMPARE_TRACES_LOCAL"          "$CONTAINER:/tmp/compare-traces-official.py"
 docker cp "$EVENTS_FILE"                   "$CONTAINER:/tmp/events_encoding_id.txt"
-docker cp "$LLM_SCRIPTS/patch_compare.py"  "$CONTAINER:/tmp/patch_compare.py"
-docker exec -u 0 "$CONTAINER" python3 /tmp/patch_compare.py >/dev/null
 
 mkdir -p "$STEPS_OUT_DIR"
 
