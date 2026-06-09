@@ -138,14 +138,31 @@ def archive_run(data_dir: Path, per_run_dir: Path):
             shutil.copy2(src, per_run_dir / f)
 
 
-def restore_workspace_owner(container_name: str):
+def docker_image_for_java(java_version: str) -> str:
+    return {
+        "8": "flaky_base_jdk8",
+        "11": "flaky_base_jdk11",
+        "17": "flaky_base_jdk17",
+    }.get(str(java_version).strip(), "flaky_base_jdk8")
+
+
+def restore_workspace_owner(container_name: str, data_dir: Path | None = None,
+                            image: str | None = None):
     """Return bind-mounted outputs created by Docker root to the host user."""
     if not hasattr(os, "getuid") or not hasattr(os, "getgid"):
         return
     uid, gid = os.getuid(), os.getgid()
-    subprocess.run(
+    result = subprocess.run(
         ["docker", "exec", "-u", "0", container_name,
          "chown", "-R", f"{uid}:{gid}", "/app/work"],
+        capture_output=True,
+    )
+    if result.returncode == 0 or not data_dir or not image or not data_dir.is_dir():
+        return
+    subprocess.run(
+        ["docker", "run", "--rm",
+         "--mount", f"type=bind,source={data_dir},target=/app/work",
+         image, "chown", "-R", f"{uid}:{gid}", "/app/work"],
         capture_output=True,
     )
 
@@ -491,10 +508,11 @@ def main():
     # Archive directory uses the model ID directly so multiple models can
     # coexist under the same runs_root without overwriting each other.
     model_dir_label = args.model
+    container_name = "tm_" + re.sub(r"[^a-zA-Z0-9]", "_", args.container)
+    docker_image = docker_image_for_java(row.get("java", "8"))
 
     rows = []
     for run_n in range(1, args.runs + 1):
-        container_name = "tm_" + re.sub(r"[^a-zA-Z0-9]", "_", args.container)
         per_run_dir = runs_root / model_dir_label / f"run_{run_n}"
         sentinel = per_run_dir / SENTINEL
 
@@ -502,6 +520,8 @@ def main():
             print(f"[wrapper] clearing {per_run_dir} for fresh run")
             shutil.rmtree(per_run_dir, ignore_errors=True)
         per_run_dir.mkdir(parents=True, exist_ok=True)
+
+        restore_workspace_owner(container_name, data_container_dir, docker_image)
 
         # Wipe dynamic outputs so this run can't be contaminated by stale
         # artefacts from the previous run (same rationale as the non-agentic
@@ -537,7 +557,7 @@ def main():
             p.wait()
             exit_code = p.returncode
 
-        restore_workspace_owner(container_name)
+        restore_workspace_owner(container_name, data_container_dir, docker_image)
 
         elapsed = time.time() - t0
         print(f"[wrapper] === finished {args.model}/run_{run_n} "
@@ -573,7 +593,7 @@ def main():
         write_summary(all_rows, runs_root, args.container, row, args.runs)
 
     if not args.keep_workspace:
-        restore_workspace_owner(container_name)
+        restore_workspace_owner(container_name, data_container_dir, docker_image)
         subprocess.run(["docker", "rm", "-f", container_name],
                        capture_output=True)
         if data_container_dir.is_dir():
