@@ -16,9 +16,9 @@ def parse_args():
     parser.add_argument("--projects", dest = "projects", required = True,
                         help = "A directory path where you save all the Java projects.")
     parser.add_argument("--openai-key", dest = "openai_key", required = True,
-                        help = "Your openai key")
+                        help = "Your API key (OpenAI key for GPT-4, Anthropic key for Claude)")
     parser.add_argument("--model", dest = "model", required = True,
-                        help = "LLM model to run, currently we support [GPT-4, MagiCoder].")
+                        help = "LLM model to run, currently we support [GPT-4, MagiCoder, Claude].")
     parser.add_argument("--nondex-times", dest = "nondex_times", required = False, default = 3,
                         help = "How many times you want to nondex to rerun.")
     parser.add_argument("--output-dir", dest = "output_dir", required = True,
@@ -45,8 +45,11 @@ if __name__ == "__main__":
     result_json = args.output_result_json
     details_json = args.output_details_json
 
-    openai.api_key = api_key
-    openai.organization = os.getenv("OPENAI_ORGANIZATION")
+    if model == "Claude":
+        os.environ["ANTHROPIC_API_KEY"] = api_key
+    else:
+        openai.api_key = api_key
+        openai.organization = os.getenv("OPENAI_ORGANIZATION")
     
     if flakiness_type == "ID":
         repair_ID.main(input_flakies_csv, projects_dir, details_json, model, nondex_times, result_csv, result_json, output_dir)

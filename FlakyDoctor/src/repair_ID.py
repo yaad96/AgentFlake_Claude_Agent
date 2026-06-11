@@ -3,17 +3,18 @@ import datetime
 import json
 import os
 import openai
+import anthropic
 import signal
 import subprocess
 import sys
 import re
 import time
-import torch
 import update_pom
 import utils
 from bs4 import BeautifulSoup
 from pathlib import Path
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+# torch/transformers are only needed for local HuggingFace models (MagicCoder);
+# imported lazily inside the model-loading branch so GPT-4/Claude runs do not require them.
 from operate_patch import dump_all_rounds_patch, apply_patch, apply_patch_stitch, write_patch, write_patch_stitch
 from stitching import stitching_consistency, stitching_symbols_imports
 from parse_nondex import * #parse_compilation_err, parse_err_msg, parse_patch_magiccoder, parse_patch_gpt, run_test_with_nondex, analyze_nondex_build_result, analyze_nondex_test_result
@@ -58,6 +59,7 @@ def main(pr_csv, projects_dir, details_csv, model, nondex_times, result_csv, res
     if model in ["MagicCoder", "Magiccoder"]:
         model = "MagicCoder"
         print("Loading model...")
+        from transformers import AutoModelForCausalLM, AutoTokenizer
         model_load_path = {
             "MagicCoder": os.getenv("MagiCoder_LOAD_PATH"),
         }
@@ -66,7 +68,10 @@ def main(pr_csv, projects_dir, details_csv, model, nondex_times, result_csv, res
     elif model == "GPT-4":
         loading_model = "GPT-4"
         tokenizer = None
-        
+    elif model == "Claude":
+        loading_model = "Claude"
+        tokenizer = None
+
     utils.write_header_csv(result_csv,result_csv_heads)
     
     test_info = {}
@@ -208,7 +213,7 @@ such as HashSet, HashMap, toString, containsExactly, getDeclaredFields, getKey, 
 A common fix is to use APIs which can make sure the elements are in deterministic order,such as LinkedHashSet, LinkedHashMap, JsonParser, containsOnly, containsExactlyInAnyOrder, assertThatJson, etc.;
 But if you didn't find above similar cases, you should fix by other ways, to make sure the test will always pass."""
     err_msg = " ".join(err_msg_list)
-    if model == "GPT-4":
+    if model in ["GPT-4", "Claude"]:
         if round == 1:
             prefix = """You are a software testing expert. I want you to fix a flaky test. {} is a flaky test of type {}, located in the following java class {}.""".\
                 format(test_method_name, test_type, test_method_content)
@@ -234,17 +239,30 @@ do not write explanations. do not put original method in your answer.
 Assume required classes in the original code are setup correctly, do not include them in your code.""".\
     format(err_msg, err_code, p_code, ID_description)
 
-        print("GPT prompt:\n{}".format(gpt_prompt))
-        full_response = openai.ChatCompletion.create(
-            model = "gpt-4", #"gpt-3.5-turbo",
-            temperature = 0.2,
-            messages = [
-                {"role": "user", 
-                "content":gpt_prompt}
-            ]
-        )
-        print("GPT response:\n{}".format(full_response))
-        response = full_response["choices"][0]["message"]["content"]
+        print("{} prompt:\n{}".format(model, gpt_prompt))
+        if model == "Claude":
+            client = anthropic.Anthropic()
+            full_response = client.messages.create(
+                model = "claude-sonnet-4-6",
+                max_tokens = 8192,
+                temperature = 0.2,
+                messages = [
+                    {"role": "user",
+                    "content":gpt_prompt}
+                ]
+            )
+            response = full_response.content[0].text
+        else:
+            full_response = openai.ChatCompletion.create(
+                model = "gpt-4", #"gpt-3.5-turbo",
+                temperature = 0.2,
+                messages = [
+                    {"role": "user",
+                    "content":gpt_prompt}
+                ]
+            )
+            response = full_response["choices"][0]["message"]["content"]
+        print("{} response:\n{}".format(model, full_response))
         return response,gpt_prompt
 
     elif model == "MagicCoder":
@@ -325,7 +343,7 @@ def repair_ID_tests(test_info, model, nondex_times,result_csv,result_json,save_d
             print("Index {}: ROUND {} to Repair Test {}".format(idx, round, test))
             now = datetime.datetime.now()
             print("Starting prompting...", now)
-            if model == "GPT-4":
+            if model in ["GPT-4", "Claude"]:
                 try:
                     response, prompt = "", ""
                     response, prompt = generate_prompts(model, test_method_name, test_type, test_method_content, err_msg, err_code, potential_apis,round, loading_model, tokenizer)

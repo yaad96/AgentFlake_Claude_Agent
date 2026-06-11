@@ -21,13 +21,21 @@ echo "* Expected Java version ${jdk}"
 
 if  [[ ${jdk} == "8" ]]; then
     echo "Java version 8"
-    export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+    if [[ -x /usr/libexec/java_home ]]; then
+        export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+    else
+        export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+    fi
     export PATH=$JAVA_HOME/bin:$PATH
 fi
 
 if  [[ ${jdk} == "11" ]]; then
     echo "Java version 11"
-    export JAVA_HOME=/usr/lib/jvm/java-1.11.0-openjdk-amd64
+    if [[ -x /usr/libexec/java_home ]]; then
+        export JAVA_HOME=$(/usr/libexec/java_home -v 11)
+    else
+        export JAVA_HOME=/usr/lib/jvm/java-1.11.0-openjdk-amd64
+    fi
     export PATH=$JAVA_HOME/bin:$PATH
 fi
 

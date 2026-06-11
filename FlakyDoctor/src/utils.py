@@ -179,6 +179,9 @@ def write_dict_csv(csv_path, fields, dict_data):
         writer.writerow(dict_data)
 
 def write_header_csv(csv_path, fields):
+    dir_name = os.path.dirname(csv_path)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
     with open(csv_path, 'w') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fields)
         writer.writeheader()

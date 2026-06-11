@@ -2,14 +2,15 @@ import csv
 import sys
 import os
 import openai
+import anthropic
 import datetime
 import utils
 import subprocess
 import re
 import time
 import update_pom
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-import torch
+# torch/transformers are only needed for local HuggingFace models (MagicCoder/CodeLlama/StarCoder);
+# imported lazily inside the model-loading branches so GPT-4/Claude runs do not require them.
 from bs4 import BeautifulSoup
 from pathlib import Path
 import json
@@ -32,13 +33,18 @@ def main(pr_csv, clone_dir, test_file_info, model, nondex_times,result_csv,resul
     }
     if model == "MagicCoder":
         print("Loading model...")
+        from transformers import AutoModelForCausalLM, AutoTokenizer
         loading_model = AutoModelForCausalLM.from_pretrained(load_path[model], device_map="auto", cache_dir='./huggingface')
         tokenizer = AutoTokenizer.from_pretrained(load_path[model], cache_dir='./huggingface')
     elif model == "CodeLlama":
+        from transformers import AutoModelForCausalLM, AutoTokenizer
         loading_model = AutoModelForCausalLM.from_pretrained(load_path[model], device_map="auto", cache_dir='./huggingface', offload_folder = './huggingface')
         tokenizer = AutoTokenizer.from_pretrained(load_path[model], cache_dir='./huggingface')
     elif model == "GPT-4":
         loading_model = "GPT-4"
+        tokenizer = None
+    elif model == "Claude":
+        loading_model = "Claude"
         tokenizer = None
 
 
@@ -556,7 +562,7 @@ def generate_prompts(model, victim_name, polluter_name, test_type, \
     But if you didn't find above similar cases, you should fix by other ways, to make sure the test will always pass.
     """
 
-    if model == "GPT-4":
+    if model in ["GPT-4", "Claude"]:
 
         gpt_prompt ="""You are a software testing expert. 
             I want you to fix a flaky test. \n{}\n
@@ -579,15 +585,28 @@ def generate_prompts(model, victim_name, polluter_name, test_type, \
         """.format(OD_description, victim_name, polluter_name, code_content,err_msg, err_code)
         print(gpt_prompt)
 
-        full_response = openai.ChatCompletion.create(
-            model = "gpt-4", #"gpt-3.5-turbo",
-            temperature = 0.2,
-            messages = [
-                {"role": "user", 
-                "content":gpt_prompt}
-            ]
-        )
-        response = full_response["choices"][0]["message"]["content"]
+        if model == "Claude":
+            client = anthropic.Anthropic()
+            full_response = client.messages.create(
+                model = "claude-sonnet-4-6",
+                max_tokens = 8192,
+                temperature = 0.2,
+                messages = [
+                    {"role": "user",
+                    "content":gpt_prompt}
+                ]
+            )
+            response = full_response.content[0].text
+        else:
+            full_response = openai.ChatCompletion.create(
+                model = "gpt-4", #"gpt-3.5-turbo",
+                temperature = 0.2,
+                messages = [
+                    {"role": "user",
+                    "content":gpt_prompt}
+                ]
+            )
+            response = full_response["choices"][0]["message"]["content"]
 
         return response,gpt_prompt
 
@@ -646,6 +665,7 @@ def generate_prompts(model, victim_name, polluter_name, test_type, \
         </Instructions>
         <Your Response>
         """.format(test_method_name, ID_description, err_msg, err_code, p_code, test_method_content)
+        from transformers import AutoModelForCausalLM, AutoTokenizer
         starcoder_model = AutoModelForCausalLM.from_pretrained(load_path[model], device_map="auto", cache_dir='./huggingface', offload_folder = './huggingface')
         tokenizer = AutoTokenizer.from_pretrained(load_path[model], cache_dir='./huggingface')
 
@@ -776,7 +796,7 @@ def repair_OD_tests(test_info, model,result_csv,result_json,save_dir, idx, loadi
 
             print(victim_helper_methods, polluter_helper_methods,victim_global_vars, polluter_global_vars )
             # exit(0)
-            if model == "GPT-4":
+            if model in ["GPT-4", "Claude"]:
                 try:
                     response, prompt = "", ""
                     response, prompt = generate_prompts(model, victim_test_method_name, polluter_test_method_name, test_type, \
@@ -892,8 +912,8 @@ def repair_OD_tests(test_info, model,result_csv,result_json,save_dir, idx, loadi
                 if test_info["pom"] != None:
                     project_name = project.split("/")[-1]
                     pom_path = test_info["pom"].split(project_name + "/")[-1]
-                    print("/home/ubuntu/flaky/" + project_dir, pom_path)
-                    utils.git_checkout_file( "/home/ubuntu/flaky/" + project_dir,pom_path)
+                    print(project_dir, pom_path)
+                    utils.git_checkout_file(project_dir,pom_path)
 
             
             victim_test_method_content = patch["victim_test_code"]
@@ -936,7 +956,7 @@ def repair_OD_tests(test_info, model,result_csv,result_json,save_dir, idx, loadi
 
 def dump_all_rounds_patch(info, victim, polluter, file_path, patch_dir,project_url, sha, module, original_victim_method,original_polluter_method, round):
     project = project_url.split("/")[-1]
-    patch_dir = os.path.join(save_dir,"all_rounds", project,sha,module,victim)
+    patch_dir = os.path.join(patch_dir,"all_rounds", project,sha,module,victim)
     Path(patch_dir).mkdir(parents=True, exist_ok=True)
     patch_file = os.path.join(patch_dir,str(round) + ".patch")
 

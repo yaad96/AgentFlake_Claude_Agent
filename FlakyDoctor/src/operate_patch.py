@@ -8,7 +8,6 @@ import subprocess
 import sys
 import re
 import time
-import torch
 import update_pom
 import utils
 from bs4 import BeautifulSoup

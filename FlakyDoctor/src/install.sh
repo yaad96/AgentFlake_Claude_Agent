@@ -23,7 +23,11 @@ echo "* "REPO VERSION $(git rev-parse HEAD)
 
 install(){
     echo "Java version 8"
-    export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+    if [[ -x /usr/libexec/java_home ]]; then
+        export JAVA_HOME=$(/usr/libexec/java_home -v 1.8)
+    else
+        export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-amd64
+    fi
     export PATH=$JAVA_HOME/bin:$PATH
 
     t=$(echo -n $(date "+%Y-%m-%d %H:%M:%S") | shasum | cut -f 1 -d " ")
@@ -45,7 +49,11 @@ install(){
     
     if [[ ${build_result} == "BUILD FAILURE" ]]; then
         echo "Java version 11"
-        export JAVA_HOME=/usr/lib/jvm/java-1.11.0-openjdk-amd64
+        if [[ -x /usr/libexec/java_home ]]; then
+            export JAVA_HOME=$(/usr/libexec/java_home -v 11)
+        else
+            export JAVA_HOME=/usr/lib/jvm/java-1.11.0-openjdk-amd64
+        fi
         export PATH=$JAVA_HOME/bin:$PATH
 
         t=$(echo -n $(date "+%Y-%m-%d %H:%M:%S") | shasum | cut -f 1 -d " ")
@@ -91,8 +99,15 @@ for info in $(cat ${input_csv}); do
     cd ${project}
 
     git stash
-    git checkout ${sha}
-    
+    # Some dataset SHAs are no longer reachable from any branch (upstream history
+    # rewrites); GitHub still serves them via a direct fetch of the SHA.
+    git checkout ${sha} || { git fetch origin ${sha} && git checkout ${sha}; }
+    if [[ $(git rev-parse HEAD) != ${sha} ]]; then
+        echo "ERROR: failed to checkout ${sha} for ${project}; refusing to build wrong commit"
+        echo "${project},${sha},${module},CHECKOUT FAILURE,-" >> ${save_csv}
+        continue
+    fi
+
     install
     done
 
