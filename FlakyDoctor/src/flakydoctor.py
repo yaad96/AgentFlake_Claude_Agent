@@ -15,8 +15,8 @@ def parse_args():
                         help = "Flakiness type to fix, select one from [ID, OD].")
     parser.add_argument("--projects", dest = "projects", required = True,
                         help = "A directory path where you save all the Java projects.")
-    parser.add_argument("--openai-key", dest = "openai_key", required = True,
-                        help = "Your API key (OpenAI key for GPT-4, Anthropic key for Claude)")
+    parser.add_argument("--api-key", "--openai-key", dest = "openai_key", required = True,
+                        help = "API key for the selected model (Anthropic key for Claude, OpenAI key for GPT-4). --openai-key is kept as a deprecated alias.")
     parser.add_argument("--model", dest = "model", required = True,
                         help = "LLM model to run, currently we support [GPT-4, MagiCoder, Claude].")
     parser.add_argument("--nondex-times", dest = "nondex_times", required = False, default = 3,

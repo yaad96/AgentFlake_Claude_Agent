@@ -30,7 +30,7 @@ src/
 To run FlakyDoctor, you need to specify the following options:
 ```
 usage: flakydoctor.py [-h] --input-tests-csv INPUT_TESTS_CSV --flakiness-type FLAKINESS_TYPE --projects PROJECTS
-                      --openai-key OPENAI_KEY --model MODEL [--nondex-times NONDEX_TIMES] --output-dir OUTPUT_DIR
+                      --api-key OPENAI_KEY --model MODEL [--nondex-times NONDEX_TIMES] --output-dir OUTPUT_DIR
                       --output-result-csv OUTPUT_RESULT_CSV --output-result-json OUTPUT_RESULT_JSON
                       --output-details-json OUTPUT_DETAILS_JSON
 
@@ -41,8 +41,8 @@ options:
   --flakiness-type FLAKINESS_TYPE
                         Flakiness type to fix, select one from [ID, OD].
   --projects PROJECTS   A directory path where you save all the Java projects.
-  --openai-key OPENAI_KEY
-                        Your API key (OpenAI key for GPT-4, Anthropic key for Claude)
+  --api-key OPENAI_KEY  API key for the selected model (Anthropic key for Claude, OpenAI key for GPT-4).
+                        --openai-key is kept as a deprecated alias.
   --model MODEL         LLM model to run, currently we support [GPT-4, MagiCoder, Claude].
   --nondex-times NONDEX_TIMES
                         How many times you want to nondex to rerun.

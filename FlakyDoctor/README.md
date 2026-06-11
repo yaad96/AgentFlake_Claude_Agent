@@ -97,6 +97,114 @@ bash -x src/run_FlakyDoctor.sh [clone_dir] [openai_key] [model] [output_dir] [in
 - `input_csv`: An input `.csv` file that includes all the flaky tests. More details in [datasets](datasets/README.md).
 - `test_type`: The type of flakiness to fix, `ID` or `OD`.
 
+## 🌟 Running with Claude (incl. macOS)
+
+This fork adds **Claude** (Anthropic) as a third model option next to GPT-4 and MagiCoder. The GPT-4/OpenAI path is unchanged; selecting `--model Claude` routes the same prompts to the Claude API (`claude-sonnet-4-6`, see `generate_prompts` in `src/repair_ID.py` / `src/repair_OD.py` to change the model id). Unlike MagicCoder, no GPU is needed; unlike GPT-4, the response is parsed from the Anthropic SDK (`message.content[0].text`).
+
+### 1. Requirements
+
+On Linux, `src/setup.sh` covers everything (it now also installs the `anthropic` SDK). On **macOS**, install the equivalents manually:
+
+```bash
+# Build toolchain
+brew install maven
+brew install --cask temurin@11        # JDK 11; JDK 8 e.g. via corretto or temurin@8
+/usr/libexec/java_home -V              # verify both a 1.8 and an 11 JVM are listed
+
+# Python dependencies (no torch/transformers needed for Claude or GPT-4 —
+# they are imported lazily and only required for local HuggingFace models)
+pip3 install anthropic beautifulsoup4 lxml
+pip3 install "git+https://github.com/jose/javalang.git@start_position_and_end_position"
+```
+
+Notes:
+- The `cmds/*.sh` scripts resolve `JAVA_HOME` via `/usr/libexec/java_home -v 1.8|11` on macOS and fall back to the original `/usr/lib/jvm/...` paths on Linux — no script editing needed on either platform.
+- **Install a real JDK 11**: if `java_home -v 11` finds no JDK 11, macOS silently returns the newest installed JDK instead, which may build but change test behavior.
+- On Apple Silicon everything runs natively; some old subject projects with native dependencies may still fail to build — pick another project from the dataset if so.
+
+### 2. API key handling
+
+Keep the key out of your shell history and out of the command line that shows up in `ps`:
+
+```bash
+# one-time: store the key in a user-readable-only file
+echo "sk-ant-..." > ~/.anthropic_api_key && chmod 600 ~/.anthropic_api_key
+```
+
+Then always pass it by reading the file at invocation time: `--api-key "$(cat ~/.anthropic_api_key)"`. For `--model Claude` it carries the Anthropic key, which `flakydoctor.py` exports as `ANTHROPIC_API_KEY` for the run; the upstream flag name `--openai-key` still works as a deprecated alias. The key is never written into any output file.
+
+### 3. Test-order caveat on stock Surefire
+
+The original pipeline runs OD pairs with `-Dsurefire.runOrder=testorder`, which is **not a stock Surefire feature** — it comes from the Illinois research fork of Surefire used in the iDFlakies ecosystem. On a machine without that fork (any stock Maven, e.g. macOS/brew), stock Surefire aborts with `There's no RunOrder with the name testorder`.
+
+Workaround built into `src/cmds/run_surefire.sh`: the run order is overridable via an environment variable (default remains `testorder`, so Linux setups with the fork are unaffected):
+
+```bash
+export SUREFIRE_RUN_ORDER=alphabetical        # or reversealphabetical
+```
+
+Stock run orders sort **classes**, so this only forces polluter-before-victim if the pair lives in two different classes whose names sort accordingly. Selecting a compatible pair from `datasets/OD_inputs.csv`:
+- polluter class alphabetically **before** victim class → use `alphabetical` (e.g. `ConfigInjectionTest` → `TestCentralizedManagement` in light-4j)
+- polluter class alphabetically **after** victim class → use `reversealphabetical`
+- same-class pairs cannot be ordered this way (JUnit decides the method order) — they need the Surefire fork.
+
+### 4. Worked end-to-end example (light-4j, fixed by Claude in 2 rounds)
+
+```bash
+cd FlakyDoctor
+
+# (a) clone + build the subject project at its pinned SHA (~2 min)
+echo "https://github.com/networknt/light-4j,fcded1683dcbd41a968e221494778aa6b71e7428,config" > /tmp/od_projects.csv
+bash src/install.sh /tmp/od_projects.csv projects outputs install_summary.csv
+cat install_summary.csv   # expect BUILD SUCCESS (jdk 8 fails by design, 11 succeeds)
+
+# (b) one OD pair: victim, polluter (IDoFT format: url,sha,module,victim,polluter)
+echo "https://github.com/networknt/light-4j,fcded1683dcbd41a968e221494778aa6b71e7428,config,com.networknt.config.TestCentralizedManagement.testMap_allowEmptyStringOverwrite,com.networknt.config.ConfigInjectionTest.testGetInjectValueIssue744" > /tmp/od_tests.csv
+
+# (c) repair with Claude — use a FRESH output dir per run (see Notes)
+export SUREFIRE_RUN_ORDER=alphabetical
+python3 -u src/flakydoctor.py \
+  --input-tests-csv /tmp/od_tests.csv \
+  --flakiness-type OD \
+  --projects projects \
+  --api-key "$(cat ~/.anthropic_api_key)" \
+  --model Claude \
+  --output-dir outputs/claude_od_run1 \
+  --output-result-csv outputs/claude_od_run1/results.csv \
+  --output-result-json outputs/claude_od_run1/results.json \
+  --output-details-json outputs/claude_od_run1/details.json
+```
+
+What you will see on stdout, in order: a jdk-8 surefire run failing with `UnsupportedClassVersionError` (expected — triggers the jdk-11 fallback), the jdk-11 run reproducing the flake (`Tests run: 2, Failures: 1`), then up to 5 repair rounds — each prints the full prompt sent to Claude, Claude's response, the applied patch, and the verification rerun. On `test_pass` the patch is saved and the loop stops.
+
+### 5. Inspecting the results and the Claude conversation
+
+```bash
+cat outputs/claude_od_run1/results.csv               # one summary row per test
+find outputs/claude_od_run1 -name "*.patch"          # verified patch (per round number)
+
+# full round-by-round transcript of the Claude conversation
+python3 - <<'EOF'
+import json
+raw = open('outputs/claude_od_run1/details.json').read()
+obj, _ = json.JSONDecoder().raw_decode(raw, 0)   # first object = first run in this file
+for r in sorted(obj['prompts'], key=int):
+    print('='*70 + f'\nROUND {r} — PROMPT\n' + '='*70)
+    print(obj['prompts'][r])
+    print('-'*70 + f'\nROUND {r} — CLAUDE RESPONSE\n' + '-'*70)
+    print(obj['responses'][r])
+EOF
+```
+
+`details.json` also records, per round: the parsed patch before/after stitching, build/test results, and error messages — plus any API errors under `Exceptions` (an invalid key shows up there as an HTTP 401 `authentication_error`).
+
+### 6. Notes
+
+- **Use a fresh `--output-dir` per run.** The CSVs are overwritten on each run but the JSONs are appended and patch files mix across runs, so reusing a directory interleaves results.
+- Re-running is cheap: subject projects stay built in `projects/`; a 2-round repair costs two Claude calls.
+- Linux behavior with `--model GPT-4` or `MagiCoder` is unchanged by this fork (the MagicCoder path still requires local checkpoints and NVIDIA GPUs).
+- LLM responses are non-deterministic: the fixing round and the patch itself vary between runs, and occasionally a test may not be fixed within the 5-round budget.
+
 ## 🌟 Pull requests
 19 Tests have been accepted (one PR may include fixes for multiple tests):
 
