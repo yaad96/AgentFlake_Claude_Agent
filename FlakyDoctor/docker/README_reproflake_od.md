@@ -1,14 +1,14 @@
-# Route B — FlakyDoctor + Claude in the original ReproFlake `testorder` environment
+# Running a ReproFlake OD container with FlakyDoctor + Claude (Docker / `testorder`)
 
-Route A (`src/run_reproflake.py` on the host with stock Maven) reproduces only
-**cross-class** OD pairs deterministically; **same-class** pairs are a gamble
-because stock Surefire cannot order methods within a class.
+Running `src/run_reproflake.py` directly on the host with stock Maven reproduces only
+**cross-class** OD pairs deterministically; **same-class** pairs are a gamble because stock
+Surefire cannot order methods within a class.
 
-Route B runs the whole pipeline inside a Docker image that carries the **Illinois
-`testorder` Surefire** (a Maven core extension) — exactly the environment
-ReproFlake's `Dockerfile.od` uses. With it, `-Dtest=polluter,victim
--Dsurefire.runOrder=testorder` runs the two tests in that *exact* order, methods
-included, so **same-class OD pairs reproduce deterministically** too.
+This setup runs the whole pipeline inside a Docker image that carries the **Illinois
+`testorder` Surefire** (a Maven core extension) — exactly the environment ReproFlake's
+`Dockerfile.od` uses. With it, `-Dtest=polluter,victim -Dsurefire.runOrder=testorder` runs
+the two tests in that *exact* order, methods included, so **same-class OD pairs reproduce
+deterministically** too.
 
 The repair engine is unchanged: the container ends up calling
 `src/flakydoctor.py --model Claude` (the original FlakyDoctor OD repair loop).
@@ -66,7 +66,7 @@ python3 src/run_reproflake.py --test-config ../ReproFlake-C9E6/test_config.csv -
   docker build -t flakydoctor-od11 --build-arg BASE=maven:3.8.6-openjdk-11 -f docker/Dockerfile.flakydoctor_od .
   ```
 
-## How this differs from Route A internally
+## How the in-container `--testorder` run works
 
 `run_reproflake.py --testorder`:
 - skips the stock alphabetical/reverse-alphabetical order *detection*,

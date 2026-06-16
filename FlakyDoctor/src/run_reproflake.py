@@ -362,7 +362,7 @@ def detect_order_and_reproduce(container_dir, project_dir, module, row, jdk):
 
 
 def reproduce_with_testorder(container_dir, project_dir, module, row, jdk):
-    """Route B: with the Illinois `testorder` Surefire installed (the testorder
+    """With the Illinois `testorder` Surefire installed (the testorder
     image), `-Dtest=polluter,victim -Dsurefire.runOrder=testorder` runs the two
     tests in exactly that order — *including methods within one class*. So a
     single run reproduces both cross-class and same-class OD flakes, with no

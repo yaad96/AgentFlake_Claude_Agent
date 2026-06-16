@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Route B driver: run one ReproFlake OD container through FlakyDoctor + Claude
+# Run one ReproFlake OD container through FlakyDoctor + Claude
 # inside the Illinois `testorder` Surefire environment, so even same-class OD
 # pairs reproduce deterministically.
 #
@@ -34,7 +34,7 @@ API_KEY_FILE="${API_KEY_FILE:-$HOME/.anthropic_api_key}"
 
 [[ -f "$TEST_CONFIG" ]]   || { echo "test_config.csv not found at $TEST_CONFIG" >&2; exit 1; }
 [[ -f "$API_KEY_FILE" ]]  || { echo "API key file not found at $API_KEY_FILE (set API_KEY_FILE=...)" >&2; exit 1; }
-command -v docker >/dev/null 2>&1 || { echo "docker not installed — see docker/README_routeB.md" >&2; exit 1; }
+command -v docker >/dev/null 2>&1 || { echo "docker not installed — see docker/README_reproflake_od.md" >&2; exit 1; }
 
 # Read the row's Java version (col 9) for the chosen od container (col 2).
 JAVA_VER="$(awk -F, -v c="$CONTAINER" 'tolower($1)=="od" && $2==c {print $9; exit}' "$TEST_CONFIG")"
@@ -52,11 +52,11 @@ case "$JAVA_VER" in
         exit 1 ;;
 esac
 
-echo "[routeB] container=$CONTAINER  java=$JAVA_VER  image=$IMAGE"
+echo "[reproflake-od] container=$CONTAINER  java=$JAVA_VER  image=$IMAGE"
 
 # Build the image once (idempotent: skip if it already exists).
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
-    echo "[routeB] building $IMAGE from $BASE (one-time; clones + builds the Illinois Surefire) ..."
+    echo "[reproflake-od] building $IMAGE from $BASE (one-time; clones + builds the Illinois Surefire) ..."
     docker build -t "$IMAGE" --build-arg "BASE=$BASE" \
         -f "$FLAKYDOCTOR_DIR/docker/Dockerfile.flakydoctor_od" "$FLAKYDOCTOR_DIR"
 fi

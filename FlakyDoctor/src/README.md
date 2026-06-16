@@ -18,7 +18,7 @@ src/
 ├── repair_ID.py
 ├── repair_OD.py
 ├── run_FlakyDoctor.sh
-# Route B driver: run a ReproFlake OD container (test_config.csv) end-to-end
+# driver: run a ReproFlake OD container (test_config.csv) end-to-end with Claude
 ├── run_reproflake.py
 ├── setup.sh
 ├── stitching.py
@@ -60,7 +60,7 @@ options:
 
 ---
 
-# Route B — running ReproFlake OD containers through FlakyDoctor + Claude (Docker / `testorder`)
+# Running a ReproFlake OD container with FlakyDoctor + Claude (Docker / `testorder`)
 
 `flakydoctor.py` above is the repair engine. It expects each project to be **pre-staged
 and pre-built** at `projects/<sha>/<project>`, reads its own `OD_inputs.csv` format
@@ -69,8 +69,8 @@ and pre-built** at `projects/<sha>/<project>`, reads its own `OD_inputs.csv` for
 Surefire** (`TestingResearchIllinois/maven-surefire`). It is *not* present in stock Maven.
 
 The ReproFlake dataset (`../ReproFlake-C9E6/test_config.csv`) is in a different shape:
-Zenodo zip snapshots, `Class#method` test names, `od` rows. **Route B** bridges that gap and
-runs the whole thing inside a Docker image that carries the `testorder` Surefire, so that
+Zenodo zip snapshots, `Class#method` test names, `od` rows. The setup below bridges that gap
+and runs the whole thing inside a Docker image that carries the `testorder` Surefire, so that
 **even same-class OD pairs reproduce deterministically** (stock Surefire can order classes
 but not methods within one class — see `run_reproflake.py`'s docstring).
 
@@ -81,7 +81,7 @@ but not methods within one class — see `run_reproflake.py`'s docstring).
 | `src/run_reproflake.py` | Bridges `test_config.csv` → FlakyDoctor's OD pipeline; `--testorder` mode forces the exact polluter→victim order. |
 | `docker/Dockerfile.flakydoctor_od` | `maven:3.8.6-openjdk-{8,11}` + Illinois `testorder` Surefire + `git` + the Claude-only Python deps. Symlinks `/usr/lib/jvm/java-1.{8,11}.0-openjdk-amd64` → `/usr/local/openjdk-N` so the **unmodified** `cmds/run_surefire.sh` finds a valid JDK in-container. |
 | `docker/run_in_container.sh` | One-command driver: picks the jdk8/jdk11 image from the row's Java version, builds it once, bind-mounts the repo, runs the `--testorder` pipeline. |
-| `docker/README_routeB.md` | Short companion guide. |
+| `docker/README_reproflake_od.md` | Short companion guide. |
 
 ## One-time setup
 
@@ -94,7 +94,7 @@ sudo usermod -aG docker "$USER" && newgrp docker     # run docker without sudo
 docker run --rm hello-world                          # verify
 ```
 
-No host JDK/Maven is required for Route B — the toolchain lives in the image.
+No host JDK/Maven is required — the toolchain lives in the image.
 
 ## How to run
 
@@ -149,6 +149,6 @@ Override the defaults with env vars:
 - The container runs as your host UID/GID, so `projects/` and `outputs/` stay owned by you.
 - Rows requesting Java other than 8/11 need their own image
   (`docker build -t flakydoctor-od<N> --build-arg BASE=maven:3.8.6-openjdk-<N> -f docker/Dockerfile.flakydoctor_od .`).
-- Same-class pairs are the reason Route B exists; cross-class pairs also work and are the
+- Same-class pairs are the reason for the `testorder` image; cross-class pairs also work and are the
   easier wins. A pair can reproduce yet remain unfixed if the model doesn't converge on the
   right patch within the round budget — that is a model outcome, not a pipeline error.

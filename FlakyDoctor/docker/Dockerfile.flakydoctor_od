@@ -1,5 +1,5 @@
-# FlakyDoctor OD repair image — "Route B": the original ReproFlake testorder
-# environment, with FlakyDoctor + the Claude backend layered on top.
+# FlakyDoctor OD repair image: the original ReproFlake testorder environment,
+# with FlakyDoctor + the Claude backend layered on top.
 #
 # It reproduces ReproFlake's Dockerfile.od exactly (the Illinois `testorder`
 # Surefire installed as a Maven core extension in /usr/share/maven/lib/ext/),
