@@ -186,21 +186,33 @@ def ensure_git_baseline(project_dir):
     log("no .git in snapshot — creating baseline commit (needed for round rollback)")
     subprocess.run(["git", "-C", project_dir, "init", "-q"], check=True)
     subprocess.run(["git", "-C", project_dir, "add", "-A"], check=True)
-    subprocess.run(["git", "-C", project_dir, "commit", "-qm", "ReproFlake snapshot baseline"],
-                   check=True)
+    # Inline identity so the commit works in a fresh container with no global
+    # git config (the image has neither user.name nor user.email set).
+    subprocess.run(["git", "-C", project_dir,
+                    "-c", "user.name=FlakyDoctor", "-c", "user.email=flakydoctor@local",
+                    "commit", "-qm", "ReproFlake snapshot baseline"], check=True)
 
 
 # -------------------------------------------------------------------- maven
 
 def resolve_java_home(jdk):
-    """macOS: /usr/libexec/java_home; Linux: the original hardcoded paths."""
+    """macOS: /usr/libexec/java_home; Linux: the original hardcoded paths; then
+    fall back to an existing $JAVA_HOME — inside the maven:3.8.6-openjdk-N base
+    images the JDK lives at /usr/local/openjdk-N, not /usr/lib/jvm/..., so the
+    hardcoded Linux path does not exist there."""
     if os.path.exists("/usr/libexec/java_home"):
         want = "1.8" if jdk == "8" else jdk
         out = subprocess.run(["/usr/libexec/java_home", "-v", want],
                              capture_output=True, text=True)
         if out.returncode == 0:
             return out.stdout.strip()
-    return f"/usr/lib/jvm/java-1.{jdk}.0-openjdk-amd64"
+    linux_path = f"/usr/lib/jvm/java-1.{jdk}.0-openjdk-amd64"
+    if os.path.isdir(linux_path):
+        return linux_path
+    env_home = os.environ.get("JAVA_HOME")
+    if env_home and os.path.isdir(env_home):
+        return env_home  # e.g. /usr/local/openjdk-8 inside the testorder image
+    return linux_path
 
 
 def maven_env(container_dir, jdk):
@@ -209,7 +221,12 @@ def maven_env(container_dir, jdk):
     env["PATH"] = env["JAVA_HOME"] + "/bin:" + env["PATH"]
     staged_m2 = os.path.join(os.path.abspath(container_dir), "Flakym2", ".m2", "repository")
     if os.path.isdir(staged_m2):
-        env["MAVEN_ARGS"] = f"-Dmaven.repo.local={staged_m2}"  # Maven 3.9+; older mvn ignores
+        # MAVEN_ARGS is honored only by Maven 3.9+; the testorder image ships
+        # Maven 3.8.6, which ignores it — so also pin repo.local via MAVEN_OPTS
+        # (a JVM system property every Maven version reads). Set MAVEN_OPTS fresh
+        # so it overrides the image's default /root/.m2 repo.local.
+        env["MAVEN_ARGS"] = f"-Dmaven.repo.local={staged_m2}"
+        env["MAVEN_OPTS"] = f"-Dmaven.repo.local={staged_m2}"
     return env
 
 
@@ -258,7 +275,10 @@ def run_surefire(container_dir, project_dir, module, polluter, victim, jdk, run_
     except subprocess.TimeoutExpired:
         die("surefire run timed out after 30 min — the victim/polluter likely hangs "
             "(e.g. waits on a network resource); this pair is not repairable here")
-    return res.stdout
+    # Fold stderr in: a mvn that dies before producing a "Tests run" line (bad
+    # JAVA_HOME, JVM crash) writes only to stderr, which would otherwise be lost
+    # and misread as a bare build_failure with no diagnostics.
+    return res.stdout + (("\n" + res.stderr) if res.stderr else "")
 
 
 def first_running_class(output):
@@ -341,6 +361,33 @@ def detect_order_and_reproduce(container_dir, project_dir, module, row, jdk):
         "ordering edge case; this pair needs the Illinois Surefire fork")
 
 
+def reproduce_with_testorder(container_dir, project_dir, module, row, jdk):
+    """Route B: with the Illinois `testorder` Surefire installed (the testorder
+    image), `-Dtest=polluter,victim -Dsurefire.runOrder=testorder` runs the two
+    tests in exactly that order — *including methods within one class*. So a
+    single run reproduces both cross-class and same-class OD flakes, with no
+    alphabetical-ordering gamble. Gated on the VICTIM failing so we never spend
+    API calls on a polluter/platform failure."""
+    log("reproducing with SUREFIRE_RUN_ORDER=testorder (Illinois fork — exact polluter->victim order)")
+    out = run_surefire(container_dir, project_dir, module,
+                       row["polluter"], row["victim"], jdk, "testorder")
+    result = od_test_result(out)
+    log(f"  result: {result}")
+    if result == "test_failure" and victim_failed(out, row["victim"]):
+        log("FLAKE REPRODUCED under testorder (polluter first, victim fails)")
+        return "testorder"
+    if result == "test_failure":
+        die("a test failed, but not the victim — likely a platform/setup issue, "
+            "not the OD flake; not spending API calls (last lines):\n"
+            + "\n".join(out.splitlines()[-15:]))
+    if result == "test_pass":
+        die("both tests passed under testorder — the polluter does not pollute the "
+            "victim in this environment; not spending API calls (last lines):\n"
+            + "\n".join(out.splitlines()[-15:]))
+    die(f"unexpected surefire result '{result}' — check the build (last lines):\n"
+        + "\n".join(out.splitlines()[-15:]))
+
+
 # ------------------------------------------------------------------- repair
 
 def run_flakydoctor(container_dir, row, github_url, project_name, projects_dir,
@@ -417,6 +464,10 @@ def main():
     ap.add_argument("--projects", default="projects", help="FlakyDoctor projects dir")
     ap.add_argument("--skip-repair", action="store_true",
                     help="stop after reproducing the flake (zero API cost)")
+    ap.add_argument("--testorder", action="store_true",
+                    help="use the Illinois `testorder` Surefire (requires the testorder "
+                         "image / extension) to force exact polluter->victim order; makes "
+                         "same-class pairs deterministic. See docker/run_in_container.sh.")
     ap.add_argument("--keep-zip", action="store_true", help="keep the downloaded zip in /tmp")
     args = ap.parse_args()
 
@@ -443,9 +494,10 @@ def main():
         die(f"no od row with result_container == {args.container}")
     row = matches[0]
 
-    if not row_runnable(row):
+    if not row_runnable(row) and not args.testorder:
         log("same-class pair — will rely on JUnit's deterministic in-class method "
-            "order (works only if it happens to run the polluter first)")
+            "order (works only if it happens to run the polluter first). For a "
+            "deterministic same-class run, use --testorder inside the testorder image.")
     if not args.skip_repair and not args.api_key:
         die("--api-key is required (or pass --skip-repair to stop after reproduction)")
 
@@ -453,7 +505,10 @@ def main():
         stage_container(row, args.projects, keep_zip=args.keep_zip)
     ensure_git_baseline(project_dir)
     jdk = build_project(container_dir, project_dir, row["module"], row["java"])
-    run_order = detect_order_and_reproduce(container_dir, project_dir, row["module"], row, jdk)
+    if args.testorder:
+        run_order = reproduce_with_testorder(container_dir, project_dir, row["module"], row, jdk)
+    else:
+        run_order = detect_order_and_reproduce(container_dir, project_dir, row["module"], row, jdk)
 
     if args.skip_repair:
         log("--skip-repair: stopping after successful reproduction. To repair, rerun "

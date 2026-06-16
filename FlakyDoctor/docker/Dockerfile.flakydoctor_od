@@ -1,0 +1,71 @@
+# FlakyDoctor OD repair image — "Route B": the original ReproFlake testorder
+# environment, with FlakyDoctor + the Claude backend layered on top.
+#
+# It reproduces ReproFlake's Dockerfile.od exactly (the Illinois `testorder`
+# Surefire installed as a Maven core extension in /usr/share/maven/lib/ext/),
+# then adds:
+#   - git           (FlakyDoctor's repair_OD git-stashes / git-checkouts files)
+#   - the *Claude-only* Python deps (no torch/transformers/numpy — those are
+#     lazy-imported in repair_OD.py only for local HuggingFace models)
+#
+# Build both JDK variants from this one file:
+#   docker build -t flakydoctor-od8  --build-arg BASE=maven:3.8.6-openjdk-8  -f docker/Dockerfile.flakydoctor_od .
+#   docker build -t flakydoctor-od11 --build-arg BASE=maven:3.8.6-openjdk-11 -f docker/Dockerfile.flakydoctor_od .
+#
+# The FlakyDoctor source, projects/ and outputs/ are bind-mounted at run time
+# (see docker/run_in_container.sh), so editing code never needs a rebuild.
+
+ARG BASE=maven:3.8.6-openjdk-8
+FROM ${BASE}
+
+WORKDIR /app
+
+# Toolchain: ReproFlake's Dockerfile.od set + git (needed by FlakyDoctor) and
+# python3-pip (for the Claude backend).
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        autoconf automake libtool curl make g++ unzip \
+        python3 python3-pip git xmlstarlet && \
+    ln -sf /usr/bin/python3 /usr/bin/python && \
+    rm -rf /var/lib/apt/lists/*
+
+# Build + install the Illinois testorder Surefire as a Maven core extension.
+# This is the capability that orders methods *within a class*, so same-class OD
+# pairs reproduce deterministically (stock Surefire cannot).
+RUN git clone https://github.com/TestingResearchIllinois/maven-surefire.git /app/maven-surefire && \
+    cd /app/maven-surefire && \
+    mvn install -DskipTests -Drat.skip -Denforcer.skip && \
+    mkdir -p /usr/share/maven/lib/ext && \
+    cp /app/maven-surefire/surefire-changing-maven-extension/target/surefire-changing-maven-extension-1.0-SNAPSHOT.jar \
+       /usr/share/maven/lib/ext/ && \
+    rm -rf /app/maven-surefire && apt-get autoremove -y && apt-get clean
+
+# FlakyDoctor's Claude-path Python deps only. openai is a hard top-level import
+# in flakydoctor.py/repair_OD.py even for Claude runs, so it must be present.
+RUN pip3 install --no-cache-dir \
+        "openai==0.28.0" \
+        anthropic \
+        "beautifulsoup4==4.12.3" \
+        lxml && \
+    pip3 uninstall -y javalang || true && \
+    pip3 install --no-cache-dir \
+        "git+https://github.com/jose/javalang.git@start_position_and_end_position"
+
+# FlakyDoctor's upstream scripts (src/cmds/run_surefire.sh, run_nondex.sh)
+# hardcode the JDK at the Debian/Ubuntu host path /usr/lib/jvm/java-1.N.0-openjdk-amd64
+# and export it as JAVA_HOME unconditionally. The maven base image ships its JDK
+# at /usr/local/openjdk-N instead, so those paths are absent and mvn dies with
+# "JAVA_HOME ... not defined correctly". Symlink the expected paths to the image's
+# real JDK so the UNMODIFIED upstream scripts run correctly in-container. Both
+# names point at this image's single JDK; run_in_container.sh picks the od8/od11
+# image matching the row's Java version, so the version-correct name is always used.
+RUN mkdir -p /usr/lib/jvm && \
+    ln -sfn "$JAVA_HOME" /usr/lib/jvm/java-1.8.0-openjdk-amd64 && \
+    ln -sfn "$JAVA_HOME" /usr/lib/jvm/java-1.11.0-openjdk-amd64
+
+# The image default points repo.local at /root/.m2; run_reproflake overrides it
+# per-run (MAVEN_OPTS + MAVEN_ARGS) to the project's staged offline .m2.
+ENV MAVEN_OPTS="-Dmaven.repo.local=/root/.m2/repository"
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /work/FlakyDoctor
