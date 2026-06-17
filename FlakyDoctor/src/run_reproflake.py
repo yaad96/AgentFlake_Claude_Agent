@@ -180,10 +180,17 @@ def _find_staged_project(container_dir):
 
 
 def ensure_git_baseline(project_dir):
-    if subprocess.run(["git", "-C", project_dir, "rev-parse", "--git-dir"],
-                      capture_output=True).returncode == 0:
+    # CRITICAL: only skip if project_dir is the ROOT of its OWN git repo. A bare
+    # `rev-parse --git-dir` succeeds even when project_dir merely sits *inside* an
+    # outer repo — and these staged projects live under the bind-mounted FlakyRV
+    # checkout. Without a project-local .git, FlakyDoctor's git_stash/git_checkout
+    # would run against the OUTER repo and silently wipe its uncommitted changes.
+    top = subprocess.run(["git", "-C", project_dir, "rev-parse", "--show-toplevel"],
+                         capture_output=True, text=True)
+    if top.returncode == 0 and \
+            os.path.realpath(top.stdout.strip()) == os.path.realpath(project_dir):
         return
-    log("no .git in snapshot — creating baseline commit (needed for round rollback)")
+    log("creating project-local git baseline (isolates FlakyDoctor's git ops from the outer repo)")
     subprocess.run(["git", "-C", project_dir, "init", "-q"], check=True)
     subprocess.run(["git", "-C", project_dir, "add", "-A"], check=True)
     # Inline identity so the commit works in a fresh container with no global

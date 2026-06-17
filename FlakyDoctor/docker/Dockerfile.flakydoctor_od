@@ -31,14 +31,22 @@ RUN apt-get update && \
 
 # Build + install the Illinois testorder Surefire as a Maven core extension.
 # This is the capability that orders methods *within a class*, so same-class OD
-# pairs reproduce deterministically (stock Surefire cannot).
-RUN git clone https://github.com/TestingResearchIllinois/maven-surefire.git /app/maven-surefire && \
-    cd /app/maven-surefire && \
-    mvn install -DskipTests -Drat.skip -Denforcer.skip && \
-    mkdir -p /usr/share/maven/lib/ext && \
-    cp /app/maven-surefire/surefire-changing-maven-extension/target/surefire-changing-maven-extension-1.0-SNAPSHOT.jar \
-       /usr/share/maven/lib/ext/ && \
-    rm -rf /app/maven-surefire && apt-get autoremove -y && apt-get clean
+# pairs reproduce deterministically (stock Surefire cannot). OPTIONAL: the old
+# fork does not compile under JDK 17, and ID runs don't need it (they use NonDex),
+# so build with --build-arg WITH_TESTORDER=false for a Surefire-less image
+# (e.g. the JDK-17 ID image). ARG must follow FROM to be visible to RUN.
+ARG WITH_TESTORDER=true
+RUN if [ "$WITH_TESTORDER" = "true" ]; then \
+        git clone https://github.com/TestingResearchIllinois/maven-surefire.git /app/maven-surefire && \
+        cd /app/maven-surefire && \
+        mvn install -DskipTests -Drat.skip -Denforcer.skip && \
+        mkdir -p /usr/share/maven/lib/ext && \
+        cp /app/maven-surefire/surefire-changing-maven-extension/target/surefire-changing-maven-extension-1.0-SNAPSHOT.jar \
+           /usr/share/maven/lib/ext/ && \
+        rm -rf /app/maven-surefire && apt-get autoremove -y && apt-get clean ; \
+    else \
+        echo "WITH_TESTORDER=$WITH_TESTORDER — skipping testorder Surefire (NonDex-only / ID image)" ; \
+    fi
 
 # FlakyDoctor's Claude-path Python deps only. openai is a hard top-level import
 # in flakydoctor.py/repair_OD.py even for Claude runs, so it must be present.

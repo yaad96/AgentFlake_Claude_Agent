@@ -60,20 +60,29 @@ case "$TEST_TYPE" in
     *)  echo "unsupported test_type '$TEST_TYPE' for $CONTAINER (only od and id are wired)" >&2; exit 1 ;;
 esac
 
+# JDK 8/11 use the openjdk base + the testorder Surefire. JDK 17 has no
+# maven:3.8.6-openjdk-17 tag and the old Surefire fork doesn't compile on 17, so
+# it uses the temurin-17 base built WITHOUT testorder (WITH_TESTORDER=false) —
+# fine for ID (NonDex), but OD on 17 would have no testorder (none in scope here).
+WITH_TESTORDER="true"
 case "$JAVA_VER" in
+    17) IMAGE="flakydoctor-od17"; BASE="maven:3.8.6-eclipse-temurin-17"; WITH_TESTORDER="false" ;;
     11) IMAGE="flakydoctor-od11"; BASE="maven:3.8.6-openjdk-11" ;;
     8)  IMAGE="flakydoctor-od8";  BASE="maven:3.8.6-openjdk-8"  ;;
-    *)  echo "row asks for Java $JAVA_VER; only 8 and 11 have a prebuilt image." >&2
-        echo "build one: docker build -t flakydoctor-od$JAVA_VER --build-arg BASE=maven:3.8.6-openjdk-$JAVA_VER -f docker/Dockerfile.flakydoctor_od ." >&2
+    *)  echo "row asks for Java $JAVA_VER; only 8, 11, 17 are wired." >&2
         exit 1 ;;
 esac
+if [[ "$TEST_TYPE" == "od" && "$WITH_TESTORDER" == "false" ]]; then
+    echo "OD on Java $JAVA_VER needs the testorder Surefire, which isn't built for this JDK." >&2
+    exit 1
+fi
 
 echo "[reproflake] container=$CONTAINER  type=$TEST_TYPE  java=$JAVA_VER  image=$IMAGE  driver=$DRIVER"
 
 # Build the image once (idempotent: skip if it already exists).
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
-    echo "[reproflake] building $IMAGE from $BASE (one-time; clones + builds the Illinois Surefire) ..."
-    docker build -t "$IMAGE" --build-arg "BASE=$BASE" \
+    echo "[reproflake] building $IMAGE from $BASE (one-time, WITH_TESTORDER=$WITH_TESTORDER) ..."
+    docker build -t "$IMAGE" --build-arg "BASE=$BASE" --build-arg "WITH_TESTORDER=$WITH_TESTORDER" \
         -f "$FLAKYDOCTOR_DIR/docker/Dockerfile.flakydoctor_od" "$FLAKYDOCTOR_DIR"
 fi
 
