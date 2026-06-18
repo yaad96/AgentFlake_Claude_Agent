@@ -177,6 +177,7 @@ echo "[step 1c] Surefire version: $SUREFIRE_VER"
 # STEP 2 — start container
 echo "[step 2 ] Starting container '$CONTAINER'"
 docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+mkdir -p "$DATA_DIR/Flakym2/.m2"
 docker run -d --name "$CONTAINER" \
   --mount type=bind,source="$DATA_DIR",target=/app/work \
   --mount type=bind,source="$DATA_DIR/Flakym2/.m2",target=/root/.m2 \
@@ -242,7 +243,7 @@ docker exec "$CONTAINER" bash -c "
   rm -rf /app/work/traces-fixed; mkdir -p /app/work/traces-fixed
   export SUREFIRE_VERSION=$SUREFIRE_VER
   cd /app/work/Fixed
-  mvn install -DskipTests -pl $MODULE -am -q $MVNOPTS
+  mvn install -Dmaven.test.skip=true -pl $MODULE -am -q $MVNOPTS
   mvn test \
     -pl $MODULE -am \
     -Dtest='${WRAPPER_FQCN}#runTwice' \
@@ -255,7 +256,7 @@ docker exec "$CONTAINER" bash -c "
   rm -rf /app/work/traces-flaky; mkdir -p /app/work/traces-flaky
   export SUREFIRE_VERSION=$SUREFIRE_VER
   cd /app/work/Flaky
-  mvn install -DskipTests -pl $MODULE -am -q $MVNOPTS
+  mvn install -Dmaven.test.skip=true -pl $MODULE -am -q $MVNOPTS
   mvn test \
     -pl $MODULE -am \
     -Dtest='${WRAPPER_FQCN}#runTwice' \

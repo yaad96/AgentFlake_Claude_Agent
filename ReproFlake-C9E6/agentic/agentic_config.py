@@ -67,7 +67,7 @@ MAX_TOOL_TURNS_PER_ITERATION: int = 10
 # of 10 means at most 9 exploratory turns before a forced patch turn.
 # Guards against a runaway exploration loop.
 
-VERIFY_PASS_RUNS: int = 5
+VERIFY_PASS_RUNS: int = 100
 # After a patch first passes, run the verification command this many more
 # times before declaring success. All runs must pass — if any fail, Flaky/
 # is restored and the agent is told the fix is still non-deterministic.
@@ -82,7 +82,7 @@ MAX_TOKENS: int = 8192
 # Maximum completion tokens per API call.
 # 8192 is fine for Sonnet; raise to 16384 for Opus if you need longer diffs.
 
-TEMPERATURE: float = 0.0
+TEMPERATURE: float = 0
 # Sampling temperature. 0.0 = deterministic (greedy).
 # Values above 0.3 tend to produce noisier patches without quality gains.
 

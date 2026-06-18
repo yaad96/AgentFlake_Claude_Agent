@@ -115,6 +115,7 @@ fi
 # STEP 2 — start container
 echo "[step 2 ] Starting container '$CONTAINER'"
 docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+mkdir -p "$DATA_DIR/Flakym2/.m2"
 docker run -d --name "$CONTAINER" \
   --mount type=bind,source="$DATA_DIR",target=/app/work \
   --mount type=bind,source="$DATA_DIR/Flakym2/.m2",target=/root/.m2 \
@@ -123,11 +124,11 @@ docker run -d --name "$CONTAINER" \
 MVNOPTS='-DfailIfNoTests=false -Dgpg.skip=true -Dcheckstyle.skip -Drat.skip -Denforcer.skip -Dmaven.javadoc.skip'
 
 # STEP 3 — pre-build + run victim to capture failure log
-echo "[step 3 ] pre-build: mvn install -DskipTests"
+echo "[step 3 ] pre-build: mvn install -Dmaven.test.skip=true"
 docker exec "$CONTAINER" bash -c "
   set -e
   cd /app/work/Flaky
-  mvn install -DskipTests -pl '$MODULE' -am -q $MVNOPTS || true
+  mvn install -Dmaven.test.skip=true -pl '$MODULE' -am -q $MVNOPTS || true
 "
 
 echo "[step 3 ] Running victim to capture failure -> traces-fail/mvn.log"

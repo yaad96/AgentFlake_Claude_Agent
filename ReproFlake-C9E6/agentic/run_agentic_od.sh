@@ -167,6 +167,7 @@ fi
 # ============================================================
 echo "[step 2 ] Starting container '$CONTAINER' from image '$IMAGE'"
 docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+mkdir -p "$DATA_DIR/Flakym2/.m2"
 docker run -d --name "$CONTAINER" \
   --mount type=bind,source="$DATA_DIR",target=/app/work \
   --mount type=bind,source="$DATA_DIR/Flakym2/.m2",target=/root/.m2 \
@@ -203,7 +204,7 @@ docker exec "$CONTAINER" bash -c "
   set -e
   rm -rf /app/work/traces-flaky; mkdir -p /app/work/traces-flaky
   cd /app/work/Flaky
-  mvn install -DskipTests -pl $MODULE -am -q $MVNOPTS
+  mvn install -Dmaven.test.skip=true -pl $MODULE -am -q $MVNOPTS
   mvn surefire:test \
     -pl $MODULE -Dtest='$POLLUTER,$VICTIM' \
     -Dsurefire.runOrder=testorder \

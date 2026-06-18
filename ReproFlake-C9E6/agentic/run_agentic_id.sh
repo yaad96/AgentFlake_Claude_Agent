@@ -52,6 +52,10 @@ case "$JAVA" in
   17) IMAGE="flaky_base_jdk_17_id_cover_new"; DOCKERFILE="Dockerfile17.id" ;;
   *)  echo "ERROR: unsupported java=$JAVA"; exit 1 ;;
 esac
+NONDEX_PLUGIN_VERSION="2.1.1"
+if [[ "$JAVA" == "17" ]]; then
+  NONDEX_PLUGIN_VERSION="2.1.7"
+fi
 
 # Build the per-JDK ID image if it isn't present locally (these are local
 # build images, never pushed to a registry — so a plain `docker run` would
@@ -121,6 +125,7 @@ fi
 # STEP 2 — start container
 echo "[step 2 ] Starting container '$CONTAINER'"
 docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+mkdir -p "$DATA_DIR/Flakym2/.m2"
 docker run -d --name "$CONTAINER" \
   --mount type=bind,source="$DATA_DIR",target=/app/work \
   --mount type=bind,source="$DATA_DIR/Flakym2/.m2",target=/root/.m2 \
@@ -159,11 +164,11 @@ if (( NONDEX_RUNS > 10 )); then
 fi
 
 # Pre-build
-echo "[step 4d] pre-build: mvn install -DskipTests"
+echo "[step 4d] pre-build: mvn install -Dmaven.test.skip=true"
 docker exec "$CONTAINER" bash -c "
   set -e
   cd /app/work/Flaky
-  mvn install -DskipTests -pl '$MODULE' -am -q $MVNOPTS
+  mvn install -Dmaven.test.skip=true -pl '$MODULE' -am -q $MVNOPTS
 "
 
 # Run #1: traces-pass (plain mvn test, no TraceMOP)
@@ -178,16 +183,49 @@ docker exec "$CONTAINER" bash -c "
 "
 
 # Run #2: traces-fail (NonDex with seed; no TraceMOP — captures failure log)
-echo "[step 4d] /app/work/Flaky -> /app/work/traces-fail (NonDex seed=$NONDEXSEED runs=$NONDEX_RUNS)"
+echo "[step 4d] /app/work/Flaky -> /app/work/traces-fail (NonDex seed=$NONDEXSEED max-runs=$NONDEX_RUNS)"
 docker exec "$CONTAINER" bash -c "
   set -e
   rm -rf /app/work/traces-fail; mkdir -p /app/work/traces-fail
   cd /app/work/Flaky
-  mvn edu.illinois:nondex-maven-plugin:2.1.1:nondex \
-    -DnondexSeed=$NONDEXSEED -DnondexRuns=$NONDEX_RUNS \
-    -pl '$MODULE' -Dtest='$VICTIM' \
-    $MVNOPTS 2>&1 | tee /app/work/traces-fail/mvn.log || true
+  : > /app/work/traces-fail/mvn.log
+  python3 - <<'PY' > /app/work/traces-fail/seeds.txt
+seed = int('$NONDEXSEED')
+mask = (1 << 48) - 1
+mult = 0x5DEECE66D
+add = 0xB
+state = (seed ^ mult) & mask
+print(seed)
+for _ in range(1, int('$NONDEX_RUNS')):
+    state = (state * mult + add) & mask
+    hi = state >> 16
+    state = (state * mult + add) & mask
+    lo = state >> 16
+    val = (hi << 32) + lo
+    if val >= (1 << 63):
+        val -= 1 << 64
+    print(val)
+PY
+  i=0
+  while IFS= read -r seed; do
+    i=\$((i + 1))
+    echo \"[nondex] attempt \$i/$NONDEX_RUNS seed=\$seed\" | tee -a /app/work/traces-fail/mvn.log
+    mvn edu.illinois:nondex-maven-plugin:$NONDEX_PLUGIN_VERSION:nondex \
+      -DnondexSeed=\$seed -DnondexRuns=1 \
+      -pl '$MODULE' -Dtest='$VICTIM' \
+      $MVNOPTS 2>&1 | tee -a /app/work/traces-fail/mvn.log || true
+    if tail -n 200 /app/work/traces-fail/mvn.log | grep -Eq 'Tests run:[[:space:]]+[0-9]+,[[:space:]]+Failures:[[:space:]]+[1-9][0-9]*|Tests run:[[:space:]]+[0-9]+,[[:space:]]+Failures:[[:space:]]+[0-9]+,[[:space:]]+Errors:[[:space:]]+[1-9][0-9]*'; then
+      echo \"\$seed\" > /app/work/traces-fail/failing_seed
+      break
+    fi
+  done < /app/work/traces-fail/seeds.txt
 "
+
+if [[ -f "$DATA_DIR/traces-fail/failing_seed" ]]; then
+  NONDEXSEED="$(cat "$DATA_DIR/traces-fail/failing_seed")"
+  NONDEX_RUNS=1
+  echo "[step 4d] using reproduced failing NonDex seed=$NONDEXSEED"
+fi
 
 # Sanity: at least one NonDex iteration must have failed.
 echo "[sanity ] Verifying at least one NonDex iteration failed"
@@ -239,6 +277,7 @@ cat > "$STEPS_OUT_DIR/trace_config.json" <<JSONEOF
   "victim": "$VICTIM",
   "nondex_seed": "$NONDEXSEED",
   "nondex_runs": $NONDEX_RUNS,
+  "nondex_plugin_version": "$NONDEX_PLUGIN_VERSION",
   "wrapper_fqcn": "",
   "surefire_version": "",
   "tracemop_ready": true
@@ -247,7 +286,7 @@ JSONEOF
 
 # AGENT — verify_victim for ID needs NONDEXSEED + NONDEX_RUNS in env;
 # agentic_verify.py reads them, mirroring run_id_tracemop.sh's verify_victim().
-export NONDEXSEED NONDEX_RUNS
+export NONDEXSEED NONDEX_RUNS NONDEX_PLUGIN_VERSION
 echo "[agent ] launching agentic_orchestrator.py (max_iterations=${AGENTIC_MAX_ITERATIONS:-10})"
 set +e
 python3 "$SCRIPT_DIR/agentic_orchestrator.py" "$RESULT_CONTAINER" \

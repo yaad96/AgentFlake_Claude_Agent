@@ -123,6 +123,7 @@ fi
 # STEP 2 — start container
 echo "[step 2 ] Starting container '$CONTAINER' from image '$IMAGE'"
 docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+mkdir -p "$DATA_DIR/Flakym2/.m2"
 docker run -d --name "$CONTAINER" \
   --mount type=bind,source="$DATA_DIR",target=/app/work \
   --mount type=bind,source="$DATA_DIR/Flakym2/.m2",target=/root/.m2 \
@@ -154,7 +155,7 @@ docker exec "$CONTAINER" bash -c "
   set -e
   rm -rf /app/work/traces-flakycc; mkdir -p /app/work/traces-flakycc
   cd /app/work/FlakyCodeChange
-  mvn install -DskipTests -pl $MODULE -am -q $MVNOPTS
+  mvn install -Dmaven.test.skip=true -pl $MODULE -am -q $MVNOPTS
   mvn surefire:test \
     -pl $MODULE -Dtest='$VICTIM' \
     $MVNOPTS 2>&1 | tee /app/work/traces-flakycc/mvn.log || true

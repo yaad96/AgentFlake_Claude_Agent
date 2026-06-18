@@ -391,7 +391,7 @@ printf 'db=memory\\ndumpDB=false\\n' > $TRACEDB_CONFIG_PATH
 export RVMLOGGINGLEVEL=UNIQUE
 export TRACEDB_PATH=/app/work/traces-{label}
 cd /app/work/{variant}
-mvn install -DskipTests -pl '{module}' -am -q {mvnopts}
+mvn install -Dmaven.test.skip=true -pl '{module}' -am -q {mvnopts}
 mvn surefire:test -Dmaven.ext.class.path={_EXT_JAR} \\
   -pl '{module}' -Dtest='{test_spec}' {extra_flags} \\
   {mvnopts} 2>&1 | tee /app/work/traces-{label}/mvn.log || true"""
@@ -456,6 +456,9 @@ mvn test -Dmaven.ext.class.path={_EXT_JAR} \\
   -pl '{module}' -Dtest='{victim}' {mvnopts} 2>&1 | tee /app/work/traces-pass/mvn.log || true"""
         _docker_exec(docker, pass_cmd)
 
+        nondex_plugin_version = (cfg.get("nondex_plugin_version")
+                                 or os.environ.get("NONDEX_PLUGIN_VERSION")
+                                 or "2.1.1")
         fail_cmd = f"""set -e
 rm -rf /app/work/traces-fail && mkdir -p /app/work/traces-fail
 export TRACEDB_CONFIG_PATH=/tmp/.trace-db.config
@@ -463,7 +466,7 @@ printf 'db=memory\\ndumpDB=false\\n' > $TRACEDB_CONFIG_PATH
 export RVMLOGGINGLEVEL=UNIQUE
 export TRACEDB_PATH=/app/work/traces-fail
 cd /app/work/Flaky
-mvn edu.illinois:nondex-maven-plugin:2.1.1:nondex \\
+mvn edu.illinois:nondex-maven-plugin:{nondex_plugin_version}:nondex \\
   -DnondexSeed={nondex_seed} -DnondexRuns={nondex_runs} \\
   -Dmaven.ext.class.path={_EXT_JAR} \\
   -pl '{module}' -Dtest='{victim}' {mvnopts} 2>&1 | tee /app/work/traces-fail/mvn.log || true"""
@@ -484,7 +487,7 @@ export RVMLOGGINGLEVEL=UNIQUE
 export TRACEDB_PATH=/app/work/traces-{label}
 export SUREFIRE_VERSION={surefire_ver}
 cd /app/work/{variant}
-mvn install -DskipTests -pl {module} -am -q {mvnopts}
+mvn install -Dmaven.test.skip=true -pl {module} -am -q {mvnopts}
 mvn test -Dmaven.ext.class.path={_EXT_JAR} \\
   -pl {module} -am -Dtest='{wrapper_fqcn}#runTwice' \\
   {sf_flag} {mvnopts} 2>&1 | tee /app/work/traces-{label}/mvn.log || true"""

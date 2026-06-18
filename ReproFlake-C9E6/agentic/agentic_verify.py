@@ -135,9 +135,11 @@ def _build_command(test_type: str, row: dict) -> str:
         # <forkMode> -> "Cannot find 'forkMode'" -> 0 surefire summary lines
         # -> _interpret() defaults to FAILED even when no test actually failed).
         # Trace collection still uses the ext jar in _compute_rv_traces_lazy.
+        nondex_plugin_version = os.environ.get(
+            "NONDEX_PLUGIN_VERSION", "2.1.1").strip() or "2.1.1"
         return (
             "cd /app/work/Flaky\n"
-            f"mvn edu.illinois:nondex-maven-plugin:2.1.1:nondex "
+            f"mvn edu.illinois:nondex-maven-plugin:{nondex_plugin_version}:nondex "
             f"-DnondexSeed={seed} -DnondexRuns={runs} "
             f"-pl '{module}' "
             f"-Dtest='{victim}' {timeout} {MVNOPTS_ID} 2>&1"
