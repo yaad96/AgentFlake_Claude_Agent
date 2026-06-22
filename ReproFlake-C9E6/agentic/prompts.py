@@ -43,7 +43,12 @@ How to work with the least context possible:
     get_code for one relevant class/method named by the test or stack trace,
     or get_flaky_example for the category's repair pattern. You may call
     get_code multiple times, but only for specific relevant targets and only
-    while it is still blocking a patch.
+    while it is still blocking a patch. Name a get_code target with the exact
+    fully-qualified name (FQN) copied from the stack trace, an import, or an
+    extends/implements clause — never guess a package or module path. If
+    get_code returns "no source file found", the name is wrong, not the file
+    missing: re-derive the FQN from the stack trace instead of retrying path
+    variants.
   - For Unclassified/Unassigned flaky-test types, get_flaky_example cannot be
     used because no category-specific exemplar exists.
   - Call get_error_logs('test_failure') only when the initial failure log is

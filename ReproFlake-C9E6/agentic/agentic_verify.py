@@ -74,6 +74,12 @@ def _run_in_container(docker_container: str, command: str) -> str:
     """Execute `bash -c command` inside the running docker container and
     return combined stdout/stderr. Tolerates non-zero exit (we WANT the
     output of failing test runs)."""
+    # Prepend the JDK Maven already uses to PATH so any build plugin that
+    # spawns a bare `java`/tool during the verify build (codegen, antrun,
+    # JavaCC/jute, protoc) can find it. Guarded: no-op if JAVA_HOME is unset,
+    # and only prepends the in-use JDK — cannot break a subject that already
+    # had java on PATH. Mirrors the same hardening in apply_fix recompile.
+    command = 'export PATH="${JAVA_HOME:+$JAVA_HOME/bin:}$PATH"\n' + command
     proc = subprocess.run(
         ["docker", "exec", docker_container, "bash", "-c", command],
         capture_output=True, text=True,
@@ -93,12 +99,32 @@ def _build_command(test_type: str, row: dict) -> str:
 
     if test_type == "od":
         # Pair-of-tests with -Dsurefire.runOrder=testorder (TestingResearch-
-        # Illinois fork), pinned via SUREFIRE_VERSION. Same shape as
-        # run_od_tracemop.sh's verify_victim.
+        # Illinois fork), pinned via SUREFIRE_VERSION.
+        # NOTE: deliberately NO `-Dmaven.ext.class.path={EXT_JAR}` here, for the
+        # same reason as the TD/ID branches. The OD gate only needs to rerun the
+        # polluter->victim pair in declared order and check the victim now
+        # passes; it does NOT need JavaMOP/TraceMOP instrumentation. Worse, the
+        # ext jar weaves AspectJ monitors whose static initializer opens
+        # .traces/traces.txt, which does not exist in the standalone verify
+        # working dir -> the monitor throws FileNotFoundException inside class
+        # init before the victim assertion ever runs, so verify reports FAILED
+        # regardless of the patch (the verify log is then identical across all
+        # attempts). This also makes the gate use the same un-instrumented
+        # command that originally reproduced the flake. Trace collection still
+        # uses the ext jar in _compute_rv_traces_lazy.
+        # Run `dependency:properties` before the standalone surefire:test goal.
+        # Some poms (e.g. ZooKeeper) put `-javaagent:${groupId:artifactId:type}`
+        # in surefire's argLine; that property is published by the
+        # maven-dependency-plugin:properties goal, which is bound into the
+        # lifecycle and so is SKIPPED when surefire:test is invoked directly.
+        # Without it the placeholder stays literal, the forked test JVM fails to
+        # start ("forked VM terminated without properly saying goodbye"), and
+        # verify reports Tests run: 0 regardless of the patch. It is a harmless
+        # no-op for projects whose argLine references no such property.
         return (
             "cd /app/work/Flaky\n"
             "export SUREFIRE_VERSION=3.0.0-M8-SNAPSHOT\n"
-            f"mvn surefire:test -Dmaven.ext.class.path={EXT_JAR} "
+            f"mvn dependency:properties surefire:test "
             f"-pl {module} -Dtest='{polluter},{victim}' "
             f"-Dsurefire.runOrder=testorder {timeout} {MVNOPTS_OD} 2>&1"
         )
@@ -114,9 +140,14 @@ def _build_command(test_type: str, row: dict) -> str:
         # -> _interpret() defaults to FAILED even when the agent's fix is
         # correct). Trace collection still uses the ext jar in
         # _compute_rv_traces_lazy.
+        # `dependency:properties` first — same reason as the OD branch: it
+        # publishes the dependency-path properties that some poms reference in
+        # surefire's argLine (e.g. -javaagent:${org.jmockit:jmockit:jar}), which
+        # the standalone surefire:test goal would otherwise leave unresolved,
+        # crashing the forked test JVM (Tests run: 0). No-op when unused.
         return (
             "cd /app/work/Flaky\n"
-            f"mvn surefire:test "
+            f"mvn dependency:properties surefire:test "
             f"-pl {module} -Dtest='{victim}' {timeout} {MVNOPTS_TD} 2>&1"
         )
     if test_type == "id":
@@ -152,10 +183,18 @@ def _build_command(test_type: str, row: dict) -> str:
             sys.exit("ERROR: NIO verify requires WRAPPER_FQCN env var (set "
                      "by run_agentic_nio.sh after wrapper generation).")
         surefire_ver = os.environ.get("SUREFIRE_VER", "3.0.0-M5").strip()
+        # NOTE: deliberately NO `-Dmaven.ext.class.path={EXT_JAR}` here, for the
+        # same reason as the OD/TD/ID branches. The NIO gate only needs to run
+        # the wrapper's runTwice() and check the second invocation passes; it
+        # does NOT need JavaMOP/TraceMOP instrumentation, which is for trace
+        # collection only and can crash the standalone verify run (missing
+        # .traces dir) or perturb the effective surefire version. Keeps all
+        # four verify branches instrumentation-free and consistent. Trace
+        # collection still uses the ext jar in _compute_rv_traces_lazy.
         return (
             "cd /app/work/Flaky\n"
             f"export SUREFIRE_VERSION={surefire_ver}\n"
-            f"mvn test -Dmaven.ext.class.path={EXT_JAR} -pl {module} -am "
+            f"mvn test -pl {module} -am "
             f"-Dtest='{wrapper}#runTwice' {timeout} {MVNOPTS_NIO} 2>&1"
         )
     if test_type in ("unclassified", "unassigned"):

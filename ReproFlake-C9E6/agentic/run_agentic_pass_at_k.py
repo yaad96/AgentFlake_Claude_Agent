@@ -74,7 +74,7 @@ COMPLETE_SUMMARY_COLS = [
     "timestamp", "container", "test_type", "model", "run", "final verdict",
     "rv_traces_used",
     "input_tokens", "output_tokens", "total_tokens", "llm_seconds",
-    "validation_runs", "temperature",
+    "validation_runs", "temperature", "tools_used",
 ]
 
 
@@ -278,12 +278,23 @@ def parse_run(per_run_dir: Path, container, test_type, run_n, model="claude"):
         if not fail_snippet:
             fail_snippet = result.get("reason", "")[:200]
 
+    # Aggregate tool usage across all iterations of this run into a compact
+    # "name:count; name:count" string (sorted by count desc, then name).
+    tool_counts = {}
+    for it in iterations:
+        for t in (it.get("tools_used") or []):
+            tool_counts[t] = tool_counts.get(t, 0) + 1
+    tools_used_str = "; ".join(
+        f"{name}:{cnt}" for name, cnt in
+        sorted(tool_counts.items(), key=lambda kv: (-kv[1], kv[0])))
+
     return {
         "container": container,
         "test_type": test_type,
         "model": model,
         "run": run_n,
         "verdict": verdict,
+        "tools_used": tools_used_str,
         "fail_category": cat,
         "input_tokens_total": in_tokens,
         "output_tokens_total": out_tokens,
@@ -412,6 +423,7 @@ def append_complete_summary(rows):
             "llm_seconds": round(r["elapsed_llm_seconds"], 1),
             "validation_runs": agentic_config.VERIFY_PASS_RUNS,
             "temperature": agentic_config.TEMPERATURE,
+            "tools_used": r.get("tools_used", ""),
         })
 
     if _first_append_this_process:
@@ -425,14 +437,14 @@ def append_complete_summary(rows):
                     existing_header = None
         if existing_header == COMPLETE_SUMMARY_COLS:
             with open(COMPLETE_SUMMARY_FILE, "a", encoding="utf-8", newline="") as f:
-                f.write("\n")
                 w = csv.DictWriter(f, fieldnames=COMPLETE_SUMMARY_COLS,
                                    quoting=csv.QUOTE_ALL, extrasaction="ignore")
                 for r in new_row_dicts:
                     w.writerow(r)
         else:
-            # Header drift / new file path: full rewrite, dropping blank-line
-            # separators (same trade-off the non-agentic harness makes).
+            # Header drift / new file path: full rewrite. DictReader skips
+            # blank lines, so any pre-existing blank separator rows are dropped
+            # here and none are written back.
             existing_rows = []
             if COMPLETE_SUMMARY_FILE.is_file():
                 with open(COMPLETE_SUMMARY_FILE, encoding="utf-8", newline="") as f:
@@ -448,8 +460,6 @@ def append_complete_summary(rows):
                 w.writeheader()
                 for r in existing_rows:
                     w.writerow(r)
-                if existing_rows:
-                    f.write("\n")
                 for r in new_row_dicts:
                     w.writerow(r)
             tmp.replace(COMPLETE_SUMMARY_FILE)

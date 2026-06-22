@@ -184,7 +184,10 @@ def get_code(container: str, target: str) -> str:
 
     rel_src = os.path.relpath(src_file, source_base)
     if method:
-        body = extract_java_method(src_file, method)
+        # all_overloads=True: a bare name often matches both a public wrapper
+        # and a private overload holding the real logic; show every overload so
+        # the agent isn't blind to the body (and assertions) it needs.
+        body = extract_java_method(src_file, method, all_overloads=True)
         if body:
             return (
                 f"File: {rel_src}\n"
@@ -277,18 +280,28 @@ def get_error_logs(container: str, log_type: str = "test_failure") -> str:
         rc = rep.get("recompile") or {}
         if rc.get("skipped"):
             return "(recompile was skipped on the last attempt)"
-        tail = rc.get("stderr_tail") or rc.get("stdout_tail") or ""
+        # Maven writes [ERROR]/BUILD FAILURE to stdout; stderr often carries
+        # only benign subprocess warnings. Prefer stdout so the real compile
+        # diagnostic surfaces instead of the warning.
+        tail = rc.get("stdout_tail") or rc.get("stderr_tail") or ""
         if not tail:
             return "(no recompile output recorded on the last apply attempt)"
         ok = "ok" if rc.get("ok") else "failed"
         return f"(recompile {ok}; tail of mvn output:)\n\n{tail.rstrip()}\n"
 
     if log_type == "verify":
-        verify_log, _ = _read_first_existing(steps / "verify_after_fix.log")
+        log_path = steps / "verify_after_fix.log"
+        verify_log, _ = _read_first_existing(log_path)
         if not verify_log:
             return ("(no verify_after_fix.log yet — submit a patch first; "
                     "this log is only populated after submit_patch runs)")
-        # Trim head; the surefire output tail is what matters.
+        # Prefer the same Surefire failure block (exception + message + stack
+        # trace) used for the original failure, so the agent sees the post-patch
+        # failure in the same shape. Fall back to the tail when no block is
+        # found (e.g. infra/timeout output rather than a test assertion).
+        block = extract_failure_from_log(str(log_path))
+        if block and not block.startswith("("):
+            return f"{block}\n"
         lines = verify_log.splitlines()
         tail = lines[-200:] if len(lines) > 200 else lines
         return "\n".join(tail) + "\n"
@@ -607,7 +620,13 @@ TOOL_SCHEMAS = [
                     "type": "string",
                     "description": (
                         "Either 'package.ClassName' (class header) or "
-                        "'package.ClassName#methodName' (method body)."
+                        "'package.ClassName#methodName' (method body). Copy "
+                        "the FQN verbatim from the stack trace, an import, or "
+                        "an extends/implements clause — do not guess the "
+                        "package. For a nested class, name its enclosing "
+                        "top-level class (e.g. 'pkg.Outer.Inner' or "
+                        "'pkg.Outer'); the file is located automatically "
+                        "regardless of which module it lives in."
                     ),
                 },
             },

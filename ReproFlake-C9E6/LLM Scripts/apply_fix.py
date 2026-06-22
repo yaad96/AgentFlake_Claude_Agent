@@ -1477,6 +1477,22 @@ def _modules_to_recompile(flaky_root: Path, touched_files: list) -> list:
     return modules
 
 
+def _victim_module(container: str) -> str:
+    """Return the victim test's Maven module from test_config.csv (the CSV
+    'module' column), or "" if unavailable. Used so the recompile also builds
+    the module the victim test lives in — which may differ from the module the
+    fix landed in (abstract-superclass pattern: victim in ratis-test, fix in
+    ratis-server). Best-effort: apply_fix.py must stay runnable standalone, so
+    any failure here just falls back to touched-file modules only."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from assemble_llm_context import load_csv_row
+        row = load_csv_row(container)
+        return (row.get("module") or "").strip() if row else ""
+    except Exception:
+        return ""
+
+
 def _container_running(container: str) -> tuple:
     r = subprocess.run(
         ["docker", "inspect", "-f", "{{.State.Running}}", container],
@@ -1550,6 +1566,12 @@ def recompile_in_container(container: str, modules: list) -> dict:
     bash_cmd = (
         "cd /app/work/Flaky && "
         "export SUREFIRE_VERSION=3.0.0-M8-SNAPSHOT && "
+        # Put the JDK Maven already uses on PATH so build plugins that spawn a
+        # bare `java`/tool (exec-maven-plugin codegen, antrun, JavaCC/jute,
+        # protoc) can find it. Guarded: expands to nothing if JAVA_HOME is
+        # unset, and only prepends the JDK already in use — cannot break a
+        # project that already had java on PATH.
+        'export PATH="${JAVA_HOME:+$JAVA_HOME/bin:}$PATH" && '
         + mvn_cmd
     )
 
@@ -1577,7 +1599,17 @@ def _touched_files_from_patch(flaky_root: Path, patch_text: str) -> list:
     if not patch_text:
         return files
     for m in re.finditer(r'^\+\+\+\s+b/(.+)$', patch_text, re.M):
-        files.append(flaky_root / m.group(1).strip())
+        rel = m.group(1).strip()
+        # Resolve the same way fixed_code paths are (via _resolve_path): strip
+        # a leading `Flaky/` and suffix-match into the tree. Without this, a
+        # patch anchored at `Flaky/<module>/...` is joined onto a flaky_root
+        # that already ends in `Flaky`, producing a non-existent double-`Flaky`
+        # path that _module_for_file walks up to the ROOT pom -> '.' -> a
+        # whole-reactor `mvn install` that drags in modules unrelated to the
+        # victim (e.g. ratis-hadoop, whose protoc dep then fails) instead of
+        # just the victim's module. Mirrors _touched_files_from_fixed_code.
+        resolved = _resolve_path(flaky_root, rel) or rel
+        files.append(flaky_root / resolved)
     return files
 
 
@@ -1851,6 +1883,18 @@ def main():
             sanitized = re.sub(r'[^a-zA-Z0-9]', '_', args.container)
             container_name = args.docker_container or f"tm_{sanitized}"
             modules = _modules_to_recompile(flaky, deduped)
+            # Also recompile the victim's own module so verify (which runs
+            # `surefire:test -pl <victim-module>`) has fresh test-classes. The
+            # fix may land in an upstream module (e.g. ratis-server) while the
+            # victim test lives in another (ratis-test); without this the victim
+            # module is never compiled and verify reports "No tests to run".
+            # `-am` still pulls only upstream deps, so unrelated sibling modules
+            # (e.g. ratis-hadoop -> protoc) are not built. Skipped when the set
+            # is already the whole tree (["."]).
+            victim_module = _victim_module(args.container)
+            if (victim_module and victim_module != "."
+                    and modules != ["."] and victim_module not in modules):
+                modules.append(victim_module)
             report["recompile"] = recompile_in_container(container_name, modules)
 
     report["result"] = landed or {

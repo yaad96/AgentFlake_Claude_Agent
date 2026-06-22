@@ -29,7 +29,7 @@ OPENAI_API_KEY: str    = ""   # "sk-..."       — used by all gpt-* / openai mo
 
 CLAUDE_MODELS: dict = {
     # short alias          → full Anthropic model ID
-    "claude":              "claude-sonnet-4-6",   # default alias
+    "claude":              "claude-sonnet-4-6",   # default aliasx
     "claude-sonnet":       "claude-sonnet-4-6",
     "sonnet":              "claude-sonnet-4-6",
     "claude-opus":         "claude-opus-4-7",
@@ -78,9 +78,12 @@ VERIFY_PASS_RUNS: int = 100
 # API CALL SETTINGS
 # ===========================================================================
 
-MAX_TOKENS: int = 8192
+MAX_TOKENS: int = 16384
 # Maximum completion tokens per API call.
-# 8192 is fine for Sonnet; raise to 16384 for Opus if you need longer diffs.
+# 16384 gives headroom for a submit_patch that carries a full-method
+# replace_method body plus a unified diff plus prose; 8192 risked truncating
+# large patch outputs mid-JSON, causing spurious apply failures.
+# claude-sonnet-4-6 supports well beyond this, so the cap is safe to raise.
 
 TEMPERATURE: float = 0
 # Sampling temperature. 0.0 = deterministic (greedy).
@@ -91,7 +94,9 @@ TEMPERATURE: float = 0
 # TOOL OUTPUT
 # ===========================================================================
 
-TOOL_OUTPUT_MAX_CHARS: int = 16_000
+TOOL_OUTPUT_MAX_CHARS: int = 32_000
 # Per-tool-call output cap in characters. Results beyond this limit are
-# truncated and a notice appended. Prevents a large file from blowing
-# the context window.
+# truncated and a notice appended. Set to 32k so a full failure stack trace
+# (extract_failure_from_log now returns up to ~300 lines) and complete method
+# bodies from get_code reach the agent without being clipped. Still bounded so
+# a single huge file can't blow the context window.

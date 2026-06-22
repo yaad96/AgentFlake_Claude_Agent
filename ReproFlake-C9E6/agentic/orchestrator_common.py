@@ -303,10 +303,18 @@ def run_verify(container: str, docker_container: str) -> tuple[str, str]:
         if verdict_path.is_file() else "FAILED"
     log_text = ""
     if log_path.is_file():
-        lines = log_path.read_text(encoding="utf-8",
-                                   errors="replace").splitlines()
-        log_text = "\n".join(lines[-120:]) if len(lines) > 120 else \
-            "\n".join(lines)
+        # Prefer the same Surefire failure block the original failure went
+        # through (exception + message + stack trace) so post-patch failures
+        # are reported uniformly. Fall back to the raw tail when no failure
+        # block is found (extract_* returns a "(...)" sentinel).
+        block = extract_failure_from_log(str(log_path))
+        if block and not block.startswith("("):
+            log_text = block
+        else:
+            lines = log_path.read_text(encoding="utf-8",
+                                       errors="replace").splitlines()
+            log_text = "\n".join(lines[-120:]) if len(lines) > 120 else \
+                "\n".join(lines)
     return verdict, log_text
 
 
@@ -375,7 +383,10 @@ def format_failure_report(apply_report: dict, verdict: str,
     layers = apply_report.get("layers_attempted") or []
     rc = apply_report.get("recompile") or {}
     compile_section = ""
-    tail = rc.get("stderr_tail") or rc.get("stdout_tail") or ""
+    # Maven writes [ERROR]/BUILD FAILURE to stdout; stderr often carries only
+    # benign subprocess warnings (e.g. JavaCC lookahead). Prefer stdout so the
+    # real diagnostic surfaces instead of the warning.
+    tail = rc.get("stdout_tail") or rc.get("stderr_tail") or ""
     if tail and not rc.get("skipped"):
         ok = "ok" if rc.get("ok") else "failed"
         compile_section = (

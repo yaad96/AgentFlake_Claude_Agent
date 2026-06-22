@@ -17,6 +17,7 @@ prompt cannot silently shift another type's behavior).
 """
 
 import csv
+import glob
 import os
 import re
 
@@ -69,7 +70,10 @@ def fqn_to_path(fqn_with_method):
     Convert 'com.j256.ormlite.logger.LoggerFactoryTest#testSetLogFactory'
     into ('com/j256/ormlite/logger/LoggerFactoryTest.java', 'testSetLogFactory')
 
-    Handles inner classes: if the class part contains '$', strip it.
+    Handles inner classes named with '$' (Foo$Bar → Foo) and with '.'
+    (Foo.Bar → Foo): both resolve to the top-level class file. The agent and
+    Java stack traces / `extends` clauses use dot notation for nested classes,
+    so 'pkg.Outer.Inner' must map to 'pkg/Outer.java', not 'pkg/Outer/Inner.java'.
     """
     if "#" in fqn_with_method:
         class_fqn, method = fqn_with_method.rsplit("#", 1)
@@ -81,7 +85,16 @@ def fqn_to_path(fqn_with_method):
     if "$" in class_fqn:
         class_fqn = class_fqn[:class_fqn.index("$")]
 
-    rel_path = class_fqn.replace(".", "/") + ".java"
+    # Collapse dotted nested classes: by Java convention package segments are
+    # lowercase and the top-level class is the first uppercase-initial segment;
+    # any segments after it are nested classes living in that same .java file.
+    parts = class_fqn.split(".")
+    for i, p in enumerate(parts):
+        if p[:1].isupper():
+            parts = parts[:i + 1]
+            break
+
+    rel_path = "/".join(parts) + ".java"
     return rel_path, method
 
 
@@ -90,6 +103,12 @@ def find_source_file(base_dir, module, rel_path, search_dirs=("src/test/java", "
     Find a Java source file under the project. Tries:
       1. <base>/Flaky/<module>/<search_dir>/<rel_path>  (multi-module)
       2. <base>/Flaky/<search_dir>/<rel_path>           (single module)
+      3. <base>/Flaky/*/<search_dir>/<rel_path>         (any sibling module)
+    Step 3 handles classes that live outside the victim's module — e.g. an
+    abstract test superclass or shared base test in a different module
+    (the `TestXWithGrpc extends XTests` idiom), or production code in a
+    -core/-common module the victim depends on. It only fires when the
+    targeted lookups miss, so it never changes an existing successful match.
     """
     for search_dir in search_dirs:
         # Multi-module path
@@ -102,6 +121,14 @@ def find_source_file(base_dir, module, rel_path, search_dirs=("src/test/java", "
         candidate = os.path.join(base_dir, "Flaky", search_dir, rel_path)
         if os.path.isfile(candidate):
             return candidate
+
+    # Cross-module fallback: same rel_path under ANY module's search_dir.
+    # Sorted for deterministic selection if the path exists in >1 module.
+    for search_dir in search_dirs:
+        hits = sorted(glob.glob(
+            os.path.join(base_dir, "Flaky", "*", search_dir, rel_path)))
+        if hits:
+            return hits[0]
 
     return None
 
@@ -156,13 +183,47 @@ def _code_mask(src):
     return "".join(out)
 
 
-def extract_java_method(file_path, method_name, target_line=None):
+# Keywords that can precede `name(` in a call/expression context — used to
+# tell a method *declaration* (`void name(`) apart from an *invocation*
+# (`return name(`, `new name(`, a bare `name(...)` statement, etc.).
+_CALL_PRECEDING_KEYWORDS = {
+    "return", "new", "throw", "yield", "assert", "else", "do", "while", "if",
+}
+
+
+def _looks_like_method_decl(masked_line, method_name):
+    """Heuristic: does `method_name(` on this masked line look like a method
+    declaration (a return type / modifier precedes the name) rather than a
+    call site (statement start, or after '.', '=', ',', '(', 'return', ...)?
+
+    Stops extract_java_method from anchoring on an earlier *call* to the method
+    (very common: a test helper invoked above its own declaration) and then
+    brace-counting from the wrong place, which truncates the slice.
     """
-    Extract a single method from a Java file by matching the method signature
+    m = re.search(r'\b' + re.escape(method_name) + r'\s*\(', masked_line)
+    if not m:
+        return False
+    prefix = masked_line[:m.start()].rstrip()
+    if not prefix:
+        return False                       # name at statement start → call
+    if not re.match(r'[\w$>\]]', prefix[-1]):
+        return False                       # preceded by '.', '=', ',', '(' …
+    return prefix.split()[-1] not in _CALL_PRECEDING_KEYWORDS
+
+
+def extract_java_method(file_path, method_name, target_line=None,
+                        all_overloads=False):
+    """
+    Extract a method from a Java file by matching the method signature
     and tracking brace depth to find the end.
 
     If target_line is provided (1-indexed), picks the overload whose body
-    contains that line. Otherwise picks the first match.
+    contains that line. Otherwise picks the first match — unless
+    all_overloads=True, in which case EVERY matching declaration is returned
+    (concatenated, separated by a marker). A bare method name routinely matches
+    more than one declaration — e.g. a public no-arg `@Test` wrapper plus a
+    private overload that holds the real logic and assertions — and emitting
+    only the first leaves the caller blind to the body it actually needs.
 
     Brace depth and the signature search run over a string/comment-masked
     view so a brace (or a method-name-like token) inside a literal or comment
@@ -182,26 +243,60 @@ def extract_java_method(file_path, method_name, target_line=None):
     if len(masked_lines) != len(lines):
         masked_lines = lines
 
-    # Find ALL method declarations matching method_name (on the masked view)
-    candidates = []
+    # Find ALL occurrences of method_name( on the masked view, separating real
+    # declarations from call sites so we never anchor on an invocation.
+    decl_candidates = []
+    all_candidates = []
     for i, line in enumerate(masked_lines):
         if re.search(r'\b' + re.escape(method_name) + r'\s*\(', line):
             # Walk backwards to include annotations
             start = i
             while start > 0 and lines[start - 1].strip().startswith("@"):
                 start -= 1
-            candidates.append(start)
+            all_candidates.append(start)
+            if _looks_like_method_decl(line, method_name):
+                decl_candidates.append(start)
 
+    # Prefer real declarations; fall back to any match (incl. call sites) so
+    # behaviour is unchanged when no declaration-shaped line is found.
+    candidates = decl_candidates or all_candidates
     if not candidates:
         return None
 
-    # If target_line given and multiple overloads, find the one containing that line
-    # target_line is 1-indexed, list is 0-indexed
+    def _slice_from(method_start):
+        # Track brace depth from the opening { to find the method end.
+        brace_depth = 0
+        found_open = False
+        method_end = None
+        for i in range(method_start, len(lines)):
+            for ch in masked_lines[i]:
+                if ch == '{':
+                    brace_depth += 1
+                    found_open = True
+                elif ch == '}':
+                    brace_depth -= 1
+                    if found_open and brace_depth == 0:
+                        method_end = i
+                        break
+            if method_end is not None:
+                break
+        if method_end is None:
+            # Fallback: return 30 lines from method start
+            method_end = min(method_start + 30, len(lines) - 1)
+        return "".join(lines[method_start:method_end + 1])
+
+    # Emit every overload when asked and no specific line is targeted.
+    if all_overloads and target_line is None and len(candidates) > 1:
+        seen = set()
+        uniq = [c for c in candidates if not (c in seen or seen.add(c))]
+        return "\n// ---- next overload ----\n".join(
+            _slice_from(c) for c in uniq)
+
+    # If target_line given and multiple overloads, find the one containing that
+    # line (target_line is 1-indexed, list is 0-indexed). Otherwise first match.
     method_start = candidates[0]
     if target_line and len(candidates) > 1:
-        target_idx = int(target_line) - 1  # convert to 0-indexed
-        # Pick the candidate whose start is at or before target_line
-        # (the method that contains target_line in its body)
+        target_idx = int(target_line) - 1
         best = candidates[0]
         for c in candidates:
             if c <= target_idx:
@@ -210,29 +305,7 @@ def extract_java_method(file_path, method_name, target_line=None):
                 break
         method_start = best
 
-    # Track brace depth from the opening { to find method end
-    brace_depth = 0
-    found_open = False
-    method_end = None
-
-    for i in range(method_start, len(lines)):
-        for ch in masked_lines[i]:
-            if ch == '{':
-                brace_depth += 1
-                found_open = True
-            elif ch == '}':
-                brace_depth -= 1
-                if found_open and brace_depth == 0:
-                    method_end = i
-                    break
-        if method_end is not None:
-            break
-
-    if method_end is None:
-        # Fallback: return 30 lines from method start
-        method_end = min(method_start + 30, len(lines) - 1)
-
-    return "".join(lines[method_start:method_end + 1])
+    return _slice_from(method_start)
 
 
 # ---------------------------------------------------------------------------
@@ -519,6 +592,17 @@ def extract_class_header(file_path, include_inner_classes=False, max_lines=400):
 # Failure output extraction
 # ---------------------------------------------------------------------------
 
+# A thrown exception/error printed by Surefire starts with a fully-qualified
+# class name ending in Exception/Error/Throwable/Failure, e.g.
+# "java.lang.AssertionError:", "org.opentest4j.AssertionFailedError:",
+# "com.example.MyCustomException:". This matches any package (not just
+# java.lang/org.*) so non-JDK exceptions are not missed.
+_EXCEPTION_LINE_RE = re.compile(
+    r'^(?:[a-zA-Z_$][\w$]*\.)+[A-Z][\w$]*'
+    r'(?:Exception|Error|Throwable|Failure)\b'
+)
+
+
 def extract_failure_from_log(log_path):
     """
     Extract the first test failure block from a Maven/Surefire log.
@@ -531,14 +615,13 @@ def extract_failure_from_log(log_path):
 
     lines = content.splitlines()
 
-    # Strategy: find the exception line (e.g., "java.lang.AssertionError:")
-    # then capture everything until we hit [INFO] or [ERROR] Failures: summary
+    # Strategy: find the thrown-exception line (e.g.
+    # "org.opentest4j.AssertionFailedError: ..."), then capture everything
+    # until we reach the Surefire results summary.
     exc_start = None
     for i, line in enumerate(lines):
         stripped = line.strip()
-        if (stripped.startswith("java.lang.") or stripped.startswith("org.")) and (
-            "Error" in stripped or "Exception" in stripped
-        ) and not stripped.startswith("at "):
+        if not stripped.startswith("at ") and _EXCEPTION_LINE_RE.match(stripped):
             exc_start = i
             break
 
@@ -574,8 +657,10 @@ def extract_failure_from_log(log_path):
 
         failure_lines.append(line)
 
-        # Safety cap: don't capture more than 40 lines
-        if len(failure_lines) > 40:
+        # Safety cap: keep the full exception + stack trace (deep traces with
+        # "Caused by:" chains routinely exceed 40 lines); the boundary checks
+        # above are the normal terminators, this only guards pathological logs.
+        if len(failure_lines) > 300:
             break
 
     if not failure_lines:
