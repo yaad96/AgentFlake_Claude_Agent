@@ -52,17 +52,32 @@ case "$JAVA" in
   17) IMAGE="flaky_base_jdk_17_id_cover_new"; DOCKERFILE="Dockerfile17.id" ;;
   *)  echo "ERROR: unsupported java=$JAVA"; exit 1 ;;
 esac
+PROJECT_KEY="$(printf '%s\n%s\n%s\n' "$RESULT_CONTAINER" "$ZIP" "$MODULE" | tr '[:upper:]' '[:lower:]')"
+if [[ "$PROJECT_KEY" == *hadoop* ]]; then
+  IMAGE="flaky_base_jdk8_hadoop"
+  DOCKERFILE="Dockerfile.hadoop"
+fi
 NONDEX_PLUGIN_VERSION="2.1.1"
 if [[ "$JAVA" == "17" ]]; then
   NONDEX_PLUGIN_VERSION="2.1.7"
 fi
 
+DOCKER_PLATFORM_ARGS=()
+if [[ -n "${AGENTIC_DOCKER_PLATFORM:-}" ]]; then
+  DOCKER_PLATFORM_ARGS=(--platform "$AGENTIC_DOCKER_PLATFORM")
+elif [[ "$(uname -s)" == "Darwin" && "$(uname -m)" == "arm64" ]]; then
+  DOCKER_PLATFORM_ARGS=(--platform linux/amd64)
+fi
+if ((${#DOCKER_PLATFORM_ARGS[@]})); then
+  echo "[setup] Docker platform: ${DOCKER_PLATFORM_ARGS[*]}"
+fi
+
 # Build the per-JDK ID image if it isn't present locally (these are local
 # build images, never pushed to a registry — so a plain `docker run` would
 # otherwise try to pull and fail). Mirrors the other run_agentic_*.sh scripts.
-if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+if ((${#DOCKER_PLATFORM_ARGS[@]})) || ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
   echo "[setup] Docker image '$IMAGE' not found — building from $DOCKERFILE"
-  docker build -t "$IMAGE" -f "$REPROFLAKE_DIR/$DOCKERFILE" "$REPROFLAKE_DIR"
+  docker build "${DOCKER_PLATFORM_ARGS[@]}" -t "$IMAGE" -f "$REPROFLAKE_DIR/$DOCKERFILE" "$REPROFLAKE_DIR"
 fi
 
 CONTAINER="tm_${RESULT_CONTAINER//[^a-zA-Z0-9]/_}"
@@ -126,7 +141,7 @@ fi
 echo "[step 2 ] Starting container '$CONTAINER'"
 docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
 mkdir -p "$DATA_DIR/Flakym2/.m2"
-docker run -d --name "$CONTAINER" \
+docker run -d "${DOCKER_PLATFORM_ARGS[@]}" --name "$CONTAINER" \
   --mount type=bind,source="$DATA_DIR",target=/app/work \
   --mount type=bind,source="$DATA_DIR/Flakym2/.m2",target=/root/.m2 \
   "$IMAGE" tail -f /dev/null >/dev/null

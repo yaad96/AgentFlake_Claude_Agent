@@ -46,16 +46,32 @@ if [[ "$TTYPE_LOWER" != "unclassified" && "$TTYPE_LOWER" != "unassigned" ]]; the
 fi
 
 case "$JAVA" in
-  8)  IMAGE="flaky_base_jdk8" ;;
+  8)  IMAGE="flaky_base_jdk8"; DOCKERFILE="Dockerfile" ;;
   11) IMAGE="flaky_base_jdk11" ;;
   17) IMAGE="flaky_base_jdk17" ;;
   *)  echo "ERROR: unsupported java=$JAVA"; exit 1 ;;
 esac
+PROJECT_KEY="$(printf '%s\n%s\n%s\n' "$RESULT_CONTAINER" "$ZIP" "$MODULE" | tr '[:upper:]' '[:lower:]')"
+if [[ "$PROJECT_KEY" == *hadoop* ]]; then
+  IMAGE="flaky_base_jdk8_hadoop"
+  DOCKERFILE="Dockerfile.hadoop"
+fi
+
+DOCKER_PLATFORM_ARGS=()
+if [[ -n "${AGENTIC_DOCKER_PLATFORM:-}" ]]; then
+  DOCKER_PLATFORM_ARGS=(--platform "$AGENTIC_DOCKER_PLATFORM")
+elif [[ "$(uname -s)" == "Darwin" && "$(uname -m)" == "arm64" ]]; then
+  DOCKER_PLATFORM_ARGS=(--platform linux/amd64)
+fi
+if ((${#DOCKER_PLATFORM_ARGS[@]})); then
+  echo "[setup] Docker platform: ${DOCKER_PLATFORM_ARGS[*]}"
+fi
 
 # Build the basic JDK8 image if it does not exist yet (same check as run_agentic_td.sh).
-if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
-  echo "[setup] Building image '$IMAGE' from Dockerfile (one-time)"
-  docker build -t "$IMAGE" -f "$REPROFLAKE_DIR/Dockerfile" "$REPROFLAKE_DIR"
+if ((${#DOCKER_PLATFORM_ARGS[@]})) || ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+  DOCKERFILE="${DOCKERFILE:-Dockerfile}"
+  echo "[setup] Building image '$IMAGE' from $DOCKERFILE (one-time)"
+  docker build "${DOCKER_PLATFORM_ARGS[@]}" -t "$IMAGE" -f "$REPROFLAKE_DIR/$DOCKERFILE" "$REPROFLAKE_DIR"
 fi
 
 CONTAINER="tm_${RESULT_CONTAINER//[^a-zA-Z0-9]/_}"
@@ -116,7 +132,7 @@ fi
 echo "[step 2 ] Starting container '$CONTAINER'"
 docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
 mkdir -p "$DATA_DIR/Flakym2/.m2"
-docker run -d --name "$CONTAINER" \
+docker run -d "${DOCKER_PLATFORM_ARGS[@]}" --name "$CONTAINER" \
   --mount type=bind,source="$DATA_DIR",target=/app/work \
   --mount type=bind,source="$DATA_DIR/Flakym2/.m2",target=/root/.m2 \
   "$IMAGE" tail -f /dev/null >/dev/null

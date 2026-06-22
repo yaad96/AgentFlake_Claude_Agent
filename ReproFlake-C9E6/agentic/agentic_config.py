@@ -29,7 +29,7 @@ OPENAI_API_KEY: str    = ""   # "sk-..."       — used by all gpt-* / openai mo
 
 CLAUDE_MODELS: dict = {
     # short alias          → full Anthropic model ID
-    "claude":              "claude-sonnet-4-6",   # default aliasx
+    "claude":              "claude-sonnet-4-6",   # default alias
     "claude-sonnet":       "claude-sonnet-4-6",
     "sonnet":              "claude-sonnet-4-6",
     "claude-opus":         "claude-opus-4-7",
@@ -94,9 +94,7 @@ TEMPERATURE: float = 0
 # TOOL OUTPUT
 # ===========================================================================
 
-TOOL_OUTPUT_MAX_CHARS: int = 32_000
+TOOL_OUTPUT_MAX_CHARS: int = 16_000
 # Per-tool-call output cap in characters. Results beyond this limit are
-# truncated and a notice appended. Set to 32k so a full failure stack trace
-# (extract_failure_from_log now returns up to ~300 lines) and complete method
-# bodies from get_code reach the agent without being clipped. Still bounded so
-# a single huge file can't blow the context window.
+# truncated and a notice appended. Prevents a large file from blowing
+# the context window.
