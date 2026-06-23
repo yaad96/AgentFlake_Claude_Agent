@@ -65,7 +65,7 @@ case "$JAVA" in
   17) IMAGE="flaky_base_jdk17" ;;
   *)  echo "ERROR: unsupported java=$JAVA"; exit 1 ;;
 esac
-PROJECT_KEY="$(printf '%s\n%s\n%s\n' "$RESULT_CONTAINER" "$ZIP" "$MODULE" | tr '[:upper:]' '[:lower:]')"
+PROJECT_KEY="$(printf '%s\n' "$MODULE" | tr '[:upper:]' '[:lower:]')"
 if [[ "$PROJECT_KEY" == *hadoop* ]]; then
   IMAGE="flaky_base_jdk8_hadoop"
   DOCKERFILE="Dockerfile.hadoop"
