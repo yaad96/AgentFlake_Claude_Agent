@@ -38,6 +38,7 @@ COMPARE_TRACES_URL="https://raw.githubusercontent.com/SoftEngResearch/tracemop/m
 [[ -f "$CSV" ]] || { echo "ERROR: $CSV not found"; exit 1; }
 ROW=$(awk -F',' -v rc="$RESULT_CONTAINER" '$2 == rc { print; exit }' "$CSV")
 [[ -n "$ROW" ]] || { echo "ERROR: '$RESULT_CONTAINER' not in $CSV"; exit 1; }
+ROW="${ROW%$'\r'}"  # strip trailing CR if CSV has CRLF endings
 IFS=',' read -r TEST_TYPE _RC ZIP MODULE POLLUTER VICTIM ITERATIONS CONFIG JAVA NONDEX URL <<< "$ROW"
 
 if [[ "$TEST_TYPE" != "td" ]]; then
@@ -66,9 +67,16 @@ if ((${#DOCKER_PLATFORM_ARGS[@]})); then
   echo "[setup] Docker platform: ${DOCKER_PLATFORM_ARGS[*]}"
 fi
 
-if [[ -n "${DOCKERFILE:-}" ]] && { ((${#DOCKER_PLATFORM_ARGS[@]})) || ! docker image inspect "$IMAGE" >/dev/null 2>&1; }; then
-  echo "[setup] Building image '$IMAGE' from $DOCKERFILE (one-time)"
-  docker build "${DOCKER_PLATFORM_ARGS[@]}" -t "$IMAGE" -f "$REPROFLAKE_DIR/$DOCKERFILE" "$REPROFLAKE_DIR"
+if [[ -n "${DOCKERFILE:-}" ]]; then
+  if ((${#DOCKER_PLATFORM_ARGS[@]})) || ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+    echo "[setup] Building image '$IMAGE' from $DOCKERFILE (one-time)"
+    docker build "${DOCKER_PLATFORM_ARGS[@]}" -t "$IMAGE" -f "$REPROFLAKE_DIR/$DOCKERFILE" "$REPROFLAKE_DIR"
+  fi
+elif ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+  echo "ERROR: image '$IMAGE' not found locally and no Dockerfile in repo."
+  echo "       (java=$JAVA: TD needs a base image with the claude CLI installed;"
+  echo "        TD java 11/17 are not yet supported for the claude_cli path.)"
+  exit 1
 fi
 
 CONTAINER="tm_${RESULT_CONTAINER//[^a-zA-Z0-9]/_}"
@@ -170,7 +178,7 @@ docker exec "$CONTAINER" bash -c "
   set -e
   rm -rf /app/work/traces-flakycc; mkdir -p /app/work/traces-flakycc
   cd /app/work/FlakyCodeChange
-  mvn install -Dmaven.test.skip=true -pl $MODULE -am -q $MVNOPTS
+  mvn install -DskipTests -pl $MODULE -am -q $MVNOPTS
   mvn surefire:test \
     -pl $MODULE -Dtest='$VICTIM' \
     $MVNOPTS 2>&1 | tee /app/work/traces-flakycc/mvn.log || true
@@ -224,14 +232,34 @@ cat > "$STEPS_OUT_DIR/trace_config.json" <<JSONEOF
 JSONEOF
 
 # AGENT
-echo "[agent ] launching agentic_orchestrator.py (max_iterations=${AGENTIC_MAX_ITERATIONS:-10})"
-set +e
-python3 "$SCRIPT_DIR/agentic_orchestrator.py" "$RESULT_CONTAINER" \
-  --docker-container "$CONTAINER" \
-  --max-iterations "${AGENTIC_MAX_ITERATIONS:-10}" \
-  ${AGENTIC_MODEL:+--model "$AGENTIC_MODEL"}
-AGENT_RC=$?
-set -e
+if [[ "${AGENTIC_DRIVER:-orchestrator}" == "claude_cli" ]]; then
+  echo "[agent ] launching agentic_claude_cli.py (Claude Code agent, model=${AGENTIC_MODEL:-claude-sonnet-4-6})"
+  set +e
+  python3 "$SCRIPT_DIR/agentic_claude_cli.py" "$RESULT_CONTAINER" \
+    --docker-container "$CONTAINER" \
+    --model "${AGENTIC_MODEL:-claude-sonnet-4-6}" \
+    ${AGENTIC_MAX_BUDGET_USD:+--max-budget-usd "$AGENTIC_MAX_BUDGET_USD"}
+  AGENT_RC=$?
+  set -e
+else
+  echo "[agent ] launching agentic_orchestrator.py (max_iterations=${AGENTIC_MAX_ITERATIONS:-10})"
+  set +e
+  python3 "$SCRIPT_DIR/agentic_orchestrator.py" "$RESULT_CONTAINER" \
+    --docker-container "$CONTAINER" \
+    --max-iterations "${AGENTIC_MAX_ITERATIONS:-10}" \
+    ${AGENTIC_MODEL:+--model "$AGENTIC_MODEL"}
+  AGENT_RC=$?
+  set -e
+
+  # Durably archive this orchestrator run into the AGENTIC_FULL_RUNS layout:
+  #   data/AGENTIC_FULL_RUNS/<container>_runs/<model>/run_<N>   (never overwrites).
+  # (The claude_cli branch already writes data/claude_agent/<container>/run_<NN>.)
+  if [[ -f "$STEPS_OUT_DIR/verify_after_fix.verdict" || -f "$STEPS_OUT_DIR/run_verdict.txt" ]]; then
+    bash "$SCRIPT_DIR/archive_orchestrator_run.sh" \
+      "$RESULT_CONTAINER" "$STEPS_OUT_DIR" "${AGENTIC_MODEL:-claude-sonnet-4-6}" "$REPROFLAKE_DIR" \
+      || echo "[archive] WARNING: archival failed (run still in $STEPS_OUT_DIR)"
+  fi
+fi
 
 if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
   rm -rf "$DATA_DIR/Flaky.pristine"

@@ -64,6 +64,7 @@ COMPARE_TRACES_URL="https://raw.githubusercontent.com/SoftEngResearch/tracemop/m
 [[ -f "$CSV" ]] || { echo "ERROR: $CSV not found"; exit 1; }
 ROW=$(awk -F',' -v rc="$RESULT_CONTAINER" '$2 == rc { print; exit }' "$CSV")
 [[ -n "$ROW" ]] || { echo "ERROR: '$RESULT_CONTAINER' not in $CSV"; exit 1; }
+ROW="${ROW%$'\r'}"  # strip trailing CR if CSV has CRLF endings
 IFS=',' read -r TEST_TYPE _RC ZIP MODULE POLLUTER VICTIM ITERATIONS CONFIG JAVA NONDEX URL <<< "$ROW"
 
 if [[ "$TEST_TYPE" != "od" ]]; then
@@ -219,7 +220,7 @@ docker exec "$CONTAINER" bash -c "
   set -e
   rm -rf /app/work/traces-flaky; mkdir -p /app/work/traces-flaky
   cd /app/work/Flaky
-  mvn install -Dmaven.test.skip=true -pl $MODULE -am -q $MVNOPTS
+  mvn install -DskipTests -pl $MODULE -am -q $MVNOPTS
   mvn surefire:test \
     -pl $MODULE -Dtest='$POLLUTER,$VICTIM' \
     -Dsurefire.runOrder=testorder \
@@ -285,14 +286,34 @@ JSONEOF
 # ============================================================
 # AGENT — bounded-iteration tool-use loop
 # ============================================================
-echo "[agent ] launching agentic_orchestrator.py (max_iterations=${AGENTIC_MAX_ITERATIONS:-10})"
-set +e
-python3 "$SCRIPT_DIR/agentic_orchestrator.py" "$RESULT_CONTAINER" \
-  --docker-container "$CONTAINER" \
-  --max-iterations "${AGENTIC_MAX_ITERATIONS:-10}" \
-  ${AGENTIC_MODEL:+--model "$AGENTIC_MODEL"}
-AGENT_RC=$?
-set -e
+if [[ "${AGENTIC_DRIVER:-orchestrator}" == "claude_cli" ]]; then
+  echo "[agent ] launching agentic_claude_cli.py (Claude Code agent, model=${AGENTIC_MODEL:-claude-sonnet-4-6})"
+  set +e
+  python3 "$SCRIPT_DIR/agentic_claude_cli.py" "$RESULT_CONTAINER" \
+    --docker-container "$CONTAINER" \
+    --model "${AGENTIC_MODEL:-claude-sonnet-4-6}" \
+    ${AGENTIC_MAX_BUDGET_USD:+--max-budget-usd "$AGENTIC_MAX_BUDGET_USD"}
+  AGENT_RC=$?
+  set -e
+else
+  echo "[agent ] launching agentic_orchestrator.py (max_iterations=${AGENTIC_MAX_ITERATIONS:-10})"
+  set +e
+  python3 "$SCRIPT_DIR/agentic_orchestrator.py" "$RESULT_CONTAINER" \
+    --docker-container "$CONTAINER" \
+    --max-iterations "${AGENTIC_MAX_ITERATIONS:-10}" \
+    ${AGENTIC_MODEL:+--model "$AGENTIC_MODEL"}
+  AGENT_RC=$?
+  set -e
+
+  # Durably archive this orchestrator run into the AGENTIC_FULL_RUNS layout:
+  #   data/AGENTIC_FULL_RUNS/<container>_runs/<model>/run_<N>   (never overwrites).
+  # (The claude_cli branch already writes data/claude_agent/<container>/run_<NN>.)
+  if [[ -f "$STEPS_OUT_DIR/verify_after_fix.verdict" || -f "$STEPS_OUT_DIR/run_verdict.txt" ]]; then
+    bash "$SCRIPT_DIR/archive_orchestrator_run.sh" \
+      "$RESULT_CONTAINER" "$STEPS_OUT_DIR" "${AGENTIC_MODEL:-claude-sonnet-4-6}" "$REPROFLAKE_DIR" \
+      || echo "[archive] WARNING: archival failed (run still in $STEPS_OUT_DIR)"
+  fi
+fi
 
 # Clean up the snapshot (kept on KEEP_SOURCE=1 for post-mortem inspection).
 if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then

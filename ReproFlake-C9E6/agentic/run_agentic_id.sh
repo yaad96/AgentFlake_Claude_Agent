@@ -37,6 +37,7 @@ COMPARE_TRACES_URL="https://raw.githubusercontent.com/SoftEngResearch/tracemop/m
 [[ -f "$CSV" ]] || { echo "ERROR: $CSV not found"; exit 1; }
 ROW=$(awk -F',' -v rc="$RESULT_CONTAINER" '$2 == rc { print; exit }' "$CSV")
 [[ -n "$ROW" ]] || { echo "ERROR: '$RESULT_CONTAINER' not in $CSV"; exit 1; }
+ROW="${ROW%$'\r'}"  # strip trailing CR if CSV has CRLF endings
 IFS=',' read -r TEST_TYPE _RC ZIP MODULE POLLUTER VICTIM ITERATIONS CONFIG JAVA NONDEXSEED URL <<< "$ROW"
 
 if [[ "$TEST_TYPE" != "id" ]]; then
@@ -212,13 +213,13 @@ add = 0xB
 state = (seed ^ mult) & mask
 print(seed)
 for _ in range(1, int('$NONDEX_RUNS')):
+    # Java Random.next(32) gives a 32-bit signed int seed. NonDex nondexSeed is
+    # an int parameter, so 64-bit longs overflow it. Keep fallback seeds within
+    # int range -- valid for NonDex 2.1.1 and 2.1.7.
     state = (state * mult + add) & mask
-    hi = state >> 16
-    state = (state * mult + add) & mask
-    lo = state >> 16
-    val = (hi << 32) + lo
-    if val >= (1 << 63):
-        val -= 1 << 64
+    val = state >> 16
+    if val >= (1 << 31):
+        val -= 1 << 32
     print(val)
 PY
   i=0
@@ -302,14 +303,34 @@ JSONEOF
 # AGENT — verify_victim for ID needs NONDEXSEED + NONDEX_RUNS in env;
 # agentic_verify.py reads them, mirroring run_id_tracemop.sh's verify_victim().
 export NONDEXSEED NONDEX_RUNS NONDEX_PLUGIN_VERSION
-echo "[agent ] launching agentic_orchestrator.py (max_iterations=${AGENTIC_MAX_ITERATIONS:-10})"
-set +e
-python3 "$SCRIPT_DIR/agentic_orchestrator.py" "$RESULT_CONTAINER" \
-  --docker-container "$CONTAINER" \
-  --max-iterations "${AGENTIC_MAX_ITERATIONS:-10}" \
-  ${AGENTIC_MODEL:+--model "$AGENTIC_MODEL"}
-AGENT_RC=$?
-set -e
+if [[ "${AGENTIC_DRIVER:-orchestrator}" == "claude_cli" ]]; then
+  echo "[agent ] launching agentic_claude_cli.py (Claude Code agent, model=${AGENTIC_MODEL:-claude-sonnet-4-6})"
+  set +e
+  python3 "$SCRIPT_DIR/agentic_claude_cli.py" "$RESULT_CONTAINER" \
+    --docker-container "$CONTAINER" \
+    --model "${AGENTIC_MODEL:-claude-sonnet-4-6}" \
+    ${AGENTIC_MAX_BUDGET_USD:+--max-budget-usd "$AGENTIC_MAX_BUDGET_USD"}
+  AGENT_RC=$?
+  set -e
+else
+  echo "[agent ] launching agentic_orchestrator.py (max_iterations=${AGENTIC_MAX_ITERATIONS:-10})"
+  set +e
+  python3 "$SCRIPT_DIR/agentic_orchestrator.py" "$RESULT_CONTAINER" \
+    --docker-container "$CONTAINER" \
+    --max-iterations "${AGENTIC_MAX_ITERATIONS:-10}" \
+    ${AGENTIC_MODEL:+--model "$AGENTIC_MODEL"}
+  AGENT_RC=$?
+  set -e
+
+  # Durably archive this orchestrator run into the AGENTIC_FULL_RUNS layout:
+  #   data/AGENTIC_FULL_RUNS/<container>_runs/<model>/run_<N>   (never overwrites).
+  # (The claude_cli branch already writes data/claude_agent/<container>/run_<NN>.)
+  if [[ -f "$STEPS_OUT_DIR/verify_after_fix.verdict" || -f "$STEPS_OUT_DIR/run_verdict.txt" ]]; then
+    bash "$SCRIPT_DIR/archive_orchestrator_run.sh" \
+      "$RESULT_CONTAINER" "$STEPS_OUT_DIR" "${AGENTIC_MODEL:-claude-sonnet-4-6}" "$REPROFLAKE_DIR" \
+      || echo "[archive] WARNING: archival failed (run still in $STEPS_OUT_DIR)"
+  fi
+fi
 
 if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
   rm -rf "$DATA_DIR/Flaky.pristine"

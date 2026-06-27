@@ -396,6 +396,58 @@ def apply_patch(flaky_root: Path, patch_text: str) -> dict:
             result["path_rewritten"] = path_map
         return result
 
+    # IDEA 4: 3-way merge fallback. The strict and --recount applies above are
+    # `--check`-gated and so reject any context/whitespace drift. `git apply
+    # --3way` can still land such a patch by merging against the patch's base
+    # blobs — but ONLY when flaky_root is a git repo whose object store holds
+    # those blobs (the agentic_claude_cli driver commits a baseline before
+    # scoring). --3way cannot be --check-gated (the gate would fail the same
+    # way), so we snapshot first and roll back on any non-clean outcome. On the
+    # orchestrator's non-repo trees this just errors out and rolls back — a
+    # harmless no-op that never changes prior behavior.
+    snap = _snapshot(flaky_root, targets)
+    before = {p: hashlib.sha1(b).hexdigest() if b is not None else None
+              for p, b in snap.items()}
+    apply3 = subprocess.run(
+        ["git", "apply", "-p1", "--3way"],
+        input=patch_text, text=True, cwd=flaky_root, capture_output=True,
+    )
+    if apply3.returncode == 0:
+        after = _fingerprint(flaky_root, targets)
+        unchanged = [p for p in targets if before.get(p) == after.get(p)]
+        conflicted = []
+        created = [p for p in targets
+                   if before.get(p) is None and after.get(p) is not None]
+        malformed = []
+        for p in targets:
+            fp = flaky_root / p
+            if not fp.is_file():
+                continue
+            try:
+                t = fp.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                t = ""
+            if "<<<<<<<" in t and ">>>>>>>" in t:
+                conflicted.append(p)
+            if p in created and not _is_valid_java_skeleton(t, filename=p):
+                malformed.append(p)
+        if targets and unchanged:
+            last_err = f"git apply --3way returned 0 but unchanged: {unchanged}"
+        elif conflicted:
+            _rollback(flaky_root, snap)
+            last_err = f"git apply --3way left conflict markers: {conflicted}. Rolled back."
+        elif malformed:
+            _rollback(flaky_root, snap)
+            last_err = f"git apply --3way created malformed Java: {malformed}. Rolled back."
+        else:
+            result = {"layer": "git apply --3way", "ok": True}
+            if path_map:
+                result["path_rewritten"] = path_map
+            return result
+    else:
+        _rollback(flaky_root, snap)
+        last_err = (apply3.stderr or apply3.stdout).strip() or "git apply --3way failed"
+
     out = {"layer": None, "ok": False,
            "reason": last_err or "all patch layers rejected"}
     if path_map:

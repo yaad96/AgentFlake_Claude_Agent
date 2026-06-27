@@ -14,3 +14,10 @@ RUN mvn edu.illinois:nondex-maven-plugin:2.1.7:help -q
 RUN apt-get update && \
     apt-get install -y xmlstarlet && \
     rm -rf /var/lib/apt/lists/*
+
+# Claude Code CLI — used by the agentic_claude_cli driver (the "Claude Code
+# agent" repair variant). Installed to /root/.local/bin. Auth is supplied at
+# run time via the ANTHROPIC_API_KEY env var passed to `docker exec`.
+RUN curl -fsSL https://claude.ai/install.sh | bash
+ENV PATH="/root/.local/bin:${PATH}"
+RUN claude --version

@@ -13,6 +13,13 @@ RUN apt-get update && \
 
 RUN pip3 install beautifulsoup4 lxml
 
+# Claude Code CLI — used by the agentic_claude_cli driver (the "Claude Code
+# agent" repair variant). Installed to /root/.local/bin. Auth is supplied at
+# run time via the ANTHROPIC_API_KEY env var passed to `docker exec`.
+RUN curl -fsSL https://claude.ai/install.sh | bash
+ENV PATH="/root/.local/bin:${PATH}"
+RUN claude --version
+
 ENV MAVEN_OPTS="-Dmaven.repo.local=/root/.m2/repository"
 
 ENV MODULE=""

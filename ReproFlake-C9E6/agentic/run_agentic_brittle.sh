@@ -39,6 +39,7 @@ COMPARE_TRACES_URL="https://raw.githubusercontent.com/SoftEngResearch/tracemop/m
 [[ -f "$CSV" ]] || { echo "ERROR: $CSV not found"; exit 1; }
 ROW=$(awk -F',' -v rc="$RESULT_CONTAINER" '$2 == rc { print; exit }' "$CSV")
 [[ -n "$ROW" ]] || { echo "ERROR: '$RESULT_CONTAINER' not in $CSV"; exit 1; }
+ROW="${ROW%$'\r'}"  # strip trailing CR if CSV has CRLF endings
 IFS=',' read -r TEST_TYPE _RC ZIP MODULE POLLUTER VICTIM ITERATIONS CONFIG JAVA NONDEX URL <<< "$ROW"
 
 TTYPE_LOWER=$(echo "$TEST_TYPE" | tr '[:upper:]' '[:lower:]')

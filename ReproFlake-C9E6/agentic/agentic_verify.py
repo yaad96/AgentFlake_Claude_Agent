@@ -219,8 +219,16 @@ def _interpret(log_text: str) -> tuple[str, dict]:
         fails += int(m.group(2))
         errs += int(m.group(3))
     markers = len(MARKER_RE.findall(log_text))
+    # A clean Maven run ends in BUILD SUCCESS. A "BUILD FAILURE" with no per-test
+    # failure markers means the run aborted for a non-test reason (NonDex bailing
+    # out mid-reproduction, a plugin/infra error); the iterations that *did* run
+    # may all show passing summaries, so this guard prevents a fabricated PASS.
+    # (Verified against all existing PASSED logs: none contain BUILD FAILURE, so
+    # this can only ever turn a spurious PASS into FAILED — never flip a result.)
+    build_failure = "BUILD FAILURE" in log_text
     verdict = "FAILED"
-    if n_summaries > 0 and tests > 0 and fails == 0 and errs == 0 and markers == 0:
+    if (n_summaries > 0 and tests > 0 and fails == 0 and errs == 0
+            and markers == 0 and not build_failure):
         verdict = "PASSED"
     return verdict, {
         "summary_lines": n_summaries,
@@ -228,6 +236,7 @@ def _interpret(log_text: str) -> tuple[str, dict]:
         "failures": fails,
         "errors": errs,
         "failure_markers": markers,
+        "build_failure": build_failure,
     }
 
 
@@ -264,7 +273,8 @@ def main():
 
     print(f"[verify] summary lines={stats['summary_lines']}  "
           f"Tests={stats['tests']}  Failures={stats['failures']}  "
-          f"Errors={stats['errors']}  markers={stats['failure_markers']}")
+          f"Errors={stats['errors']}  markers={stats['failure_markers']}  "
+          f"build_failure={stats['build_failure']}")
     print(f"[verify] verdict: {verdict}")
     sys.exit(0 if verdict == "PASSED" else 1)
 
