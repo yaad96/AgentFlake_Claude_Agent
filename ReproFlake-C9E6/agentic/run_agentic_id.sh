@@ -53,7 +53,7 @@ case "$JAVA" in
   17) IMAGE="flaky_base_jdk_17_id_cover_new"; DOCKERFILE="Dockerfile17.id" ;;
   *)  echo "ERROR: unsupported java=$JAVA"; exit 1 ;;
 esac
-PROJECT_KEY="$(printf '%s\n%s\n%s\n' "$RESULT_CONTAINER" "$ZIP" "$MODULE" | tr '[:upper:]' '[:lower:]')"
+PROJECT_KEY="$(printf '%s\n' "$MODULE" | tr '[:upper:]' '[:lower:]')"
 if [[ "$PROJECT_KEY" == *hadoop* ]]; then
   IMAGE="flaky_base_jdk8_hadoop"
   DOCKERFILE="Dockerfile.hadoop"
@@ -141,10 +141,13 @@ fi
 # STEP 2 — start container
 echo "[step 2 ] Starting container '$CONTAINER'"
 docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
-mkdir -p "$DATA_DIR/Flakym2/.m2"
+M2_MOUNT_ARGS=()
+if [[ -d "$DATA_DIR/Flakym2/.m2" ]]; then
+  M2_MOUNT_ARGS=(--mount type=bind,source="$DATA_DIR/Flakym2/.m2",target=/root/.m2)
+fi
 docker run -d "${DOCKER_PLATFORM_ARGS[@]}" --name "$CONTAINER" \
   --mount type=bind,source="$DATA_DIR",target=/app/work \
-  --mount type=bind,source="$DATA_DIR/Flakym2/.m2",target=/root/.m2 \
+  "${M2_MOUNT_ARGS[@]}" \
   "$IMAGE" tail -f /dev/null >/dev/null
 
 # STEPS 3 + 4a + 4b — TraceMOP
@@ -180,11 +183,17 @@ if (( NONDEX_RUNS > 10 )); then
 fi
 
 # Pre-build
-echo "[step 4d] pre-build: mvn install -Dmaven.test.skip=true"
+PREBUILD_SKIP_ARG="-Dmaven.test.skip=true"
+PREBUILD_TARGET_ARGS="-pl '$MODULE' -am"
+if [[ "$PROJECT_KEY" == *flink* ]]; then
+  PREBUILD_SKIP_ARG="-DskipTests"
+  PREBUILD_TARGET_ARGS="-pl flink-runtime,flink-test-utils-parent/flink-test-utils,'$MODULE' -am"
+fi
+echo "[step 4d] pre-build: mvn install $PREBUILD_SKIP_ARG"
 docker exec "$CONTAINER" bash -c "
   set -e
   cd /app/work/Flaky
-  mvn install -Dmaven.test.skip=true -pl '$MODULE' -am -q $MVNOPTS
+  mvn install $PREBUILD_SKIP_ARG $PREBUILD_TARGET_ARGS -q $MVNOPTS
 "
 
 # Run #1: traces-pass (plain mvn test, no TraceMOP)

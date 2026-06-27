@@ -81,7 +81,7 @@ case "$JAVA" in
   11) IMAGE="flaky_base_jdk11_od_cov"; DOCKERFILE="Dockerfile.od11" ;;
   *)  echo "ERROR: OD with java=$JAVA not supported"; exit 1 ;;
 esac
-PROJECT_KEY="$(printf '%s\n%s\n%s\n' "$RESULT_CONTAINER" "$ZIP" "$MODULE" | tr '[:upper:]' '[:lower:]')"
+PROJECT_KEY="$(printf '%s\n' "$MODULE" | tr '[:upper:]' '[:lower:]')"
 if [[ "$PROJECT_KEY" == *hadoop* ]]; then
   IMAGE="flaky_base_jdk8_hadoop"
   DOCKERFILE="Dockerfile.hadoop"
