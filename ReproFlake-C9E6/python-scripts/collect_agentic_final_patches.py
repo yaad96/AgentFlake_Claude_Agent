@@ -6,9 +6,11 @@ Selection rule per container:
   1. Use the latest completed PASSED run that has patch content.
   2. If none passed, use the latest completed run that has patch content.
 
-The output folder contains one subfolder per container, each with:
+The output folder contains one subfolder per test type (for example, od or td).
+Each type folder contains one subfolder per container, each with:
   - final.patch
   - metadata.json
+  - summary.csv (one row for every selected container of that type)
 
 If a run's Fixed.patch is missing or empty, the script tries to generate a
 unified diff between that run's Flaky/ and Fixed/ directories.
@@ -23,6 +25,7 @@ import filecmp
 import json
 import os
 import shutil
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -61,6 +64,7 @@ class Candidate:
     run_dir: Path
     patch_path: Path
     patch_source: str
+    summary: dict[str, str]
 
 
 def parse_args() -> argparse.Namespace:
@@ -214,6 +218,51 @@ def extract_llm_response_patch(run_dir: Path, output_patch: Path) -> bool:
     return True
 
 
+def collect_tool_usage(run_dir: Path) -> Counter[str]:
+    """Count all tool calls made by the agent during a selected run."""
+    conversation_path = run_dir / "Steps_Output_Files" / "agentic_conversation.json"
+    try:
+        conversation = json.loads(conversation_path.read_text(errors="replace"))
+    except (OSError, json.JSONDecodeError):
+        conversation = {}
+
+    tool_counts: Counter[str] = Counter()
+    messages = conversation.get("messages", [])
+    if isinstance(messages, list):
+        for message in messages:
+            if not isinstance(message, dict) or message.get("role") != "assistant":
+                continue
+            content = message.get("content")
+            if not isinstance(content, list):
+                continue
+            for item in content:
+                if not isinstance(item, dict) or item.get("type") != "tool_use":
+                    continue
+                name = item.get("name")
+                if isinstance(name, str) and name:
+                    tool_counts[name] += 1
+
+    if tool_counts:
+        return tool_counts
+
+    # Older/incomplete runs may not retain the full conversation. Their
+    # iteration log still records context-tool calls, though not submit_patch.
+    iterations_path = run_dir / "Steps_Output_Files" / "agentic_iterations.jsonl"
+    try:
+        lines = iterations_path.read_text(errors="replace").splitlines()
+    except OSError:
+        return tool_counts
+    for line in lines:
+        try:
+            iteration = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        for name in iteration.get("tools_used", []):
+            if isinstance(name, str) and name:
+                tool_counts[name] += 1
+    return tool_counts
+
+
 def patch_for_run(run_dir: Path, temp_dir: Path) -> tuple[Path | None, str]:
     fixed_patch = run_dir / "Fixed.patch"
     if has_content(fixed_patch):
@@ -263,6 +312,7 @@ def load_candidates(runs_dir: Path, temp_dir: Path) -> list[Candidate]:
                         run_dir=run_dir,
                         patch_path=patch_path,
                         patch_source=patch_source,
+                        summary=dict(row),
                     )
                 )
     return candidates
@@ -288,15 +338,77 @@ def choose_final_runs(candidates: Iterable[Candidate]) -> dict[str, Candidate]:
     return selected
 
 
+def type_directory_name(test_type: str) -> str:
+    """Return a safe, stable directory name for a test type."""
+    normalized = test_type.strip().lower()
+    if not normalized:
+        return "unknown"
+    return "".join(
+        character if character.isalnum() or character in {"-", "_"} else "_"
+        for character in normalized
+    )
+
+
+def integer_summary_value(summary: dict[str, str], field: str) -> int:
+    try:
+        return int(summary.get(field, "") or 0)
+    except ValueError:
+        return 0
+
+
+def write_type_summary(type_dir: Path, rows: list[dict[str, object]]) -> None:
+    tool_names = sorted(
+        {
+            name
+            for row in rows
+            for name in row["tool_counts"]  # type: ignore[index]
+        }
+    )
+    fieldnames = [
+        "container",
+        "test_type",
+        "model",
+        "selected_run",
+        "verdict",
+        "fail_category",
+        "agentic_iterations",
+        "input_tokens_total",
+        "output_tokens_total",
+        "total_tokens",
+        "elapsed_llm_seconds",
+        "elapsed_total_seconds",
+        "tool_calls_total",
+        "unique_tools_used",
+        "tool_breakdown",
+        "patch_source",
+        "output_patch",
+    ] + [f"tool_{name}" for name in tool_names]
+
+    with (type_dir / "summary.csv").open("w", newline="") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in sorted(rows, key=lambda item: str(item["container"])):
+            tool_counts: Counter[str] = row.pop("tool_counts")  # type: ignore[assignment]
+            csv_row = dict(row)
+            csv_row["tool_breakdown"] = json.dumps(dict(sorted(tool_counts.items())))
+            for name in tool_names:
+                csv_row[f"tool_{name}"] = tool_counts[name]
+            writer.writerow(csv_row)
+
+
 def write_outputs(selected: dict[str, Candidate], output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     manifest = []
+    summaries_by_type: dict[str, list[dict[str, object]]] = {}
 
     for container, candidate in sorted(selected.items()):
-        container_dir = output_dir / container
+        type_name = type_directory_name(candidate.test_type)
+        type_dir = output_dir / type_name
+        container_dir = type_dir / container
         container_dir.mkdir(parents=True, exist_ok=True)
         patch_output = container_dir / "final.patch"
         shutil.copyfile(candidate.patch_path, patch_output)
+        tool_counts = collect_tool_usage(candidate.run_dir)
 
         metadata = {
             "container": candidate.container,
@@ -310,11 +422,44 @@ def write_outputs(selected: dict[str, Candidate], output_dir: Path) -> None:
             "patch_source": candidate.patch_source,
             "generated_from_flaky_fixed_dirs": candidate.patch_source == "generated_tree_diff",
             "output_patch": str(patch_output),
+            "tool_calls_total": sum(tool_counts.values()),
+            "unique_tools_used": len(tool_counts),
+            "tool_breakdown": dict(sorted(tool_counts.items())),
         }
         (container_dir / "metadata.json").write_text(
             json.dumps(metadata, indent=2, sort_keys=True) + "\n"
         )
         manifest.append(metadata)
+        summaries_by_type.setdefault(type_name, []).append(
+            {
+                "container": candidate.container,
+                "test_type": candidate.test_type,
+                "model": candidate.model,
+                "selected_run": candidate.run,
+                "verdict": candidate.verdict,
+                "fail_category": candidate.fail_category,
+                "agentic_iterations": integer_summary_value(
+                    candidate.summary, "agentic_iterations"
+                ),
+                "input_tokens_total": integer_summary_value(
+                    candidate.summary, "input_tokens_total"
+                ),
+                "output_tokens_total": integer_summary_value(
+                    candidate.summary, "output_tokens_total"
+                ),
+                "total_tokens": integer_summary_value(candidate.summary, "total_tokens"),
+                "elapsed_llm_seconds": candidate.summary.get("elapsed_llm_seconds", ""),
+                "elapsed_total_seconds": candidate.summary.get("elapsed_total_seconds", ""),
+                "tool_calls_total": sum(tool_counts.values()),
+                "unique_tools_used": len(tool_counts),
+                "tool_counts": tool_counts,
+                "patch_source": candidate.patch_source,
+                "output_patch": str(patch_output),
+            }
+        )
+
+    for type_name, rows in summaries_by_type.items():
+        write_type_summary(output_dir / type_name, rows)
 
     (output_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n"
