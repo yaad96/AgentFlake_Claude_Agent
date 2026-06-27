@@ -33,7 +33,6 @@ def read_locations(locations_txt):
             if line:
                 id, _, code = line.partition(' ')
                 if code and ')' in code and id.isdigit():
-                    if code and ')' in code and id.isdigit():
                     locations[id] = code[:code.index(')') + 1]
     return locations
 
