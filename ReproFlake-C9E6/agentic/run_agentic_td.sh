@@ -184,17 +184,27 @@ docker exec "$CONTAINER" bash -c "
     $MVNOPTS 2>&1 | tee /app/work/traces-flakycc/mvn.log || true
 "
 
-# Sanity: TD FlakyCodeChange must fail.
+# Sanity (HARD GATE): TD FlakyCodeChange MUST reproduce the failure
+# deterministically. The forced-verify oracle merges the agent's fix WITH this
+# forcing, so if the forcing itself does not fail there is nothing to
+# discriminate against -> abort instead of silently scoring a non-discriminative
+# PASSED later. Mirrors run_agentic_od.sh's hard gate.
 echo "[sanity ] Verifying FlakyCodeChange produced a test failure"
 SUMMARY=$(grep -E "Tests run:[[:space:]]+[0-9]+,[[:space:]]+Failures:[[:space:]]+[0-9]+,[[:space:]]+Errors:[[:space:]]+[0-9]+" \
             "$DATA_DIR/traces-flakycc/mvn.log" 2>/dev/null | tail -1 || true)
 if [[ -z "$SUMMARY" ]]; then
-  echo "WARNING: no Surefire summary in traces-flakycc/mvn.log — continuing"
-else
-  TESTS=$(  sed -nE 's/.*Tests run:[[:space:]]+([0-9]+).*/\1/p' <<<"$SUMMARY"); TESTS=${TESTS:-0}
-  FAILURES=$(sed -nE 's/.*Failures:[[:space:]]+([0-9]+).*/\1/p'  <<<"$SUMMARY"); FAILURES=${FAILURES:-0}
-  ERRORS=$(  sed -nE 's/.*Errors:[[:space:]]+([0-9]+).*/\1/p'    <<<"$SUMMARY"); ERRORS=${ERRORS:-0}
-  echo "[sanity ] FlakyCodeChange: Tests=$TESTS Failures=$FAILURES Errors=$ERRORS"
+  echo "ERROR: no Surefire summary in traces-flakycc/mvn.log — FlakyCodeChange did not run; cannot reproduce the TD failure."
+  exit 1
+fi
+TESTS=$(  sed -nE 's/.*Tests run:[[:space:]]+([0-9]+).*/\1/p' <<<"$SUMMARY"); TESTS=${TESTS:-0}
+FAILURES=$(sed -nE 's/.*Failures:[[:space:]]+([0-9]+).*/\1/p'  <<<"$SUMMARY"); FAILURES=${FAILURES:-0}
+ERRORS=$(  sed -nE 's/.*Errors:[[:space:]]+([0-9]+).*/\1/p'    <<<"$SUMMARY"); ERRORS=${ERRORS:-0}
+echo "[sanity ] FlakyCodeChange: Tests=$TESTS Failures=$FAILURES Errors=$ERRORS"
+if (( TESTS < 1 )); then
+  echo "ERROR: FlakyCodeChange ran 0 tests (Tests=$TESTS) — TD failure not reproduced."; exit 1
+fi
+if (( FAILURES + ERRORS < 1 )); then
+  echo "ERROR: FlakyCodeChange did NOT fail (Failures=$FAILURES Errors=$ERRORS) — TD flakiness not reproduced from FlakyCodeChange; refusing to score a run whose forcing does not fail."; exit 1
 fi
 
 # STEP 5 — copy trace-comparison tooling (used by lazy get_rv_trace_diff)

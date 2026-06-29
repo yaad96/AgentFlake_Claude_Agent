@@ -78,7 +78,209 @@ VERIFY_PASS_RUNS = int(os.environ.get("AGENTIC_VERIFY_PASS_RUNS", VERIFY_PASS_RU
 AGENT_TIMEOUT_S = int(os.environ.get("AGENTIC_CLI_TIMEOUT_S", "2400"))
 
 # Build artefacts we never want inside the captured patch.
-GITIGNORE_BODY = "target/\n**/target/\n*.class\n.traces/\ntraces.txt\n.nondex/\n"
+GITIGNORE_BODY = ("target/\n**/target/\n*.class\n*.jar\n*.war\n*.ear\n*.nar\n"
+                  ".traces/\ntraces.txt\n.nondex/\n")
+
+
+# ---------------------------------------------------------------------------
+# TD forced-verify tree transform (Design A, correctness-first).
+#
+# TD flakiness reproduces deterministically ONLY under the FlakyCodeChange
+# forcing (a timing perturbation, e.g. Thread.sleep, injected into the victim's
+# hot path). The bare victim PASSES alone on Flaky/, so verifying the fix on
+# Flaky/ alone scores an empty/no-op patch as a spurious PASSED. We instead
+# verify the fix UNDER the forcing via a host-side native git 3-way merge of
+# three FULL trees in an ISOLATED temp repo (NOT the Flaky-local .git):
+#     base   = ext_baseline             (pristine Flaky)
+#     ours   = data/<c>/FlakyCodeChange (pristine + forcing)
+#     theirs = base/Flaky               (pristine + agent fix, after apply_fix)
+# The forcing patch is a plain `diff -ruN` with no index lines, so a tree merge
+# (not git apply --3way) is the only robust combiner. The merged tree REPLACES
+# base/Flaky, then the existing verify path (cd /app/work/Flaky) runs on
+# (fix + forcing) with NO change to agentic_verify.py.
+#
+# CORRECTNESS-FIRST CONFLICT POLICY (proven necessary on the live 812 trees,
+# git 2.54.0): a 3-way TEXTUAL merge of the forcing and a fix that edits the
+# SAME region has THREE outcomes, only one sound:
+#   (a) clean merge of DISJOINT edits  -> forcing survives + fix survives: SOUND.
+#   (b) CONFLICT (overlapping edits)   -> NO sound 'fix+forcing' tree exists: a
+#       correct fix typically REMOVES the construct the forcing perturbs (812:
+#       the fix replaces .save() with .store(), deleting the very timestamp race
+#       the Thread.sleep was widening; the forcing's anchor line no longer
+#       exists, and re-injecting the sleep would be a no-op). We FAIL CLOSED.
+#   (c) clean merge of INCOMPATIBLE adjacent edits -> a tree that keeps the
+#       forcing but where the fix neutered the assertion the forcing trips
+#       (gaming), or a corrupt tree. Caught by the positive self-check below.
+# Trade-off (documented in RESIDUAL LIMITATIONS): a genuine fix that REWRITES
+# the victim test's own forced region is scored FAILED (false-negative). That is
+# the correct trade vs. the hard constraint that no empty/no-op or oracle-gutting
+# patch may EVER be scored PASSED -- the two are mechanically indistinguishable.
+#
+# Returns (ok, reason). ok=True means 'forced tree built; run verify on it'
+# (the empty-fix tree lands here and equals FlakyCodeChange => verify FAILS).
+# ok=False means the CALLER must force FAILED (fail-closed). It never raises for
+# an expected merge/IO problem; an unexpected exception is caught by the caller
+# and also mapped to FAILED.
+def _td_build_forced_verify_tree(flaky, ext_baseline, forcing_tree, work_root,
+                                 victim_rel):
+    flaky = Path(flaky); ext_baseline = Path(ext_baseline)
+    forcing_tree = Path(forcing_tree); work_root = Path(work_root)
+
+    repo = work_root / "td_merge.git"
+    wt = work_root / "td_merge_wt"
+    shutil.rmtree(repo, ignore_errors=True)
+    shutil.rmtree(wt, ignore_errors=True)
+    wt.mkdir(parents=True, exist_ok=True)
+    env = dict(os.environ)
+    env["GIT_DIR"] = str(repo)
+    env["GIT_WORK_TREE"] = str(wt)
+    env["GIT_CEILING_DIRECTORIES"] = str(work_root.resolve())
+
+    def g(*a):
+        return run(["git", "-c", "user.name=agent",
+                    "-c", "user.email=agent@local", *a],
+                   env=env, check=False, capture_output=True, text=True)
+
+    def _populate(srcdir):
+        # Replace worktree contents with srcdir (excluding any .git), then
+        # normalize .gitignore to GITIGNORE_BODY so (i) build artifacts (target/,
+        # *.class) never enter any commit and (ii) the project's own .gitignore
+        # in FlakyCodeChange vs the driver-written one in Flaky never registers
+        # as a spurious change/conflict.
+        for p in list(wt.iterdir()):
+            if p.name == ".git":
+                continue
+            if p.is_dir() and not p.is_symlink():
+                shutil.rmtree(p, ignore_errors=True)
+            else:
+                p.unlink()
+        for item in srcdir.iterdir():
+            if item.name == ".git":
+                continue
+            dst = wt / item.name
+            if item.is_dir() and not item.is_symlink():
+                shutil.copytree(item, dst, symlinks=True)
+            else:
+                shutil.copy2(item, dst)
+        (wt / ".gitignore").write_text(GITIGNORE_BODY, encoding="utf-8")
+
+    def _commit(srcdir, msg):
+        _populate(srcdir)
+        if g("add", "-A").returncode != 0:
+            return ""
+        if g("commit", "-q", "--allow-empty", "-m", msg).returncode != 0:
+            return ""
+        return g("rev-parse", "HEAD").stdout.strip()
+
+    if g("init", "-q").returncode != 0:
+        return (False, "td-merge: git init failed")
+    base = _commit(ext_baseline, "base(pristine)")
+    ours = _commit(forcing_tree, "ours(FlakyCodeChange forcing)")
+    if not base or not ours:
+        return (False, "td-merge: failed to commit base/ours trees")
+    # theirs (the fix) must branch from base so the 3-way base is pristine.
+    if g("checkout", "-q", base).returncode != 0:
+        return (False, "td-merge: checkout base failed")
+    if g("checkout", "-q", "-b", "theirs").returncode != 0:
+        return (False, "td-merge: branch theirs failed")
+    theirs = _commit(flaky, "theirs(fixed)")
+    if not theirs:
+        return (False, "td-merge: failed to commit theirs(fixed) tree")
+
+    # ---- 3-way merge of forcing(ours) and fix(theirs). --------------------
+    mt = g("merge-tree", "--write-tree", "--name-only", "--messages",
+           ours, theirs)
+    out_lines = (mt.stdout or "").splitlines()
+    forced_tree_oid = out_lines[0].strip() if out_lines else ""
+    if mt.returncode != 0:
+        # CONFLICT (outcome b): the fix edits the same region the forcing
+        # targets. No sound 'fix + meaningful forcing' tree exists. Fail closed.
+        conflicted = []
+        for ln in out_lines[1:]:
+            if ln == "":
+                break
+            conflicted.append(ln)
+        return (False, "td-merge: fix overlaps the forcing region "
+                       f"(conflict in {conflicted or '?'}); no sound "
+                       "fix+forcing tree exists -> FAILED (fail-closed).")
+    if not forced_tree_oid or len(forced_tree_oid) < 40 or not all(
+            ch in "0123456789abcdef" for ch in forced_tree_oid):
+        return (False, "td-merge: clean merge produced no valid tree oid "
+                       f"(got {forced_tree_oid!r})")
+
+    # ---- Materialize the merged tree into a clean worktree (honors add/del).
+    if g("read-tree", forced_tree_oid).returncode != 0:
+        return (False, "td-merge: read-tree of merged tree failed")
+    for p in list(wt.iterdir()):
+        if p.name == ".git":
+            continue
+        if p.is_dir() and not p.is_symlink():
+            shutil.rmtree(p, ignore_errors=True)
+        else:
+            p.unlink()
+    if g("checkout-index", "-f", "-a").returncode != 0:
+        return (False, "td-merge: checkout-index of merged tree failed")
+
+    # ---- Positive self-check (guards outcome c): the forcing's added lines AND
+    # the pristine victim assertion(s) must BOTH survive in the merged victim
+    # test file. If the forcing vanished (fix dropped it) or a pristine assertion
+    # vanished (fix gutted the oracle while keeping the forcing), fail closed.
+    victim_live = wt / victim_rel
+    victim_pristine = ext_baseline / victim_rel
+    victim_forcing = forcing_tree / victim_rel
+    if not victim_live.is_file():
+        return (False, f"td-merge: victim test file missing after merge "
+                       f"({victim_rel})")
+    try:
+        live_txt = victim_live.read_text(encoding="utf-8", errors="replace")
+    except OSError as e:
+        return (False, f"td-merge: cannot read merged victim test: {e}")
+    if victim_forcing.is_file() and victim_pristine.is_file():
+        try:
+            f_txt = victim_forcing.read_text(encoding="utf-8", errors="replace")
+            p_txt = victim_pristine.read_text(encoding="utf-8", errors="replace")
+        except OSError as e:
+            return (False, f"td-merge: cannot read forcing/pristine victim: {e}")
+        live_norm = " ".join(live_txt.split())
+        # (1) forcing not dropped: every non-comment line the forcing ADDED to
+        # the victim test must still be present in the merged file.
+        p_lines = set(p_txt.splitlines())
+        forcing_added = [ln.strip() for ln in f_txt.splitlines()
+                         if ln.strip() and ln not in p_lines
+                         and not ln.lstrip().startswith("//")]
+        missing = [ln for ln in forcing_added
+                   if " ".join(ln.split()) not in live_norm]
+        if missing:
+            return (False, "td-merge: forcing lines absent from merged victim "
+                           "test (the fix dropped/neutralized the forcing) -> "
+                           f"FAILED. missing e.g.: {missing[:2]}")
+        # (2) oracle not gutted: every pristine assert* statement must survive.
+        pristine_asserts = [ln.strip() for ln in p_txt.splitlines()
+                            if re.search(r"\bassert\w*\s*\(", ln)]
+        gutted = [a for a in pristine_asserts
+                  if " ".join(a.split()) not in live_norm]
+        if gutted:
+            return (False, "td-merge: pristine victim assertion(s) absent from "
+                           "merged victim test (oracle gutted by the fix) -> "
+                           f"FAILED. e.g.: {gutted[:2]}")
+
+    # ---- Defense in depth: never let conflict markers reach a verify build.
+    for jf in wt.rglob("*.java"):
+        try:
+            t = jf.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        if "<<<<<<< " in t and ">>>>>>> " in t:
+            return (False, f"td-merge: conflict markers survived in {jf.name}")
+
+    # ---- Replace base/Flaky with the materialized (fix + forcing) tree. ----
+    shutil.rmtree(flaky, ignore_errors=True)
+    shutil.copytree(wt, flaky, symlinks=True)
+    shutil.rmtree(flaky / ".git", ignore_errors=True)
+    log("td-merge: clean merge -> verifying (fix + forcing); forcing and "
+        "pristine assertions confirmed present.")
+    return (True, "clean-merge: verifying (fix + forcing)")
+
 
 PRETTY_TYPE = {
     "od": "Order-Dependent (OD)",
@@ -345,7 +547,25 @@ timeout -k 30s {AGENT_TIMEOUT_S}s claude -p "$(cat /app/work/{steps_rel}/prompt_
   --output-format stream-json --verbose --include-partial-messages \
   {budget}> /app/work/{steps_rel}/trial.ndjson 2> /app/work/{steps_rel}/claude.stderr
 """
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    # Auth for the in-container `claude` CLI. Prefer an explicit env export;
+    # otherwise fall back to agentic_config.ANTHROPIC_API_KEY (the same source
+    # the orchestrator uses). Without this the agent runs UNAUTHENTICATED
+    # (apiKeySource:none -> "Not logged in") and silently emits an empty patch
+    # that is then misscored as a FAILED repair. Fail closed with a clear
+    # message instead of burning a run.
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        try:
+            from agentic_config import ANTHROPIC_API_KEY as _CFG_KEY  # type: ignore  # noqa: E402
+            api_key = (_CFG_KEY or "").strip()
+        except Exception:
+            api_key = ""
+    if not api_key:
+        sys.exit("ERROR: no ANTHROPIC_API_KEY in the environment or "
+                 "agentic_config.py — the Claude Code agent cannot "
+                 "authenticate and would emit an empty patch scored as a "
+                 "false FAILED. Export ANTHROPIC_API_KEY or set "
+                 "agentic_config.ANTHROPIC_API_KEY, then re-run.")
     # IS_SANDBOX=1 lets --permission-mode bypassPermissions run as root inside
     # the container (claude otherwise refuses bypass under root/sudo).
     cmd = ["docker", "exec",
@@ -512,8 +732,27 @@ def main():
     log(f"agent exit code: {agent_rc}")
 
     # ---- capture the patch (external git-dir; never the outer repo) --------
-    git(flaky, "add", "-A", gitdir=ext_gitdir, check=False)
-    diff = git(flaky, "diff", "--cached", "HEAD", gitdir=ext_gitdir, check=False).stdout
+    # Hardened: a swallowed git failure here would emit an EMPTY patch, which is
+    # re-applied as a no-op and scored as a FAILED repair — masking an infra
+    # problem (root-owned files the agent wrote into the bind mount, a stale
+    # index lock, etc.) as "the model couldn't fix it". Surface it instead of
+    # silently producing an empty diff.
+    add = git(flaky, "add", "-A", gitdir=ext_gitdir, check=False)
+    if add.returncode != 0:
+        sys.exit(f"ERROR: git add -A failed while capturing the agent's patch "
+                 f"(rc={add.returncode}): {(add.stderr or '').strip()} — "
+                 f"refusing to emit an empty patch that would be misscored as a "
+                 f"FAILED repair.")
+    res = git(flaky, "diff", "--cached", "HEAD", gitdir=ext_gitdir, check=False)
+    if res.returncode != 0:
+        sys.exit(f"ERROR: git diff --cached HEAD failed while capturing the "
+                 f"agent's patch (rc={res.returncode}): {(res.stderr or '').strip()}")
+    diff = res.stdout
+    if not diff.strip():
+        # Clean add/diff but no net change: a genuine no-fix outcome (correctly
+        # scored FAILED). Make it observable rather than silently empty.
+        log("NOTE: agent produced no net file changes — empty patch "
+            "(genuine no-fix outcome; will be scored FAILED).")
     (steps / "patch.diff").write_text(diff, encoding="utf-8")
     log(f"captured patch.diff ({len(diff)} bytes)")
 
@@ -541,9 +780,144 @@ def main():
     run([sys.executable, str(APPLY_FIX), container,
          "--docker-container", docker_container], check=False)
 
+    # ---- NIO oracle integrity: restore the pristine generated wrapper --------
+    # The NIO verify oracle is a generated wrapper class (#runTwice) that lives
+    # in the AGENT-EDITABLE tree, and the captured+re-applied patch.diff can
+    # carry an agent edit to it (GITIGNORE_BODY does not exclude the wrapper
+    # path). A weakened #runTwice (dropped 2nd-run assert, try/catch, no-op)
+    # would be scored a false PASSED. apply_fix has now landed the patch, so the
+    # agent's legitimate VICTIM fix is on disk; we overwrite ONLY the wrapper
+    # file with pristine source. Verify ("mvn test ... #runTwice") re-runs
+    # test-compile from this on-disk source, so the executed oracle is the
+    # unmodified one. Last writer before compile/verify => dominates any tamper,
+    # independent of how the patch encoded it. Gated on NIO; od/td/id untouched.
+    if test_type == "nio":
+        wrapper_fqcn = (os.environ.get("WRAPPER_FQCN") or "").strip()
+        if not wrapper_fqcn:
+            try:  # fallback: persisted by run_agentic_nio.sh
+                tc = json.loads((steps / "trace_config.json").read_text(
+                    encoding="utf-8"))
+                wrapper_fqcn = (tc.get("wrapper_fqcn") or "").strip()
+            except Exception:
+                wrapper_fqcn = ""
+        if not wrapper_fqcn:
+            sys.exit("ERROR: NIO run missing WRAPPER_FQCN (env and "
+                     "trace_config.json); refusing to verify a possibly-"
+                     "tampered oracle.")
+
+        pkg, _, simple = wrapper_fqcn.rpartition(".")  # pkg="" for default pkg
+        pkg_path = pkg.replace(".", "/")
+        # Mirror run_agentic_nio.sh WRAPPER_PATH_REL: MODULE in (".","") means the
+        # shell wrote "./src/..." which the FS normalizes to "src/..." — so omit
+        # the module path segment in that case (build via Path(*parts), no ".").
+        mod = (module or ".").strip()
+        parts = [] if mod in (".", "") else [mod]
+        parts += ["src", "test", "java"]
+        if pkg_path:
+            parts += pkg_path.split("/")
+        parts += [simple + ".java"]
+        rel = Path(*parts)
+
+        live = flaky / rel
+        pristine = ext_baseline / rel
+        if not pristine.is_file():
+            fixed_alt = base / "Fixed" / rel   # gen_wrapper wrote both trees
+            if fixed_alt.is_file():
+                pristine = fixed_alt
+        if not pristine.is_file():
+            sys.exit(f"ERROR: pristine NIO wrapper not found at {rel} in "
+                     f"ext_baseline or Fixed/; cannot guarantee oracle integrity "
+                     f"— refusing to score this run.")
+
+        try:
+            tampered = (not live.is_file()) or (
+                live.read_bytes() != pristine.read_bytes())
+        except OSError:
+            tampered = True
+        if tampered:
+            log("SECURITY: the captured patch modified/removed the generated NIO "
+                f"verify wrapper ({wrapper_fqcn}); restoring the pristine oracle "
+                "before verify. The victim fix is preserved; only the wrapper is "
+                "overwritten.")
+        live.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(pristine, live)
+        log(f"restored pristine NIO wrapper: {rel}")
+
+        # Defense in depth: an agent could also add a SECOND class with the same
+        # FQCN at a different test-source path to shadow/collide with the oracle.
+        # Delete any such duplicate under <module>/src/test/java — never the
+        # canonical restored file, never main sources or the victim test.
+        test_root = flaky.joinpath(
+            *([] if mod in (".", "") else [mod]), "src", "test", "java")
+        if test_root.is_dir():
+            live_resolved = live.resolve()
+            pkg_decl = (re.compile(r"(?m)^\s*package\s+" + re.escape(pkg) + r"\s*;")
+                        if pkg else None)
+            cls_decl = re.compile(r"(?m)\bclass\s+" + re.escape(simple) + r"\b")
+            for cand in test_root.rglob(simple + ".java"):
+                try:
+                    if cand.resolve() == live_resolved:
+                        continue
+                    txt = cand.read_text(encoding="utf-8", errors="replace")
+                except OSError:
+                    continue
+                pkg_ok = (pkg_decl.search(txt) is not None) if pkg else (
+                    re.search(r"(?m)^\s*package\s+", txt) is None)
+                if pkg_ok and cls_decl.search(txt):
+                    log("SECURITY: removing agent-added duplicate of "
+                        f"{wrapper_fqcn} at {cand.relative_to(flaky)} "
+                        "(would shadow/collide with the pristine oracle).")
+                    try:
+                        cand.unlink()
+                    except OSError:
+                        pass
+
+    # ---- TD forced-verify tree (Design A): verify the fix UNDER the
+    # FlakyCodeChange forcing, not on the bare victim. apply_fix has landed the
+    # fix into base/Flaky; we host-side 3-way merge pristine(base) /
+    # FlakyCodeChange(ours) / fixed(theirs) in an isolated temp repo and replace
+    # base/Flaky with the result, so the existing verify path runs on
+    # (fix + forcing). Empty fix => merged == FlakyCodeChange => victim FAILS =>
+    # FAILED. Gated on td; od/id/nio untouched. Fail-closed: any merge/IO problem
+    # or a conflict (fix overlaps the forcing region) => deterministic FAILED.
+    td_forced_ok = True
+    if test_type == "td":
+        forcing_tree = base / "FlakyCodeChange"
+        # victim_rel = tree-relative path of the victim test file (module-aware).
+        victim_fqn = (row.get("flaky_test") or "").strip()
+        victim_rel = None
+        try:
+            rel_path, _m = fqn_to_path(victim_fqn)
+            src = find_source_file(str(base), module, rel_path)
+            if src:
+                victim_rel = Path(src).resolve().relative_to(flaky.resolve())
+        except Exception:
+            victim_rel = None
+        if not forcing_tree.is_dir():
+            log("ERROR: TD forced verify requires data/<container>/"
+                "FlakyCodeChange (the forcing tree); not found — failing closed.")
+            td_forced_ok = False
+        elif victim_rel is None:
+            log(f"ERROR: TD forced verify could not resolve the victim test file "
+                f"for '{victim_fqn}' under Flaky/ — failing closed.")
+            td_forced_ok = False
+        else:
+            try:
+                td_forced_ok, td_reason = _td_build_forced_verify_tree(
+                    flaky, ext_baseline, forcing_tree, ext, str(victim_rel))
+                if not td_forced_ok:
+                    log(f"TD forced-verify tree build failed: {td_reason} — "
+                        f"failing closed (verdict FAILED).")
+            except Exception as exc:
+                log(f"ERROR: TD forced-verify tree build crashed: {exc!r} — "
+                    f"failing closed (verdict FAILED).")
+                td_forced_ok = False
+
     # Ensure test classes are compiled before verify (OD/TD verify does not
-    # compile; apply_fix only recompiles when it lands a patch).
-    compile_in_container(docker_container, test_type, module)
+    # compile; apply_fix only recompiles when it lands a patch). For td this
+    # compiles the merged (fix + forcing) tree now on disk at base/Flaky.
+    if not (test_type == "td" and not td_forced_ok):
+        compile_in_container(docker_container, test_type, module)
 
     verdict_path = steps / "verify_after_fix.verdict"
 
@@ -567,7 +941,19 @@ def main():
     # left applied+compiled across confirmations (no restore between), exactly
     # as the orchestrator does.
     log("agentic_verify.py (initial run)")
-    verdict = _verify_once()
+    if test_type == "td" and not td_forced_ok:
+        # The forced-verify tree could not be built (missing forcing tree,
+        # unresolved victim, merge conflict = fix overlaps the forcing region,
+        # or a self-check failure = forcing/assertion vanished). Per Design A we
+        # must NOT fall back to the non-discriminative bare-victim verify, which
+        # would score an empty/no-op patch PASSED. Record FAILED with a clear
+        # line and skip the verify command.
+        log("TD forced-verify tree unavailable — recording FAILED (fail-closed; "
+            "NOT running the non-discriminative bare-victim verify).")
+        verdict_path.write_text("FAILED\n", encoding="utf-8")
+        verdict = "FAILED"
+    else:
+        verdict = _verify_once()
     confirm_runs: list = []
     if verdict == "PASSED":
         for i in range(1, VERIFY_PASS_RUNS + 1):
