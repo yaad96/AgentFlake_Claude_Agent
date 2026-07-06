@@ -32,7 +32,7 @@ from response_parser import parse_response   # local — provider-neutral
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-# Script lives in ReproFlake-C9E6/LLM Scripts/ ; data is one level up.
+# Script lives in AF_Claude_Agent/LLM Scripts/ ; data is one level up.
 DATA_DIR = os.path.join(SCRIPT_DIR, "..", "data")
 
 MODEL = "claude-sonnet-4-6"

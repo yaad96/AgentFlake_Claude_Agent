@@ -6,7 +6,7 @@ The agent reads test code, production code, error logs, and RV traces on demand,
 ## Prerequisites
 
 ```bash
-# from ReproFlake-C9E6/
+# from AF_Claude_Agent/
 python3 -m pip install -r requirements.txt
 
 # set the key for whichever backend you run:

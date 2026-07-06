@@ -23,7 +23,7 @@ import re
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-# Script lives in ReproFlake-C9E6/LLM Scripts/ ; data and CSV are one level up.
+# Script lives in AF_Claude_Agent/LLM Scripts/ ; data and CSV are one level up.
 DATA_DIR = os.path.join(SCRIPT_DIR, "..", "data")
 CSV_FILE = os.path.join(SCRIPT_DIR, "..", "test_config.csv")
 

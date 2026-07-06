@@ -2,7 +2,7 @@
 
 This variant runs the **Claude Code CLI agent** as the repair backend, in place
 of the API-based orchestrator (`agentic_orchestrator.py`). It plugs into the
-existing ReproFlake-C9E6 OD pipeline ([run_agentic_od.sh](run_agentic_od.sh)):
+existing AF_Claude_Agent OD pipeline ([run_agentic_od.sh](run_agentic_od.sh)):
 the same staging, the same `tm_<container>` docker container, and the same
 external scorer (`apply_fix.py` → `agentic_verify.py`). Only the repair step is
 swapped, so the agent's result is directly comparable to ReproFlake/FlakyDoctor.
@@ -28,7 +28,7 @@ ANTHROPIC_API_KEY="$(cat ~/.anthropic_api_key)" \
 AGENTIC_DRIVER=claude_cli \
 AGENTIC_MODEL=claude-sonnet-4-6 \
 AGENTIC_MAX_BUDGET_USD=5 \
-bash ReproFlake-C9E6/agentic/run_agentic_od.sh jnrposixd9f3f84
+bash AF_Claude_Agent/agentic/run_agentic_od.sh jnrposixd9f3f84
 ```
 
 Useful extra env vars: `KEEP_CONTAINER=1` (leave `tm_<container>` running for
@@ -48,7 +48,7 @@ ENV PATH="/root/.local/bin:${PATH}"
 ```
 The launcher builds `flaky_base_jdk8_od_cov` from this Dockerfile if the image
 is missing (and always rebuilds on Apple-silicon, where it runs under
-`--platform linux/amd64`). Build context is the `ReproFlake-C9E6/` directory.
+`--platform linux/amd64`). Build context is the `AF_Claude_Agent/` directory.
 
 > Only `Dockerfile.od` currently carries these lines. Java-11 OD
 > (`Dockerfile.od11`), hadoop OD (`Dockerfile.hadoop`), and the ID/NIO/TD images
@@ -211,8 +211,8 @@ comparable:
 rm -rf data/<container>/Flaky && cp -r <ext>/baseline data/<container>/Flaky
 git -C data/<container>/Flaky init -q && git -C data/<container>/Flaky add -A \
   && git -C data/<container>/Flaky commit -qm baseline   # so apply_fix's `git apply` uses THIS tree
-python3 "ReproFlake-C9E6/LLM Scripts/apply_fix.py" <container> --docker-container tm_<container>
-python3 ReproFlake-C9E6/agentic/agentic_verify.py   <container> --docker-container tm_<container>
+python3 "AF_Claude_Agent/LLM Scripts/apply_fix.py" <container> --docker-container tm_<container>
+python3 AF_Claude_Agent/agentic/agentic_verify.py   <container> --docker-container tm_<container>
 ```
 `apply_fix.py` reads the patch from `Steps_Output_Files/llm_response.json` (there
 is **no** `--patch` flag), applies it with a 4-layer applier, and recompiles

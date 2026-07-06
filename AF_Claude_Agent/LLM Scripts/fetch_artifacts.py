@@ -44,11 +44,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from assemble_llm_context import extract_class_header  # type: ignore
 
 # ---------------------------------------------------------------------------
-# Paths — this file lives in ReproFlake-C9E6/LLM Scripts/
+# Paths — this file lives in AF_Claude_Agent/LLM Scripts/
 # ---------------------------------------------------------------------------
 SCRIPT_DIR = Path(__file__).resolve().parent
-REPROFLAKE_DIR = SCRIPT_DIR.parent              # ReproFlake-C9E6/
-VALG_DIR = REPROFLAKE_DIR.parent                # Valg/Valg/
+REPROFLAKE_DIR = SCRIPT_DIR.parent              # AF_Claude_Agent/
+VALG_DIR = REPROFLAKE_DIR.parent                # AgentFlake_Claude_Agent/
 PROPS_DIR = VALG_DIR / "scripts" / "props"
 PROPS_TRACK_DIR = VALG_DIR / "scripts" / "props-track"
 

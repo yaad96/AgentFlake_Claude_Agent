@@ -1,4 +1,4 @@
-# ReproFlake-C9E6 — Python dependencies for the agentic flaky-test repair pipeline.
+# AF_Claude_Agent — Python dependencies for the agentic flaky-test repair pipeline.
 #
 #   python3 -m pip install -r requirements.txt
 #   # on an externally-managed (PEP 668) Python, e.g. Homebrew, add:

@@ -38,8 +38,8 @@ from collections import defaultdict
 # Paths
 # ---------------------------------------------------------------------------
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-# Script lives in ReproFlake-C9E6/LLM Scripts/ ; data and CSV are one level up
-# (in ReproFlake-C9E6/), and events_encoding_id.txt is two levels up in scripts/.
+# Script lives in AF_Claude_Agent/LLM Scripts/ ; data and CSV are one level up
+# (in AF_Claude_Agent/), and events_encoding_id.txt is two levels up in scripts/.
 DATA_DIR = os.path.join(SCRIPT_DIR, "..", "data")
 EVENTS_FILE = os.path.join(SCRIPT_DIR, "..", "..", "scripts", "events_encoding_id.txt")
 CSV_FILE = os.path.join(SCRIPT_DIR, "..", "test_config.csv")
