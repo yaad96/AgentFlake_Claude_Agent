@@ -551,6 +551,8 @@ def main():
         env["KEEP_CONTAINER"] = "1"
         env["AGENTIC_MAX_ITERATIONS"] = str(args.max_iterations)
         env["AGENTIC_MODEL"] = args.model
+        if args.model.strip().lower().startswith("claude") and "AGENTIC_DRIVER" not in env:
+            env["AGENTIC_DRIVER"] = "claude_cli"
         # Stream the orchestrator's stdout live instead of block-buffering it
         # through this pipe, so [iter]/[apply]/[verify] lines appear in real time.
         env["PYTHONUNBUFFERED"] = "1"

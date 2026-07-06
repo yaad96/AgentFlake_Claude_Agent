@@ -9,16 +9,15 @@ captures stdout/stderr, parses the Surefire summary line, and writes:
     data/<container>/Steps_Output_Files/verify_after_fix.log
     data/<container>/Steps_Output_Files/verify_after_fix.verdict   (PASSED|FAILED)
 
-Exits 0 on PASSED, 1 on FAILED. This mirrors the verify_victim() shell
-functions in TraceMop Scripts/run_<type>_tracemop.sh so the agentic
-orchestrator does not need per-type docker logic inlined.
+Exits 0 on PASSED, 1 on FAILED. This keeps per-type docker verification logic
+out of the agent drivers.
 
 Usage:
     python3 agentic_verify.py <result_container> [--docker-container NAME]
 
 Requires:
     - The container `tm_<sanitized>` to already be running with the data dir
-      bind-mounted, the JavaMOP extension built, and tracemop.jar installed.
+      bind-mounted.
     - For NIO: WRAPPER_FQCN env var (set by run_agentic_nio.sh; equal to the
       auto-generated wrapper class's FQN).
     - For ID:  NONDEXSEED and NONDEX_RUNS env vars (set by run_agentic_id.sh).
@@ -67,9 +66,6 @@ MVNOPTS_ID = (
 # extra flags are no-ops on projects that don't define the relevant plugins.
 MVNOPTS_NIO = MVNOPTS_ID + ' -Dfindbugs.skip=true'
 
-EXT_JAR = "/tmp/ext-build/target/javamop-extension-1.0.jar"
-
-
 def _run_in_container(docker_container: str, command: str) -> str:
     """Execute `bash -c command` inside the running docker container and
     return combined stdout/stderr. Tolerates non-zero exit (we WANT the
@@ -100,18 +96,9 @@ def _build_command(test_type: str, row: dict) -> str:
     if test_type == "od":
         # Pair-of-tests with -Dsurefire.runOrder=testorder (TestingResearch-
         # Illinois fork), pinned via SUREFIRE_VERSION.
-        # NOTE: deliberately NO `-Dmaven.ext.class.path={EXT_JAR}` here, for the
-        # same reason as the TD/ID branches. The OD gate only needs to rerun the
-        # polluter->victim pair in declared order and check the victim now
-        # passes; it does NOT need JavaMOP/TraceMOP instrumentation. Worse, the
-        # ext jar weaves AspectJ monitors whose static initializer opens
-        # .traces/traces.txt, which does not exist in the standalone verify
-        # working dir -> the monitor throws FileNotFoundException inside class
-        # init before the victim assertion ever runs, so verify reports FAILED
-        # regardless of the patch (the verify log is then identical across all
-        # attempts). This also makes the gate use the same un-instrumented
-        # command that originally reproduced the flake. Trace collection still
-        # uses the ext jar in _compute_rv_traces_lazy.
+        # Verification deliberately runs without RV instrumentation. The OD
+        # gate only needs to rerun the polluter->victim pair in declared order
+        # and check whether the victim now passes.
         # Run `dependency:properties` before the standalone surefire:test goal.
         # Some poms (e.g. ZooKeeper) put `-javaagent:${groupId:artifactId:type}`
         # in surefire's argLine; that property is published by the
@@ -129,17 +116,8 @@ def _build_command(test_type: str, row: dict) -> str:
             f"-Dsurefire.runOrder=testorder {timeout} {MVNOPTS_OD} 2>&1"
         )
     if test_type == "td":
-        # NOTE: deliberately NO `-Dmaven.ext.class.path={EXT_JAR}` here, for
-        # the same reason as the ID branch below. TD verify just reruns the
-        # failing test and checks if it now passes; it doesn't need JavaMOP/
-        # TraceMOP instrumentation. Passing the ext jar perturbs the effective
-        # surefire version, which breaks on projects whose poms pin an older
-        # surefire (e.g. HBASE-27051's pom uses 3.0.0-M6 -> ext jar bumps to
-        # 3.1.2 -> NoClassDefFoundError on
-        # org.apache.maven.surefire.api.util.TempFileManager -> "Tests run: 0"
-        # -> _interpret() defaults to FAILED even when the agent's fix is
-        # correct). Trace collection still uses the ext jar in
-        # _compute_rv_traces_lazy.
+        # TD verify just reruns the failing test on the prepared tree and
+        # checks whether it now passes; no RV instrumentation is required.
         # `dependency:properties` first — same reason as the OD branch: it
         # publishes the dependency-path properties that some poms reference in
         # surefire's argLine (e.g. -javaagent:${org.jmockit:jmockit:jar}), which
@@ -158,14 +136,8 @@ def _build_command(test_type: str, row: dict) -> str:
         if not seed or not runs:
             sys.exit("ERROR: ID verify requires NONDEXSEED + NONDEX_RUNS env "
                      "vars set by the per-type orchestrator.")
-        # NOTE: deliberately NO `-Dmaven.ext.class.path={EXT_JAR}` here.
-        # NonDex only needs to shuffle iteration orders and run surefire; it
-        # doesn't need the JavaMOP/TraceMOP instrumentation. Passing the ext
-        # jar perturbs the effective surefire version, which breaks on projects
-        # whose poms use parameters newer surefire removed (e.g. dubbo's
-        # <forkMode> -> "Cannot find 'forkMode'" -> 0 surefire summary lines
-        # -> _interpret() defaults to FAILED even when no test actually failed).
-        # Trace collection still uses the ext jar in _compute_rv_traces_lazy.
+        # NonDex only needs to shuffle iteration orders and run surefire; no RV
+        # instrumentation is required.
         nondex_plugin_version = os.environ.get(
             "NONDEX_PLUGIN_VERSION", "2.1.1").strip() or "2.1.1"
         return (
@@ -183,14 +155,8 @@ def _build_command(test_type: str, row: dict) -> str:
             sys.exit("ERROR: NIO verify requires WRAPPER_FQCN env var (set "
                      "by run_agentic_nio.sh after wrapper generation).")
         surefire_ver = os.environ.get("SUREFIRE_VER", "3.0.0-M5").strip()
-        # NOTE: deliberately NO `-Dmaven.ext.class.path={EXT_JAR}` here, for the
-        # same reason as the OD/TD/ID branches. The NIO gate only needs to run
-        # the wrapper's runTwice() and check the second invocation passes; it
-        # does NOT need JavaMOP/TraceMOP instrumentation, which is for trace
-        # collection only and can crash the standalone verify run (missing
-        # .traces dir) or perturb the effective surefire version. Keeps all
-        # four verify branches instrumentation-free and consistent. Trace
-        # collection still uses the ext jar in _compute_rv_traces_lazy.
+        # The NIO gate only needs to run the wrapper's runTwice() and check
+        # that both invocations pass; no RV instrumentation is required.
         return (
             "cd /app/work/Flaky\n"
             f"export SUREFIRE_VERSION={surefire_ver}\n"

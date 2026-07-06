@@ -22,19 +22,10 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPROFLAKE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-VALG_DIR="$(cd "$REPROFLAKE_DIR/.." && pwd)"
-TRACEMOP_SCRIPTS="$REPROFLAKE_DIR/TraceMop Scripts"
-LLM_SCRIPTS="$REPROFLAKE_DIR/LLM Scripts"
 
 DATA_DIR="$REPROFLAKE_DIR/data/$RESULT_CONTAINER"
 STEPS_OUT_DIR="$DATA_DIR/Steps_Output_Files"
 CSV="$REPROFLAKE_DIR/test_config.csv"
-
-TRACEMOP_JAR="$VALG_DIR/experiments/tracemop.jar"
-EXT_SRC_DIR="$VALG_DIR/scripts/javamop-extension"
-EVENTS_FILE="$VALG_DIR/scripts/events_encoding_id.txt"
-COMPARE_TRACES_LOCAL="$TRACEMOP_SCRIPTS/compare-traces-official.py"
-COMPARE_TRACES_URL="https://raw.githubusercontent.com/SoftEngResearch/tracemop/master/scripts/compare-traces.py"
 
 [[ -f "$CSV" ]] || { echo "ERROR: $CSV not found"; exit 1; }
 ROW=$(awk -F',' -v rc="$RESULT_CONTAINER" '$2 == rc { print; exit }' "$CSV")
@@ -199,23 +190,8 @@ docker run -d "${DOCKER_PLATFORM_ARGS[@]}" --name "$CONTAINER" \
   --mount type=bind,source="$DATA_DIR/Flakym2/.m2",target=/root/.m2 \
   "$IMAGE" tail -f /dev/null >/dev/null
 
-# STEPS 3 + 4a + 4b — TraceMOP
-echo "[step 3 ] Copying tracemop.jar"
-docker cp "$TRACEMOP_JAR" "$CONTAINER:/tmp/tracemop.jar"
-
-echo "[step 4a] Building javamop-extension"
-docker exec "$CONTAINER" mkdir -p /tmp/ext-build
-docker cp "$EXT_SRC_DIR/pom.xml" "$CONTAINER:/tmp/ext-build/pom.xml"
-docker cp "$EXT_SRC_DIR/src"     "$CONTAINER:/tmp/ext-build/src"
-docker exec "$CONTAINER" bash -c "cd /tmp/ext-build && mvn package -DskipTests -q"
-
-echo "[step 4b] Installing tracemop.jar"
-docker exec "$CONTAINER" bash -c "mvn install:install-file \
-  -Dfile=/tmp/tracemop.jar -DgroupId=javamop-agent \
-  -DartifactId=javamop-agent -Dversion=1.0 -Dpackaging=jar -q"
-
-# STEP 4c — generate wrapper class in BOTH Fixed/ and Flaky/
-echo "[step 4c] Generating NIO wrapper at $WRAPPER_PATH_REL"
+# STEP 3 — generate wrapper class in BOTH Fixed/ and Flaky/
+echo "[step 3 ] Generating NIO wrapper at $WRAPPER_PATH_REL"
 gen_wrapper() {
   local root="$1"
   local out="$root/$WRAPPER_PATH_REL"
@@ -248,12 +224,10 @@ EOF
 gen_wrapper "$DATA_DIR/Fixed"
 gen_wrapper "$DATA_DIR/Flaky"
 
-# STEP 4d — Run Fixed+wrapper and Flaky+wrapper to capture logs (no TraceMOP)
-# TraceMOP traces are computed on demand via get_rv_trace_diff.
-EXT_JAR=/tmp/ext-build/target/javamop-extension-1.0.jar
+# STEP 4 — Run Fixed+wrapper and Flaky+wrapper to capture logs.
 MVNOPTS='-Ddependency-check.skip=true -Dgpg.skip=true -DfailIfNoTests=false -Dskip.installnodenpm -Dskip.npm -Dskip.yarn -Dlicense.skip -Dcheckstyle.skip -Drat.skip -Denforcer.skip -Danimal.sniffer.skip -Dmaven.javadoc.skip -Dwarbucks.skip -Dmodernizer.skip -Dimpsort.skip -Dmdep.analyze.skip -Dpgpverify.skip -Dxml.skip -Dcobertura.skip=true -Dfindbugs.skip=true -Dspotless.skip=true -Dspotless.check.skip=true -Dossindex.skip=true -Dmaven.bundle.plugin.skip=true -Dmaven.parallel.force=false'
 
-echo "[step 4d] /app/work/Fixed + wrapper -> /app/work/traces-fixed (sanity; no TraceMOP)"
+echo "[step 4 ] /app/work/Fixed + wrapper -> /app/work/traces-fixed (sanity)"
 docker exec "$CONTAINER" bash -c "
   set -e
   rm -rf /app/work/traces-fixed; mkdir -p /app/work/traces-fixed
@@ -266,7 +240,7 @@ docker exec "$CONTAINER" bash -c "
     $MVNOPTS 2>&1 | tee /app/work/traces-fixed/mvn.log || true
 "
 
-echo "[step 4d] /app/work/Flaky + wrapper -> /app/work/traces-flaky (failure log; no TraceMOP)"
+echo "[step 4 ] /app/work/Flaky + wrapper -> /app/work/traces-flaky (failure log)"
 docker exec "$CONTAINER" bash -c "
   set -e
   rm -rf /app/work/traces-flaky; mkdir -p /app/work/traces-flaky
@@ -303,17 +277,6 @@ if (( KT < 1 || KF + KE < 1 )); then
 fi
 echo "[sanity ] OK — Fixed passed, Flaky failed (NIO reproduced)"
 
-# STEP 5 — copy trace-comparison tooling (used by lazy get_rv_trace_diff)
-echo "[step 5 ] Preparing trace-comparison tooling"
-if [[ ! -f "$COMPARE_TRACES_LOCAL" ]]; then
-  if   command -v curl >/dev/null; then curl -fsSL "$COMPARE_TRACES_URL" -o "$COMPARE_TRACES_LOCAL"
-  elif command -v wget >/dev/null; then wget -q "$COMPARE_TRACES_URL" -O "$COMPARE_TRACES_LOCAL"
-  else echo "ERROR: need curl or wget"; exit 1; fi
-fi
-python3 "$LLM_SCRIPTS/patch_compare.py" "$COMPARE_TRACES_LOCAL" >/dev/null
-docker cp "$COMPARE_TRACES_LOCAL"          "$CONTAINER:/tmp/compare-traces-official.py"
-docker cp "$EVENTS_FILE"                   "$CONTAINER:/tmp/events_encoding_id.txt"
-
 mkdir -p "$STEPS_OUT_DIR"
 
 # STEP 9.5 — snapshot
@@ -333,7 +296,7 @@ cat > "$STEPS_OUT_DIR/trace_config.json" <<JSONEOF
   "nondex_runs": 0,
   "wrapper_fqcn": "$WRAPPER_FQCN",
   "surefire_version": "$SUREFIRE_VER",
-  "tracemop_ready": true
+  "tracemop_ready": false
 }
 JSONEOF
 

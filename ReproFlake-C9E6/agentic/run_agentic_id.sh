@@ -20,19 +20,10 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPROFLAKE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-VALG_DIR="$(cd "$REPROFLAKE_DIR/.." && pwd)"
-TRACEMOP_SCRIPTS="$REPROFLAKE_DIR/TraceMop Scripts"
-LLM_SCRIPTS="$REPROFLAKE_DIR/LLM Scripts"
 
 DATA_DIR="$REPROFLAKE_DIR/data/$RESULT_CONTAINER"
 STEPS_OUT_DIR="$DATA_DIR/Steps_Output_Files"
 CSV="$REPROFLAKE_DIR/test_config.csv"
-
-TRACEMOP_JAR="$VALG_DIR/experiments/tracemop.jar"
-EXT_SRC_DIR="$VALG_DIR/scripts/javamop-extension"
-EVENTS_FILE="$VALG_DIR/scripts/events_encoding_id.txt"
-COMPARE_TRACES_LOCAL="$TRACEMOP_SCRIPTS/compare-traces-official.py"
-COMPARE_TRACES_URL="https://raw.githubusercontent.com/SoftEngResearch/tracemop/master/scripts/compare-traces.py"
 
 [[ -f "$CSV" ]] || { echo "ERROR: $CSV not found"; exit 1; }
 ROW=$(awk -F',' -v rc="$RESULT_CONTAINER" '$2 == rc { print; exit }' "$CSV")
@@ -150,30 +141,6 @@ docker run -d "${DOCKER_PLATFORM_ARGS[@]}" --name "$CONTAINER" \
   "${M2_MOUNT_ARGS[@]}" \
   "$IMAGE" tail -f /dev/null >/dev/null
 
-# STEPS 3 + 4a + 4b — TraceMOP
-echo "[step 3 ] Copying tracemop.jar"
-docker cp "$TRACEMOP_JAR" "$CONTAINER:/tmp/tracemop.jar"
-
-echo "[step 4a] Building javamop-extension"
-docker exec "$CONTAINER" mkdir -p /tmp/ext-build
-docker cp "$EXT_SRC_DIR/pom.xml" "$CONTAINER:/tmp/ext-build/pom.xml"
-docker cp "$EXT_SRC_DIR/src"     "$CONTAINER:/tmp/ext-build/src"
-docker exec "$CONTAINER" bash -c "cd /tmp/ext-build && mvn package -DskipTests -q"
-
-echo "[step 4b] Installing tracemop.jar"
-docker exec "$CONTAINER" bash -c "mvn install:install-file \
-  -Dfile=/tmp/tracemop.jar -DgroupId=javamop-agent \
-  -DartifactId=javamop-agent -Dversion=1.0 -Dpackaging=jar -q"
-
-# STEP 4c — NonDex/JavaMOP composition symlink (see run_id_tracemop.sh's note)
-echo "[step 4c] Symlinking agent jar for NonDex/JavaMOP composition"
-docker exec "$CONTAINER" bash -c "
-  mkdir -p /javamop-agent/javamop-agent/1.0 &&
-  ln -sf /root/.m2/repository/javamop-agent/javamop-agent/1.0/javamop-agent-1.0.jar \
-         /javamop-agent/javamop-agent/1.0/javamop-agent-1.0.jar
-"
-
-EXT_JAR=/tmp/ext-build/target/javamop-extension-1.0.jar
 MVNOPTS='-Ddependency-check.skip=true -Dgpg.skip=true -DfailIfNoTests=false -Dskip.installnodenpm -Dskip.npm -Dskip.yarn -Dlicense.skip -Dcheckstyle.skip -Drat.skip -Denforcer.skip -Danimal.sniffer.skip -Dmaven.javadoc.skip -Dfindbugs.skip -Dwarbucks.skip -Dmodernizer.skip -Dimpsort.skip -Dmdep.analyze.skip -Dpgpverify.skip -Dxml.skip -Dcobertura.skip=true -Dspotless.skip=true -Dspotless.check.skip=true -Dossindex.skip=true -Dmaven.bundle.plugin.skip=true -Dmaven.parallel.force=false'
 
 NONDEX_RUNS="$ITERATIONS"
@@ -196,8 +163,8 @@ docker exec "$CONTAINER" bash -c "
   mvn install $PREBUILD_SKIP_ARG $PREBUILD_TARGET_ARGS -q $MVNOPTS
 "
 
-# Run #1: traces-pass (plain mvn test, no TraceMOP)
-echo "[step 4d] /app/work/Flaky -> /app/work/traces-pass (no TraceMOP)"
+# Run #1: traces-pass (plain mvn test)
+echo "[step 3 ] /app/work/Flaky -> /app/work/traces-pass"
 docker exec "$CONTAINER" bash -c "
   set -e
   rm -rf /app/work/traces-pass; mkdir -p /app/work/traces-pass
@@ -207,8 +174,8 @@ docker exec "$CONTAINER" bash -c "
     $MVNOPTS 2>&1 | tee /app/work/traces-pass/mvn.log || true
 "
 
-# Run #2: traces-fail (NonDex with seed; no TraceMOP — captures failure log)
-echo "[step 4d] /app/work/Flaky -> /app/work/traces-fail (NonDex seed=$NONDEXSEED max-runs=$NONDEX_RUNS)"
+# Run #2: traces-fail (NonDex with seed; captures failure log)
+echo "[step 3 ] /app/work/Flaky -> /app/work/traces-fail (NonDex seed=$NONDEXSEED max-runs=$NONDEX_RUNS)"
 docker exec "$CONTAINER" bash -c "
   set -e
   rm -rf /app/work/traces-fail; mkdir -p /app/work/traces-fail
@@ -274,17 +241,6 @@ if (( TOTAL_FAIL + TOTAL_ERR < 1 )); then
   echo "ERROR: NonDex produced 0 failures across iterations — bug not reproduced"; exit 1
 fi
 
-# STEP 5 — copy trace-comparison tooling (used by lazy get_rv_trace_diff)
-echo "[step 5 ] Preparing trace-comparison tooling"
-if [[ ! -f "$COMPARE_TRACES_LOCAL" ]]; then
-  if   command -v curl >/dev/null; then curl -fsSL "$COMPARE_TRACES_URL" -o "$COMPARE_TRACES_LOCAL"
-  elif command -v wget >/dev/null; then wget -q "$COMPARE_TRACES_URL" -O "$COMPARE_TRACES_LOCAL"
-  else echo "ERROR: need curl or wget"; exit 1; fi
-fi
-python3 "$LLM_SCRIPTS/patch_compare.py" "$COMPARE_TRACES_LOCAL" >/dev/null
-docker cp "$COMPARE_TRACES_LOCAL"          "$CONTAINER:/tmp/compare-traces-official.py"
-docker cp "$EVENTS_FILE"                   "$CONTAINER:/tmp/events_encoding_id.txt"
-
 mkdir -p "$STEPS_OUT_DIR"
 
 # STEP 9.5 — snapshot
@@ -305,7 +261,7 @@ cat > "$STEPS_OUT_DIR/trace_config.json" <<JSONEOF
   "nondex_plugin_version": "$NONDEX_PLUGIN_VERSION",
   "wrapper_fqcn": "",
   "surefire_version": "",
-  "tracemop_ready": true
+  "tracemop_ready": false
 }
 JSONEOF
 

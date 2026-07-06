@@ -20,20 +20,10 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPROFLAKE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-VALG_DIR="$(cd "$REPROFLAKE_DIR/.." && pwd)"
-TRACEMOP_SCRIPTS="$REPROFLAKE_DIR/TraceMop Scripts"
-LLM_SCRIPTS="$REPROFLAKE_DIR/LLM Scripts"
 
 DATA_DIR="$REPROFLAKE_DIR/data/$RESULT_CONTAINER"
 STEPS_OUT_DIR="$DATA_DIR/Steps_Output_Files"
 CSV="$REPROFLAKE_DIR/test_config.csv"
-
-TRACEMOP_JAR="$VALG_DIR/experiments/tracemop.jar"
-EXT_SRC_DIR="$VALG_DIR/scripts/javamop-extension"
-EVENTS_FILE="$VALG_DIR/scripts/events_encoding_id.txt"
-
-COMPARE_TRACES_LOCAL="$TRACEMOP_SCRIPTS/compare-traces-official.py"
-COMPARE_TRACES_URL="https://raw.githubusercontent.com/SoftEngResearch/tracemop/master/scripts/compare-traces.py"
 
 [[ -f "$CSV" ]] || { echo "ERROR: $CSV not found"; exit 1; }
 ROW=$(awk -F',' -v rc="$RESULT_CONTAINER" '$2 == rc { print; exit }' "$CSV")
@@ -152,28 +142,10 @@ docker run -d "${DOCKER_PLATFORM_ARGS[@]}" --name "$CONTAINER" \
   --mount type=bind,source="$DATA_DIR/Flakym2/.m2",target=/root/.m2 \
   "$IMAGE" tail -f /dev/null >/dev/null
 
-# STEPS 3 + 4a + 4b — TraceMOP
-echo "[step 3 ] Copying tracemop.jar"
-[[ -f "$TRACEMOP_JAR" ]] || { echo "ERROR: $TRACEMOP_JAR not found"; exit 1; }
-docker cp "$TRACEMOP_JAR" "$CONTAINER:/tmp/tracemop.jar"
-
-echo "[step 4a] Building javamop-extension"
-docker exec "$CONTAINER" mkdir -p /tmp/ext-build
-docker cp "$EXT_SRC_DIR/pom.xml" "$CONTAINER:/tmp/ext-build/pom.xml"
-docker cp "$EXT_SRC_DIR/src"     "$CONTAINER:/tmp/ext-build/src"
-docker exec "$CONTAINER" bash -c "cd /tmp/ext-build && mvn package -DskipTests -q"
-
-echo "[step 4b] Installing tracemop.jar into /root/.m2"
-docker exec "$CONTAINER" bash -c "mvn install:install-file \
-  -Dfile=/tmp/tracemop.jar -DgroupId=javamop-agent \
-  -DartifactId=javamop-agent -Dversion=1.0 -Dpackaging=jar -q"
-
-# STEP 4d — Run FlakyCodeChange to capture failure log (no TraceMOP)
-# TraceMOP traces are computed on demand via get_rv_trace_diff.
-EXT_JAR=/tmp/ext-build/target/javamop-extension-1.0.jar
+# STEP 3 — Run FlakyCodeChange to capture failure log.
 MVNOPTS='-DfailIfNoTests=false -Dgpg.skip=true -Dcheckstyle.skip -Drat.skip -Denforcer.skip -Dmaven.javadoc.skip'
 
-echo "[step 4d] /app/work/FlakyCodeChange -> /app/work/traces-flakycc (failure log; no TraceMOP)"
+echo "[step 3 ] /app/work/FlakyCodeChange -> /app/work/traces-flakycc (failure log)"
 docker exec "$CONTAINER" bash -c "
   set -e
   rm -rf /app/work/traces-flakycc; mkdir -p /app/work/traces-flakycc
@@ -207,17 +179,6 @@ if (( FAILURES + ERRORS < 1 )); then
   echo "ERROR: FlakyCodeChange did NOT fail (Failures=$FAILURES Errors=$ERRORS) — TD flakiness not reproduced from FlakyCodeChange; refusing to score a run whose forcing does not fail."; exit 1
 fi
 
-# STEP 5 — copy trace-comparison tooling (used by lazy get_rv_trace_diff)
-echo "[step 5 ] Preparing trace-comparison tooling"
-if [[ ! -f "$COMPARE_TRACES_LOCAL" ]]; then
-  if   command -v curl >/dev/null; then curl -fsSL "$COMPARE_TRACES_URL" -o "$COMPARE_TRACES_LOCAL"
-  elif command -v wget >/dev/null; then wget -q "$COMPARE_TRACES_URL" -O "$COMPARE_TRACES_LOCAL"
-  else echo "ERROR: need curl or wget"; exit 1; fi
-fi
-python3 "$LLM_SCRIPTS/patch_compare.py" "$COMPARE_TRACES_LOCAL" >/dev/null
-docker cp "$COMPARE_TRACES_LOCAL"          "$CONTAINER:/tmp/compare-traces-official.py"
-docker cp "$EVENTS_FILE"                   "$CONTAINER:/tmp/events_encoding_id.txt"
-
 mkdir -p "$STEPS_OUT_DIR"
 
 # STEP 9.5 — snapshot
@@ -237,7 +198,7 @@ cat > "$STEPS_OUT_DIR/trace_config.json" <<JSONEOF
   "nondex_runs": 0,
   "wrapper_fqcn": "",
   "surefire_version": "",
-  "tracemop_ready": true
+  "tracemop_ready": false
 }
 JSONEOF
 
