@@ -1,50 +1,0 @@
-[INFO] Scanning for projects...
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-javadoc-plugin/2.9/maven-javadoc-plugin-2.9.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 15 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-javadoc-plugin/2.9/maven-javadoc-plugin-2.9.pom (15 kB at 12 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-javadoc-plugin/2.9/maven-javadoc-plugin-2.9.jar
-Progress (1): 2.7/362 kBProgress (1): 5.5/362 kBProgress (1): 8.2/362 kBProgress (1): 11/362 kB Progress (1): 14/362 kBProgress (1): 16/362 kBProgress (1): 19/362 kBProgress (1): 22/362 kBProgress (1): 25/362 kBProgress (1): 27/362 kBProgress (1): 30/362 kBProgress (1): 33/362 kBProgress (1): 36/362 kBProgress (1): 38/362 kBProgress (1): 41/362 kBProgress (1): 44/362 kBProgress (1): 46/362 kBProgress (1): 49/362 kBProgress (1): 53/362 kBProgress (1): 57/362 kBProgress (1): 61/362 kBProgress (1): 66/362 kBProgress (1): 70/362 kBProgress (1): 74/362 kBProgress (1): 78/362 kBProgress (1): 82/362 kBProgress (1): 86/362 kBProgress (1): 90/362 kBProgress (1): 94/362 kBProgress (1): 98/362 kBProgress (1): 102/362 kBProgress (1): 106/362 kBProgress (1): 111/362 kBProgress (1): 115/362 kBProgress (1): 119/362 kBProgress (1): 123/362 kBProgress (1): 127/362 kBProgress (1): 131/362 kBProgress (1): 135/362 kBProgress (1): 139/362 kBProgress (1): 143/362 kBProgress (1): 147/362 kBProgress (1): 152/362 kBProgress (1): 156/362 kBProgress (1): 160/362 kBProgress (1): 164/362 kBProgress (1): 168/362 kBProgress (1): 172/362 kBProgress (1): 176/362 kBProgress (1): 180/362 kBProgress (1): 184/362 kBProgress (1): 188/362 kBProgress (1): 193/362 kBProgress (1): 197/362 kBProgress (1): 201/362 kBProgress (1): 205/362 kBProgress (1): 209/362 kBProgress (1): 213/362 kBProgress (1): 217/362 kBProgress (1): 221/362 kBProgress (1): 225/362 kBProgress (1): 229/362 kBProgress (1): 233/362 kBProgress (1): 238/362 kBProgress (1): 242/362 kBProgress (1): 246/362 kBProgress (1): 250/362 kBProgress (1): 254/362 kBProgress (1): 258/362 kBProgress (1): 262/362 kBProgress (1): 266/362 kBProgress (1): 270/362 kBProgress (1): 274/362 kBProgress (1): 279/362 kBProgress (1): 283/362 kBProgress (1): 287/362 kBProgress (1): 291/362 kBProgress (1): 295/362 kBProgress (1): 299/362 kBProgress (1): 303/362 kBProgress (1): 307/362 kBProgress (1): 311/362 kBProgress (1): 315/362 kBProgress (1): 319/362 kBProgress (1): 324/362 kBProgress (1): 328/362 kBProgress (1): 332/362 kBProgress (1): 336/362 kBProgress (1): 340/362 kBProgress (1): 344/362 kBProgress (1): 348/362 kBProgress (1): 352/362 kBProgress (1): 356/362 kBProgress (1): 360/362 kBProgress (1): 362 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-javadoc-plugin/2.9/maven-javadoc-plugin-2.9.jar (362 kB at 655 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/atlassian/maven/plugins/maven-clover2-plugin/3.1.7/maven-clover2-plugin-3.1.7.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 15 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/com/atlassian/maven/plugins/maven-clover2-plugin/3.1.7/maven-clover2-plugin-3.1.7.pom (15 kB at 14 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/atlassian/maven/plugins/maven-clover2-plugin/3.1.7/maven-clover2-plugin-3.1.7.jar
-Progress (1): 4.1/84 kBProgress (1): 8.2/84 kBProgress (1): 12/84 kB Progress (1): 16/84 kBProgress (1): 20/84 kBProgress (1): 25/84 kBProgress (1): 29/84 kBProgress (1): 33/84 kBProgress (1): 37/84 kBProgress (1): 41/84 kBProgress (1): 45/84 kBProgress (1): 47/84 kBProgress (1): 51/84 kBProgress (1): 55/84 kBProgress (1): 60/84 kBProgress (1): 64/84 kBProgress (1): 68/84 kBProgress (1): 71/84 kBProgress (1): 75/84 kBProgress (1): 79/84 kBProgress (1): 83/84 kBProgress (1): 84 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/com/atlassian/maven/plugins/maven-clover2-plugin/3.1.7/maven-clover2-plugin-3.1.7.jar (84 kB at 87 kB/s)
-[INFO] 
-[INFO] -------------------< org.apache.mahout:mahout-core >--------------------
-[INFO] Building Mahout Core 0.8-SNAPSHOT
-[INFO] --------------------------------[ jar ]---------------------------------
-[INFO] 
-[INFO] >>> testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) > test-compile @ mahout-core >>>
-[INFO] 
-[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ mahout-core ---
-[INFO] Using 'UTF-8' encoding to copy filtered resources.
-[INFO] Copying 1 resource
-[INFO] Copying 1 resource
-[INFO] 
-[INFO] --- maven-compiler-plugin:2.5.1:compile (default-compile) @ mahout-core ---
-[INFO] Compiling 9 source files to /app/source/core/target/classes
-[INFO] 
-[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ mahout-core ---
-[INFO] Using 'UTF-8' encoding to copy filtered resources.
-[INFO] Copying 7 resources
-[INFO] 
-[INFO] --- maven-compiler-plugin:2.5.1:testCompile (default-testCompile) @ mahout-core ---
-[INFO] Compiling 3 source files to /app/source/core/target/test-classes
-[INFO] 
-[INFO] <<< testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) < test-compile @ mahout-core <<<
-[INFO] 
-[INFO] 
-[INFO] --- testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) @ mahout-core ---
-[INFO] No timeout specified. Using randomize.rounds: 0
-[INFO] ROUNDS_CALCULATED: Giving org.apache.mahout:mahout-core:0.8-SNAPSHOT 0 rounds to run for original
-[INFO] Locating tests...
-[INFO] Located 698 tests. Time taken: 4.6549999713897705 seconds
-[INFO] Getting original results (1 tests).
-[INFO] Created dependent test detector (class edu.illinois.cs.dt.tools.detection.detectors.OriginalDetector).
-
-[INFO] Found 0 tests, writing list to /app/source/core/.dtfixingtools/detection-results/list.txt and dt lists to /app/source/core/.dtfixingtools/detection-results/flaky-lists.json
-TRY_COPY_ALL_FAILING_TEST_OUTPUT
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  13.954 s
-[INFO] Finished at: 2026-03-26T09:46:30Z
-[INFO] ------------------------------------------------------------------------

@@ -1,91 +1,0 @@
-[INFO] Scanning for projects...
-[INFO] ------------------------------------------------------------------------
-[INFO] Detecting the operating system and CPU architecture
-[INFO] ------------------------------------------------------------------------
-[INFO] os.detected.name: linux
-[INFO] os.detected.arch: x86_64
-[INFO] os.detected.version: 6.17
-[INFO] os.detected.version.major: 6
-[INFO] os.detected.version.minor: 17
-[INFO] os.detected.release: debian
-[INFO] os.detected.release.version: 11
-[INFO] os.detected.release.like.debian: true
-[INFO] os.detected.classifier: linux-x86_64
-Downloading from apache.snapshots: https://repository.apache.org/snapshots/com/github/spotbugs/spotbugs-maven-plugin/4.2.0/spotbugs-maven-plugin-4.2.0.pom
-Downloading from central: https://repo.maven.apache.org/maven2/com/github/spotbugs/spotbugs-maven-plugin/4.2.0/spotbugs-maven-plugin-4.2.0.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 20 kBProgress (1): 25 kBProgress (1): 29 kBProgress (1): 33 kBProgress (1): 33 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/com/github/spotbugs/spotbugs-maven-plugin/4.2.0/spotbugs-maven-plugin-4.2.0.pom (33 kB at 257 kB/s)
-Downloading from apache.snapshots: https://repository.apache.org/snapshots/com/github/hazendaz/base-parent/27/base-parent-27.pom
-Downloading from central: https://repo.maven.apache.org/maven2/com/github/hazendaz/base-parent/27/base-parent-27.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 20 kBProgress (1): 25 kBProgress (1): 29 kBProgress (1): 33 kBProgress (1): 37 kBProgress (1): 41 kBProgress (1): 45 kBProgress (1): 49 kBProgress (1): 53 kBProgress (1): 57 kBProgress (1): 61 kBProgress (1): 66 kBProgress (1): 70 kBProgress (1): 74 kBProgress (1): 78 kBProgress (1): 82 kBProgress (1): 86 kBProgress (1): 87 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/com/github/hazendaz/base-parent/27/base-parent-27.pom (87 kB at 1.5 MB/s)
-Downloading from apache.snapshots: https://repository.apache.org/snapshots/com/github/spotbugs/spotbugs-maven-plugin/4.2.0/spotbugs-maven-plugin-4.2.0.jar
-Downloading from central: https://repo.maven.apache.org/maven2/com/github/spotbugs/spotbugs-maven-plugin/4.2.0/spotbugs-maven-plugin-4.2.0.jar
-Progress (1): 2.3/143 kBProgress (1): 5.0/143 kBProgress (1): 7.7/143 kBProgress (1): 10/143 kB Progress (1): 13/143 kBProgress (1): 16/143 kBProgress (1): 18/143 kBProgress (1): 21/143 kBProgress (1): 24/143 kBProgress (1): 27/143 kBProgress (1): 29/143 kBProgress (1): 32/143 kBProgress (1): 36/143 kBProgress (1): 40/143 kBProgress (1): 44/143 kBProgress (1): 48/143 kBProgress (1): 53/143 kBProgress (1): 57/143 kBProgress (1): 59/143 kBProgress (1): 63/143 kBProgress (1): 67/143 kBProgress (1): 71/143 kBProgress (1): 75/143 kBProgress (1): 79/143 kBProgress (1): 83/143 kBProgress (1): 88/143 kBProgress (1): 92/143 kBProgress (1): 96/143 kBProgress (1): 100/143 kBProgress (1): 104/143 kBProgress (1): 108/143 kBProgress (1): 112/143 kBProgress (1): 116/143 kBProgress (1): 120/143 kBProgress (1): 124/143 kBProgress (1): 126/143 kBProgress (1): 131/143 kBProgress (1): 135/143 kBProgress (1): 139/143 kBProgress (1): 143/143 kBProgress (1): 143 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/com/github/spotbugs/spotbugs-maven-plugin/4.2.0/spotbugs-maven-plugin-4.2.0.jar (143 kB at 1.5 MB/s)
-Downloading from apache.snapshots: https://repository.apache.org/snapshots/org/apache/maven/plugins/maven-checkstyle-plugin/3.1.2/maven-checkstyle-plugin-3.1.2.pom
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-checkstyle-plugin/3.1.2/maven-checkstyle-plugin-3.1.2.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 15 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-checkstyle-plugin/3.1.2/maven-checkstyle-plugin-3.1.2.pom (15 kB at 316 kB/s)
-Downloading from apache.snapshots: https://repository.apache.org/snapshots/org/apache/maven/plugins/maven-plugins/34/maven-plugins-34.pom
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/34/maven-plugins-34.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 11 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/34/maven-plugins-34.pom (11 kB at 274 kB/s)
-Downloading from apache.snapshots: https://repository.apache.org/snapshots/org/apache/maven/plugins/maven-checkstyle-plugin/3.1.2/maven-checkstyle-plugin-3.1.2.jar
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-checkstyle-plugin/3.1.2/maven-checkstyle-plugin-3.1.2.jar
-Progress (1): 3.8/112 kBProgress (1): 7.8/112 kBProgress (1): 12/112 kB Progress (1): 16/112 kBProgress (1): 20/112 kBProgress (1): 24/112 kBProgress (1): 28/112 kBProgress (1): 32/112 kBProgress (1): 37/112 kBProgress (1): 41/112 kBProgress (1): 45/112 kBProgress (1): 49/112 kBProgress (1): 53/112 kBProgress (1): 57/112 kBProgress (1): 61/112 kBProgress (1): 65/112 kBProgress (1): 69/112 kBProgress (1): 73/112 kBProgress (1): 77/112 kBProgress (1): 82/112 kBProgress (1): 86/112 kBProgress (1): 90/112 kBProgress (1): 94/112 kBProgress (1): 98/112 kBProgress (1): 102/112 kBProgress (1): 106/112 kBProgress (1): 110/112 kBProgress (1): 112 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-checkstyle-plugin/3.1.2/maven-checkstyle-plugin-3.1.2.jar (112 kB at 1.4 MB/s)
-Downloading from apache.snapshots: https://repository.apache.org/snapshots/org/apache/maven/plugins/maven-pdf-plugin/1.2/maven-pdf-plugin-1.2.pom
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-pdf-plugin/1.2/maven-pdf-plugin-1.2.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 17 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-pdf-plugin/1.2/maven-pdf-plugin-1.2.pom (17 kB at 383 kB/s)
-Downloading from apache.snapshots: https://repository.apache.org/snapshots/org/apache/maven/plugins/maven-pdf-plugin/1.2/maven-pdf-plugin-1.2.jar
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-pdf-plugin/1.2/maven-pdf-plugin-1.2.jar
-Progress (1): 4.1/63 kBProgress (1): 7.7/63 kBProgress (1): 12/63 kB Progress (1): 16/63 kBProgress (1): 20/63 kBProgress (1): 24/63 kBProgress (1): 28/63 kBProgress (1): 32/63 kBProgress (1): 36/63 kBProgress (1): 40/63 kBProgress (1): 44/63 kBProgress (1): 48/63 kBProgress (1): 53/63 kBProgress (1): 57/63 kBProgress (1): 61/63 kBProgress (1): 63 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-pdf-plugin/1.2/maven-pdf-plugin-1.2.jar (63 kB at 1.1 MB/s)
-[INFO] 
-[INFO] -------------------< org.apache.ratis:ratis-server >--------------------
-[INFO] Building Apache Ratis Server 3.0.0-SNAPSHOT
-[INFO] --------------------------------[ jar ]---------------------------------
-[INFO] 
-[INFO] >>> testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) > test-compile @ ratis-server >>>
-[INFO] 
-[INFO] --- build-helper-maven-plugin:1.9:add-source (add-source) @ ratis-server ---
-[INFO] Source directory: /app/source/ratis-server/target/generated-sources added.
-[INFO] 
-[INFO] --- maven-remote-resources-plugin:1.7.0:process (process-resource-bundles) @ ratis-server ---
-[INFO] Preparing remote bundle org.apache:apache-jar-resource-bundle:1.4
-[INFO] Copying 3 resources from 1 bundle.
-[INFO] 
-[INFO] --- buildnumber-maven-plugin:1.4:create-metadata (default) @ ratis-server ---
-[INFO] Executing: /bin/sh -c cd '/app/source/ratis-server' && 'git' 'rev-parse' '--verify' 'HEAD'
-[INFO] Working directory: /app/source/ratis-server
-[INFO] 
-[INFO] --- maven-resources-plugin:3.1.0:resources (default-resources) @ ratis-server ---
-[INFO] Using 'UTF-8' encoding to copy filtered resources.
-[INFO] skip non existing resourceDirectory /app/source/ratis-server/src/main/resources
-[INFO] Copying 3 resources
-[INFO] 
-[INFO] --- maven-compiler-plugin:3.8.1:compile (default-compile) @ ratis-server ---
-[INFO] Nothing to compile - all classes are up to date
-[INFO] 
-[INFO] --- maven-resources-plugin:3.1.0:testResources (default-testResources) @ ratis-server ---
-[INFO] Using 'UTF-8' encoding to copy filtered resources.
-[INFO] skip non existing resourceDirectory /app/source/ratis-server/src/test/resources
-[INFO] Copying 3 resources
-[INFO] 
-[INFO] --- maven-compiler-plugin:3.8.1:testCompile (default-testCompile) @ ratis-server ---
-[INFO] Nothing to compile - all classes are up to date
-[INFO] 
-[INFO] <<< testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) < test-compile @ ratis-server <<<
-[INFO] 
-[INFO] 
-[INFO] --- testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) @ ratis-server ---
-[INFO] No timeout specified. Using randomize.rounds: 0
-[INFO] ROUNDS_CALCULATED: Giving org.apache.ratis:ratis-server:3.0.0-SNAPSHOT 0 rounds to run for original
-[INFO] Locating tests...
-[INFO] Located 5 tests. Time taken: 0.43899989128112793 seconds
-[INFO] Getting original results (1 tests).
-[INFO] No passing order for tests (1 runs). Continuing anyway with last run.
-[INFO] Created dependent test detector (class edu.illinois.cs.dt.tools.detection.detectors.OriginalDetector).
-
-[INFO] Found 0 tests, writing list to /app/source/ratis-server/.dtfixingtools/detection-results/list.txt and dt lists to /app/source/ratis-server/.dtfixingtools/detection-results/flaky-lists.json
-TRY_COPY_ALL_FAILING_TEST_OUTPUT
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  7.699 s
-[INFO] Finished at: 2026-03-26T10:09:18Z
-[INFO] ------------------------------------------------------------------------

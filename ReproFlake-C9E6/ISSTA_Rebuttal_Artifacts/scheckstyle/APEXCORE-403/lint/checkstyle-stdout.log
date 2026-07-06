@@ -1,338 +1,0 @@
-[INFO] Scanning for projects...
-[INFO] 
-[INFO] -------------------------< tmp:tmp-checkstyle >-------------------------
-[INFO] Building tmp-checkstyle 1.0
-[INFO] --------------------------------[ jar ]---------------------------------
-[INFO] 
-[INFO] --- maven-checkstyle-plugin:2.17:check (default-cli) @ tmp-checkstyle ---
-Downloading from central: https://repo.maven.apache.org/maven2/com/puppycrawl/tools/checkstyle/6.11.2/checkstyle-6.11.2.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 20 kBProgress (1): 25 kBProgress (1): 29 kBProgress (1): 33 kBProgress (1): 37 kBProgress (1): 41 kBProgress (1): 45 kBProgress (1): 49 kBProgress (1): 53 kBProgress (1): 57 kBProgress (1): 61 kBProgress (1): 63 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/com/puppycrawl/tools/checkstyle/6.11.2/checkstyle-6.11.2.pom (63 kB at 31 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/puppycrawl/tools/checkstyle/6.11.2/checkstyle-6.11.2.jar
-Progress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.1/1.1 MBProgress (1): 1.1/1.1 MBProgress (1): 1.1/1.1 MBProgress (1): 1.1/1.1 MBProgress (1): 1.1/1.1 MBProgress (1): 1.1 MB                        Downloaded from central: https://repo.maven.apache.org/maven2/com/puppycrawl/tools/checkstyle/6.11.2/checkstyle-6.11.2.jar (1.1 MB at 302 kB/s)
-[WARNING] File encoding has not been set, using platform encoding UTF-8, i.e. build is platform dependent!
-[INFO] Starting audit...
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:0: error: Missing package-info.java file.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:38:8: error: Unused import - org.junit.Ignore.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:70: error: First sentence should end with a period.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:74:1: error: '{' at column 1 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:75:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:78:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:80:3: error: Method 'setup' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:80:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:82:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:86:3: error: Method 'teardown' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:86:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:88:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:92:3: error: Method 'testInvalidDelayDetection' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:92:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:94:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:100: error: Line is longer than 80 characters (found 98).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:108: error: Line is longer than 80 characters (found 86).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:124: error: Line is longer than 80 characters (found 83).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:131: error: Line is longer than 80 characters (found 86).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:149: error: Line is longer than 80 characters (found 98).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:150: error: Line is longer than 80 characters (found 98).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:160:3: error: Method 'testValidDelay' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:160:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:162:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:165: error: Line is longer than 80 characters (found 92).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:169: error: Line is longer than 80 characters (found 90).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:179:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:180: error: Line is longer than 80 characters (found 112).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:181: error: Line is longer than 80 characters (found 110).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:182: error: Line is longer than 80 characters (found 90).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:185: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:186:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:187:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:187:30: error: Variable 'results' must be private and have accessor methods.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:188:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:188:17: error: Variable 'currentNumber' must be private and have accessor methods.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:189:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:191: error: Line is longer than 80 characters (found 93).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:191:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:191:47: error: Variable 'dummyInputPort' must be private and have accessor methods.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:194:27: error: Parameter tuple should be final.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:195:7: error: '{' at column 7 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:198:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:198:45: error: Variable 'input' must be private and have accessor methods.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:201:27: error: Parameter tuple should be final.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:202:7: error: '{' at column 7 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:206:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:206:46: error: Variable 'output' must be private and have accessor methods.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:208:5: error: Method 'endWindow' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:210:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:222: error: Line is longer than 80 characters (found 112).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:222: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:223:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:224:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:225:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:226:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:227:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:228:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:228:27: error: Variable 'failureSimulated' must be private and have accessor methods.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:230:5: error: Method 'beginWindow' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:231:29: error: Parameter windowId should be final.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:232:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:233: error: Line is longer than 80 characters (found 117).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:233:116: error: '&&' should be on a new line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:243:30: error: Parameter windowId should be final.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:244:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:247:5: error: Method 'committed' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:248:27: error: Parameter windowId should be final.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:249:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:253:5: error: Method 'setSimulateFailureWindows' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:253:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:253:43: error: Parameter windows should be final.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:253:56: error: Parameter afterCommit should be final.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:254:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:260: error: Line is longer than 80 characters (found 111).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:260: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:261:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:262:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:263:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:264:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:265:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:266:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:268:5: error: Method 'beginWindow' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:269:29: error: Parameter windowId should be final.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:270:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:272: error: Line is longer than 80 characters (found 117).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:272:116: error: '&&' should be on a new line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:282:30: error: Parameter windowId should be final.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:283:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:286:5: error: Method 'committed' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:287:27: error: Parameter windowId should be final.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:288:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:292:5: error: Method 'setSimulateFailureWindows' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:292:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:292:43: error: Parameter windows should be final.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:292:56: error: Parameter afterCommit should be final.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:293:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:300:3: error: Method 'testFibonacci' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:300:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:302:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:305: error: Line is longer than 80 characters (found 103).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:307: error: Line is longer than 80 characters (found 90).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:318:7: error: '{' at column 7 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:319:52: error: '10' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:322:22: error: '10000' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:323:71: error: '10' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:324:46: error: '10' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:327:3: error: Method 'testFibonacciRecovery1' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:327:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:329:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:332: error: Line is longer than 80 characters (found 103).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:333: error: Line is longer than 80 characters (found 92).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:334: error: Line is longer than 80 characters (found 90).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:336:35: error: '3' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:342:71: error: '300' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:351:7: error: '{' at column 7 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:352:60: error: '30' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:355:22: error: '60000' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:356: error: Line is longer than 80 characters (found 95).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:357: error: Line is longer than 80 characters (found 114).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:357:111: error: '20' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:358: error: Line is longer than 80 characters (found 87).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:358:83: error: '20' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:361:3: error: Method 'testFibonacciRecovery2' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:361:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:363:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:366: error: Line is longer than 80 characters (found 103).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:368: error: Line is longer than 80 characters (found 92).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:370:39: error: '5' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:376:71: error: '300' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:385:7: error: '{' at column 7 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:386:52: error: '30' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:389:22: error: '60000' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:391: error: Line is longer than 80 characters (found 91).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:392: error: Line is longer than 80 characters (found 114).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:392:111: error: '20' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:393: error: Line is longer than 80 characters (found 87).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:393:83: error: '20' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:396:3: error: Method 'testCheckpointUpdate' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:396:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:398:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:401: error: Line is longer than 80 characters (found 92).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:405: error: Line is longer than 80 characters (found 100).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:414: error: Line is longer than 80 characters (found 106).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:430:37: error: '3L' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:431:37: error: '5L' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:432:37: error: '4L' is a magic number.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:441: error: Line is longer than 80 characters (found 116).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:447: error: Line is longer than 80 characters (found 86).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:450: error: Line is longer than 80 characters (found 107).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:451: error: Line is longer than 80 characters (found 81).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:452: error: Line is longer than 80 characters (found 81).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:453: error: Line is longer than 80 characters (found 81).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:457:3: error: Method 'testValidationWithMultipleStreamLoops' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:457:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:459:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:462: error: Line is longer than 80 characters (found 95).
-/app/source/tmp-checkstyle-1435/src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:465: error: Line is longer than 80 characters (found 94).
-Audit done.
-[INFO] There are 158 errors reported by Checkstyle 6.11.2 with sun_checks.xml ruleset.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[0] (javadoc) JavadocPackage: Missing package-info.java file.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[38,8] (imports) UnusedImports: Unused import - org.junit.Ignore.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[70] (javadoc) JavadocStyle: First sentence should end with a period.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[74,1] (blocks) LeftCurly: '{' at column 1 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[75,3] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[78,3] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[80,3] (design) DesignForExtension: Method 'setup' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[80,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[82,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[86,3] (design) DesignForExtension: Method 'teardown' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[86,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[88,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[92,3] (design) DesignForExtension: Method 'testInvalidDelayDetection' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[92,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[94,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[100] (sizes) LineLength: Line is longer than 80 characters (found 98).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[108] (sizes) LineLength: Line is longer than 80 characters (found 86).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[124] (sizes) LineLength: Line is longer than 80 characters (found 83).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[131] (sizes) LineLength: Line is longer than 80 characters (found 86).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[149] (sizes) LineLength: Line is longer than 80 characters (found 98).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[150] (sizes) LineLength: Line is longer than 80 characters (found 98).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[160,3] (design) DesignForExtension: Method 'testValidDelay' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[160,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[162,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[165] (sizes) LineLength: Line is longer than 80 characters (found 92).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[169] (sizes) LineLength: Line is longer than 80 characters (found 90).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[179,3] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[180] (sizes) LineLength: Line is longer than 80 characters (found 112).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[181] (sizes) LineLength: Line is longer than 80 characters (found 110).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[182] (sizes) LineLength: Line is longer than 80 characters (found 90).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[185] (javadoc) JavadocType: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[186,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[187,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[187,30] (design) VisibilityModifier: Variable 'results' must be private and have accessor methods.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[188,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[188,17] (design) VisibilityModifier: Variable 'currentNumber' must be private and have accessor methods.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[189,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[191] (sizes) LineLength: Line is longer than 80 characters (found 93).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[191,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[191,47] (design) VisibilityModifier: Variable 'dummyInputPort' must be private and have accessor methods.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[194,27] (misc) FinalParameters: Parameter tuple should be final.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[195,7] (blocks) LeftCurly: '{' at column 7 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[198,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[198,45] (design) VisibilityModifier: Variable 'input' must be private and have accessor methods.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[201,27] (misc) FinalParameters: Parameter tuple should be final.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[202,7] (blocks) LeftCurly: '{' at column 7 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[206,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[206,46] (design) VisibilityModifier: Variable 'output' must be private and have accessor methods.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[208,5] (design) DesignForExtension: Method 'endWindow' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[210,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[222] (sizes) LineLength: Line is longer than 80 characters (found 112).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[222] (javadoc) JavadocType: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[223,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[224,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[225,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[226,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[227,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[228,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[228,27] (design) VisibilityModifier: Variable 'failureSimulated' must be private and have accessor methods.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[230,5] (design) DesignForExtension: Method 'beginWindow' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[231,29] (misc) FinalParameters: Parameter windowId should be final.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[232,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[233] (sizes) LineLength: Line is longer than 80 characters (found 117).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[233,116] (whitespace) OperatorWrap: '&&' should be on a new line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[243,30] (misc) FinalParameters: Parameter windowId should be final.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[244,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[247,5] (design) DesignForExtension: Method 'committed' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[248,27] (misc) FinalParameters: Parameter windowId should be final.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[249,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[253,5] (design) DesignForExtension: Method 'setSimulateFailureWindows' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[253,5] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[253,43] (misc) FinalParameters: Parameter windows should be final.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[253,56] (misc) FinalParameters: Parameter afterCommit should be final.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[254,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[260] (sizes) LineLength: Line is longer than 80 characters (found 111).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[260] (javadoc) JavadocType: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[261,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[262,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[263,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[264,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[265,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[266,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[268,5] (design) DesignForExtension: Method 'beginWindow' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[269,29] (misc) FinalParameters: Parameter windowId should be final.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[270,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[272] (sizes) LineLength: Line is longer than 80 characters (found 117).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[272,116] (whitespace) OperatorWrap: '&&' should be on a new line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[282,30] (misc) FinalParameters: Parameter windowId should be final.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[283,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[286,5] (design) DesignForExtension: Method 'committed' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[287,27] (misc) FinalParameters: Parameter windowId should be final.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[288,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[292,5] (design) DesignForExtension: Method 'setSimulateFailureWindows' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[292,5] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[292,43] (misc) FinalParameters: Parameter windows should be final.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[292,56] (misc) FinalParameters: Parameter afterCommit should be final.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[293,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[300,3] (design) DesignForExtension: Method 'testFibonacci' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[300,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[302,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[305] (sizes) LineLength: Line is longer than 80 characters (found 103).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[307] (sizes) LineLength: Line is longer than 80 characters (found 90).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[318,7] (blocks) LeftCurly: '{' at column 7 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[319,52] (coding) MagicNumber: '10' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[322,22] (coding) MagicNumber: '10000' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[323,71] (coding) MagicNumber: '10' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[324,46] (coding) MagicNumber: '10' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[327,3] (design) DesignForExtension: Method 'testFibonacciRecovery1' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[327,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[329,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[332] (sizes) LineLength: Line is longer than 80 characters (found 103).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[333] (sizes) LineLength: Line is longer than 80 characters (found 92).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[334] (sizes) LineLength: Line is longer than 80 characters (found 90).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[336,35] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[342,71] (coding) MagicNumber: '300' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[351,7] (blocks) LeftCurly: '{' at column 7 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[352,60] (coding) MagicNumber: '30' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[355,22] (coding) MagicNumber: '60000' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[356] (sizes) LineLength: Line is longer than 80 characters (found 95).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[357] (sizes) LineLength: Line is longer than 80 characters (found 114).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[357,111] (coding) MagicNumber: '20' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[358] (sizes) LineLength: Line is longer than 80 characters (found 87).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[358,83] (coding) MagicNumber: '20' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[361,3] (design) DesignForExtension: Method 'testFibonacciRecovery2' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[361,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[363,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[366] (sizes) LineLength: Line is longer than 80 characters (found 103).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[368] (sizes) LineLength: Line is longer than 80 characters (found 92).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[370,39] (coding) MagicNumber: '5' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[376,71] (coding) MagicNumber: '300' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[385,7] (blocks) LeftCurly: '{' at column 7 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[386,52] (coding) MagicNumber: '30' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[389,22] (coding) MagicNumber: '60000' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[391] (sizes) LineLength: Line is longer than 80 characters (found 91).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[392] (sizes) LineLength: Line is longer than 80 characters (found 114).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[392,111] (coding) MagicNumber: '20' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[393] (sizes) LineLength: Line is longer than 80 characters (found 87).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[393,83] (coding) MagicNumber: '20' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[396,3] (design) DesignForExtension: Method 'testCheckpointUpdate' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[396,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[398,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[401] (sizes) LineLength: Line is longer than 80 characters (found 92).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[405] (sizes) LineLength: Line is longer than 80 characters (found 100).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[414] (sizes) LineLength: Line is longer than 80 characters (found 106).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[430,37] (coding) MagicNumber: '3L' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[431,37] (coding) MagicNumber: '5L' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[432,37] (coding) MagicNumber: '4L' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[441] (sizes) LineLength: Line is longer than 80 characters (found 116).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[447] (sizes) LineLength: Line is longer than 80 characters (found 86).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[450] (sizes) LineLength: Line is longer than 80 characters (found 107).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[451] (sizes) LineLength: Line is longer than 80 characters (found 81).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[452] (sizes) LineLength: Line is longer than 80 characters (found 81).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[453] (sizes) LineLength: Line is longer than 80 characters (found 81).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[457,3] (design) DesignForExtension: Method 'testValidationWithMultipleStreamLoops' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[457,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[459,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[462] (sizes) LineLength: Line is longer than 80 characters (found 95).
-[ERROR] src/main/java/com/datatorrent/stram/plan/logical/DelayOperatorTest.java:[465] (sizes) LineLength: Line is longer than 80 characters (found 94).
-[WARNING] checkstyle:check violations detected but failOnViolation set to false
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  14.498 s
-[INFO] Finished at: 2026-03-26T22:22:45Z
-[INFO] ------------------------------------------------------------------------

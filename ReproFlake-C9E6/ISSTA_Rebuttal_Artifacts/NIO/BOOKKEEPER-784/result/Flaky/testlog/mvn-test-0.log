@@ -1,73 +1,0 @@
-[INFO] Scanning for projects...
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/findbugs-maven-plugin/2.5.2/findbugs-maven-plugin-2.5.2.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 18 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/findbugs-maven-plugin/2.5.2/findbugs-maven-plugin-2.5.2.pom (18 kB at 15 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/mojo-parent/30/mojo-parent-30.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 20 kBProgress (1): 25 kBProgress (1): 27 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/mojo-parent/30/mojo-parent-30.pom (27 kB at 163 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/findbugs-maven-plugin/2.5.2/findbugs-maven-plugin-2.5.2.jar
-Progress (1): 2.3/135 kBProgress (1): 5.0/135 kBProgress (1): 7.7/135 kBProgress (1): 10/135 kB Progress (1): 13/135 kBProgress (1): 16/135 kBProgress (1): 19/135 kBProgress (1): 21/135 kBProgress (1): 24/135 kBProgress (1): 27/135 kBProgress (1): 30/135 kBProgress (1): 33/135 kBProgress (1): 36/135 kBProgress (1): 38/135 kBProgress (1): 42/135 kBProgress (1): 46/135 kBProgress (1): 51/135 kBProgress (1): 55/135 kBProgress (1): 59/135 kBProgress (1): 63/135 kBProgress (1): 65/135 kBProgress (1): 69/135 kBProgress (1): 73/135 kBProgress (1): 77/135 kBProgress (1): 81/135 kBProgress (1): 85/135 kBProgress (1): 90/135 kBProgress (1): 94/135 kBProgress (1): 98/135 kBProgress (1): 102/135 kBProgress (1): 106/135 kBProgress (1): 110/135 kBProgress (1): 114/135 kBProgress (1): 118/135 kBProgress (1): 122/135 kBProgress (1): 126/135 kBProgress (1): 131/135 kBProgress (1): 133/135 kBProgress (1): 135 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/findbugs-maven-plugin/2.5.2/findbugs-maven-plugin-2.5.2.jar (135 kB at 785 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-javadoc-plugin/2.8/maven-javadoc-plugin-2.8.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-javadoc-plugin/2.8/maven-javadoc-plugin-2.8.pom (16 kB at 156 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/19/maven-plugins-19.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 11 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/19/maven-plugins-19.pom (11 kB at 204 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-javadoc-plugin/2.8/maven-javadoc-plugin-2.8.jar
-Progress (1): 3.8/289 kBProgress (1): 7.7/289 kBProgress (1): 12/289 kB Progress (1): 16/289 kBProgress (1): 20/289 kBProgress (1): 24/289 kBProgress (1): 28/289 kBProgress (1): 32/289 kBProgress (1): 36/289 kBProgress (1): 40/289 kBProgress (1): 45/289 kBProgress (1): 49/289 kBProgress (1): 53/289 kBProgress (1): 57/289 kBProgress (1): 61/289 kBProgress (1): 65/289 kBProgress (1): 69/289 kBProgress (1): 73/289 kBProgress (1): 77/289 kBProgress (1): 81/289 kBProgress (1): 86/289 kBProgress (1): 90/289 kBProgress (1): 94/289 kBProgress (1): 98/289 kBProgress (1): 102/289 kBProgress (1): 106/289 kBProgress (1): 110/289 kBProgress (1): 114/289 kBProgress (1): 118/289 kBProgress (1): 122/289 kBProgress (1): 127/289 kBProgress (1): 131/289 kBProgress (1): 135/289 kBProgress (1): 139/289 kBProgress (1): 143/289 kBProgress (1): 147/289 kBProgress (1): 151/289 kBProgress (1): 155/289 kBProgress (1): 159/289 kBProgress (1): 163/289 kBProgress (1): 167/289 kBProgress (1): 172/289 kBProgress (1): 176/289 kBProgress (1): 180/289 kBProgress (1): 184/289 kBProgress (1): 188/289 kBProgress (1): 192/289 kBProgress (1): 196/289 kBProgress (1): 200/289 kBProgress (1): 204/289 kBProgress (1): 208/289 kBProgress (1): 213/289 kBProgress (1): 217/289 kBProgress (1): 221/289 kBProgress (1): 225/289 kBProgress (1): 229/289 kBProgress (1): 233/289 kBProgress (1): 237/289 kBProgress (1): 241/289 kBProgress (1): 245/289 kBProgress (1): 249/289 kBProgress (1): 253/289 kBProgress (1): 258/289 kBProgress (1): 262/289 kBProgress (1): 266/289 kBProgress (1): 270/289 kBProgress (1): 274/289 kBProgress (1): 278/289 kBProgress (1): 282/289 kBProgress (1): 286/289 kBProgress (1): 289 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-javadoc-plugin/2.8/maven-javadoc-plugin-2.8.jar (289 kB at 1.9 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-assembly-plugin/2.2.1/maven-assembly-plugin-2.2.1.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 17 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-assembly-plugin/2.2.1/maven-assembly-plugin-2.2.1.pom (17 kB at 280 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-assembly-plugin/2.2.1/maven-assembly-plugin-2.2.1.jar
-Progress (1): 4.1/221 kBProgress (1): 7.7/221 kBProgress (1): 12/221 kB Progress (1): 16/221 kBProgress (1): 20/221 kBProgress (1): 24/221 kBProgress (1): 28/221 kBProgress (1): 32/221 kBProgress (1): 36/221 kBProgress (1): 40/221 kBProgress (1): 45/221 kBProgress (1): 49/221 kBProgress (1): 53/221 kBProgress (1): 57/221 kBProgress (1): 61/221 kBProgress (1): 65/221 kBProgress (1): 69/221 kBProgress (1): 73/221 kBProgress (1): 77/221 kBProgress (1): 81/221 kBProgress (1): 86/221 kBProgress (1): 90/221 kBProgress (1): 94/221 kBProgress (1): 98/221 kBProgress (1): 102/221 kBProgress (1): 106/221 kBProgress (1): 110/221 kBProgress (1): 114/221 kBProgress (1): 118/221 kBProgress (1): 122/221 kBProgress (1): 126/221 kBProgress (1): 131/221 kBProgress (1): 135/221 kBProgress (1): 139/221 kBProgress (1): 143/221 kBProgress (1): 147/221 kBProgress (1): 151/221 kBProgress (1): 155/221 kBProgress (1): 159/221 kBProgress (1): 163/221 kBProgress (1): 167/221 kBProgress (1): 172/221 kBProgress (1): 176/221 kBProgress (1): 180/221 kBProgress (1): 184/221 kBProgress (1): 188/221 kBProgress (1): 192/221 kBProgress (1): 196/221 kBProgress (1): 200/221 kBProgress (1): 204/221 kBProgress (1): 208/221 kBProgress (1): 213/221 kBProgress (1): 217/221 kBProgress (1): 221/221 kBProgress (1): 221 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-assembly-plugin/2.2.1/maven-assembly-plugin-2.2.1.jar (221 kB at 1.6 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/rat/apache-rat-plugin/0.7/apache-rat-plugin-0.7.pom
-Progress (1): 4.1 kBProgress (1): 5.6 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/rat/apache-rat-plugin/0.7/apache-rat-plugin-0.7.pom (5.6 kB at 72 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/rat/apache-rat-project/0.7/apache-rat-project-0.7.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/rat/apache-rat-project/0.7/apache-rat-project-0.7.pom (12 kB at 201 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/rat/apache-rat-plugin/0.7/apache-rat-plugin-0.7.jar
-Progress (1): 4.1/30 kBProgress (1): 7.7/30 kBProgress (1): 12/30 kB Progress (1): 16/30 kBProgress (1): 20/30 kBProgress (1): 24/30 kBProgress (1): 28/30 kBProgress (1): 30 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/rat/apache-rat-plugin/0.7/apache-rat-plugin-0.7.jar (30 kB at 363 kB/s)
-[INFO] 
-[INFO] --------------< org.apache.bookkeeper:bookkeeper-server >---------------
-[INFO] Building bookkeeper-server 4.3.0-SNAPSHOT
-[INFO] --------------------------------[ jar ]---------------------------------
-[INFO] 
-[INFO] >>> testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) > test-compile @ bookkeeper-server >>>
-[INFO] 
-[INFO] --- maven-remote-resources-plugin:1.1:process (default) @ bookkeeper-server ---
-[INFO] Setting property: classpath.resource.loader.class => 'org.codehaus.plexus.velocity.ContextClassLoaderResourceLoader'.
-[INFO] Setting property: velocimacro.messages.on => 'false'.
-[INFO] Setting property: resource.loader => 'classpath'.
-[INFO] Setting property: resource.manager.logwhenfound => 'false'.
-[INFO] 
-[INFO] --- maven-resources-plugin:2.4.3:resources (default-resources) @ bookkeeper-server ---
-[INFO] Using 'UTF-8' encoding to copy filtered resources.
-[INFO] Copying 3 resources
-[INFO] Copying 3 resources
-[INFO] 
-[INFO] --- maven-compiler-plugin:3.0:compile (default-compile) @ bookkeeper-server ---
-[INFO] Changes detected - recompiling the module!
-[INFO] Compiling 192 source files to /app/source/bookkeeper-server/target/classes
-[INFO] 
-[INFO] --- maven-resources-plugin:2.4.3:testResources (default-testResources) @ bookkeeper-server ---
-[INFO] Using 'UTF-8' encoding to copy filtered resources.
-[INFO] Copying 1 resource
-[INFO] Copying 3 resources
-[INFO] 
-[INFO] --- maven-compiler-plugin:3.0:testCompile (default-testCompile) @ bookkeeper-server ---
-[INFO] Changes detected - recompiling the module!
-[INFO] Compiling 86 source files to /app/source/bookkeeper-server/target/test-classes
-[INFO] 
-[INFO] <<< testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) < test-compile @ bookkeeper-server <<<
-[INFO] 
-[INFO] 
-[INFO] --- testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) @ bookkeeper-server ---
-[INFO] No timeout specified. Using randomize.rounds: 0
-[INFO] ROUNDS_CALCULATED: Giving org.apache.bookkeeper:bookkeeper-server:4.3.0-SNAPSHOT 0 rounds to run for original
-[INFO] Locating tests...
-[INFO] Located 300 tests. Time taken: 5.4120001792907715 seconds
-[INFO] Getting original results (1 tests).
-[INFO] Created dependent test detector (class edu.illinois.cs.dt.tools.detection.detectors.OriginalDetector).
-
-[INFO] Found 0 tests, writing list to /app/source/bookkeeper-server/.dtfixingtools/detection-results/list.txt and dt lists to /app/source/bookkeeper-server/.dtfixingtools/detection-results/flaky-lists.json
-TRY_COPY_ALL_FAILING_TEST_OUTPUT
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  28.797 s
-[INFO] Finished at: 2026-03-26T09:46:12Z
-[INFO] ------------------------------------------------------------------------

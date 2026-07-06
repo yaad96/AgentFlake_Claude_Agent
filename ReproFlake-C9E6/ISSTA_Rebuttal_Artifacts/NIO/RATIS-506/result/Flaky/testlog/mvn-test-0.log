@@ -1,71 +1,0 @@
-[INFO] Scanning for projects...
-[INFO] ------------------------------------------------------------------------
-[INFO] Detecting the operating system and CPU architecture
-[INFO] ------------------------------------------------------------------------
-[INFO] os.detected.name: linux
-[INFO] os.detected.arch: x86_64
-[INFO] os.detected.version: 6.17
-[INFO] os.detected.version.major: 6
-[INFO] os.detected.version.minor: 17
-[INFO] os.detected.release: debian
-[INFO] os.detected.release.version: 11
-[INFO] os.detected.release.like.debian: true
-[INFO] os.detected.classifier: linux-x86_64
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/findbugs-maven-plugin/3.0.0/findbugs-maven-plugin-3.0.0.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 19 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/findbugs-maven-plugin/3.0.0/findbugs-maven-plugin-3.0.0.pom (19 kB at 26 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/mojo-parent/30/mojo-parent-30.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 20 kBProgress (1): 25 kBProgress (1): 27 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/mojo-parent/30/mojo-parent-30.pom (27 kB at 370 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/findbugs-maven-plugin/3.0.0/findbugs-maven-plugin-3.0.0.jar
-Progress (1): 2.3/133 kBProgress (1): 5.0/133 kBProgress (1): 7.7/133 kBProgress (1): 11/133 kB Progress (1): 14/133 kBProgress (1): 16/133 kBProgress (1): 19/133 kBProgress (1): 22/133 kBProgress (1): 25/133 kBProgress (1): 27/133 kBProgress (1): 30/133 kBProgress (1): 33/133 kBProgress (1): 36/133 kBProgress (1): 38/133 kBProgress (1): 42/133 kBProgress (1): 47/133 kBProgress (1): 51/133 kBProgress (1): 55/133 kBProgress (1): 59/133 kBProgress (1): 63/133 kBProgress (1): 65/133 kBProgress (1): 69/133 kBProgress (1): 73/133 kBProgress (1): 77/133 kBProgress (1): 81/133 kBProgress (1): 86/133 kBProgress (1): 90/133 kBProgress (1): 94/133 kBProgress (1): 98/133 kBProgress (1): 102/133 kBProgress (1): 106/133 kBProgress (1): 110/133 kBProgress (1): 114/133 kBProgress (1): 118/133 kBProgress (1): 122/133 kBProgress (1): 126/133 kBProgress (1): 131/133 kBProgress (1): 133/133 kBProgress (1): 133 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/findbugs-maven-plugin/3.0.0/findbugs-maven-plugin-3.0.0.jar (133 kB at 348 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-checkstyle-plugin/3.0.0/maven-checkstyle-plugin-3.0.0.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 15 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-checkstyle-plugin/3.0.0/maven-checkstyle-plugin-3.0.0.pom (15 kB at 83 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-checkstyle-plugin/3.0.0/maven-checkstyle-plugin-3.0.0.jar
-Progress (1): 3.8/108 kBProgress (1): 7.8/108 kBProgress (1): 12/108 kB Progress (1): 16/108 kBProgress (1): 20/108 kBProgress (1): 24/108 kBProgress (1): 28/108 kBProgress (1): 32/108 kBProgress (1): 37/108 kBProgress (1): 41/108 kBProgress (1): 45/108 kBProgress (1): 49/108 kBProgress (1): 53/108 kBProgress (1): 57/108 kBProgress (1): 61/108 kBProgress (1): 65/108 kBProgress (1): 69/108 kBProgress (1): 73/108 kBProgress (1): 77/108 kBProgress (1): 82/108 kBProgress (1): 86/108 kBProgress (1): 90/108 kBProgress (1): 94/108 kBProgress (1): 98/108 kBProgress (1): 102/108 kBProgress (1): 106/108 kBProgress (1): 108 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-checkstyle-plugin/3.0.0/maven-checkstyle-plugin-3.0.0.jar (108 kB at 557 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-pdf-plugin/1.2/maven-pdf-plugin-1.2.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 17 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-pdf-plugin/1.2/maven-pdf-plugin-1.2.pom (17 kB at 98 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-pdf-plugin/1.2/maven-pdf-plugin-1.2.jar
-Progress (1): 4.1/63 kBProgress (1): 7.7/63 kBProgress (1): 12/63 kB Progress (1): 16/63 kBProgress (1): 20/63 kBProgress (1): 24/63 kBProgress (1): 28/63 kBProgress (1): 32/63 kBProgress (1): 36/63 kBProgress (1): 40/63 kBProgress (1): 44/63 kBProgress (1): 48/63 kBProgress (1): 53/63 kBProgress (1): 57/63 kBProgress (1): 61/63 kBProgress (1): 63 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-pdf-plugin/1.2/maven-pdf-plugin-1.2.jar (63 kB at 79 kB/s)
-[INFO] 
-[INFO] --------------------< org.apache.ratis:ratis-test >---------------------
-[INFO] Building Apache Ratis Test 0.4.0-SNAPSHOT
-[INFO] --------------------------------[ jar ]---------------------------------
-[INFO] 
-[INFO] >>> testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) > test-compile @ ratis-test >>>
-[INFO] 
-[INFO] --- maven-remote-resources-plugin:1.5:process (process-resource-bundles) @ ratis-test ---
-[INFO] 
-[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ ratis-test ---
-[INFO] Using 'UTF-8' encoding to copy filtered resources.
-[INFO] skip non existing resourceDirectory /app/source/ratis-test/src/main/resources
-[INFO] Copying 3 resources
-[INFO] 
-[INFO] --- maven-compiler-plugin:3.7.0:compile (default-compile) @ ratis-test ---
-[INFO] No sources to compile
-[INFO] 
-[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ ratis-test ---
-[INFO] Using 'UTF-8' encoding to copy filtered resources.
-[INFO] Copying 1 resource
-[INFO] Copying 3 resources
-[INFO] 
-[INFO] --- maven-compiler-plugin:3.7.0:testCompile (default-testCompile) @ ratis-test ---
-[INFO] Nothing to compile - all classes are up to date
-[INFO] 
-[INFO] <<< testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) < test-compile @ ratis-test <<<
-[INFO] 
-[INFO] 
-[INFO] --- testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) @ ratis-test ---
-[INFO] No timeout specified. Using randomize.rounds: 0
-[INFO] ROUNDS_CALCULATED: Giving org.apache.ratis:ratis-test:0.4.0-SNAPSHOT 0 rounds to run for original
-[INFO] Locating tests...
-[INFO] Located 228 tests. Time taken: 1.2769999504089355 seconds
-[INFO] Getting original results (1 tests).
-[INFO] Created dependent test detector (class edu.illinois.cs.dt.tools.detection.detectors.OriginalDetector).
-
-[INFO] Found 0 tests, writing list to /app/source/ratis-test/.dtfixingtools/detection-results/list.txt and dt lists to /app/source/ratis-test/.dtfixingtools/detection-results/flaky-lists.json
-TRY_COPY_ALL_FAILING_TEST_OUTPUT
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  11.047 s
-[INFO] Finished at: 2026-03-26T10:06:17Z
-[INFO] ------------------------------------------------------------------------

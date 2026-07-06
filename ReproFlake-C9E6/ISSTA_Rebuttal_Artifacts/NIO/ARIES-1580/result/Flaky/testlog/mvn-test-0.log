@@ -1,74 +1,0 @@
-[INFO] Scanning for projects...
-[WARNING] 
-[WARNING] Some problems were encountered while building the effective model for org.apache.aries.blueprint:org.apache.aries.blueprint.itests:jar:1.0.2-SNAPSHOT
-[WARNING] 'dependencies.dependency.(groupId:artifactId:type:classifier)' must be unique: org.apache.aries.blueprint:org.apache.aries.blueprint.spring:jar -> duplicate declaration of version 1.0.0-SNAPSHOT @ line 90, column 21
-[WARNING] 
-[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
-[WARNING] 
-[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
-[WARNING] 
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/findbugs-maven-plugin/2.3.1/findbugs-maven-plugin-2.3.1.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/findbugs-maven-plugin/2.3.1/findbugs-maven-plugin-2.3.1.pom (12 kB at 30 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/mojo-parent/22/mojo-parent-22.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 19 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/mojo-parent/22/mojo-parent-22.pom (19 kB at 350 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/findbugs-maven-plugin/2.3.1/findbugs-maven-plugin-2.3.1.jar
-Progress (1): 2.3/113 kBProgress (1): 5.0/113 kBProgress (1): 7.7/113 kBProgress (1): 10/113 kB Progress (1): 13/113 kBProgress (1): 16/113 kBProgress (1): 19/113 kBProgress (1): 21/113 kBProgress (1): 24/113 kBProgress (1): 27/113 kBProgress (1): 29/113 kBProgress (1): 32/113 kBProgress (1): 35/113 kBProgress (1): 38/113 kBProgress (1): 40/113 kBProgress (1): 44/113 kBProgress (1): 48/113 kBProgress (1): 53/113 kBProgress (1): 57/113 kBProgress (1): 61/113 kBProgress (1): 65/113 kBProgress (1): 67/113 kBProgress (1): 71/113 kBProgress (1): 75/113 kBProgress (1): 79/113 kBProgress (1): 83/113 kBProgress (1): 88/113 kBProgress (1): 92/113 kBProgress (1): 96/113 kBProgress (1): 100/113 kBProgress (1): 104/113 kBProgress (1): 108/113 kBProgress (1): 112/113 kBProgress (1): 113 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/findbugs-maven-plugin/2.3.1/findbugs-maven-plugin-2.3.1.jar (113 kB at 1.1 MB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-javadoc-plugin/2.7/maven-javadoc-plugin-2.7.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-javadoc-plugin/2.7/maven-javadoc-plugin-2.7.pom (16 kB at 302 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/17/maven-plugins-17.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 13 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/17/maven-plugins-17.pom (13 kB at 254 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-javadoc-plugin/2.7/maven-javadoc-plugin-2.7.jar
-Progress (1): 3.8/274 kBProgress (1): 7.8/274 kBProgress (1): 12/274 kB Progress (1): 16/274 kBProgress (1): 20/274 kBProgress (1): 24/274 kBProgress (1): 28/274 kBProgress (1): 32/274 kBProgress (1): 37/274 kBProgress (1): 41/274 kBProgress (1): 45/274 kBProgress (1): 49/274 kBProgress (1): 53/274 kBProgress (1): 57/274 kBProgress (1): 61/274 kBProgress (1): 65/274 kBProgress (1): 69/274 kBProgress (1): 73/274 kBProgress (1): 77/274 kBProgress (1): 82/274 kBProgress (1): 86/274 kBProgress (1): 90/274 kBProgress (1): 94/274 kBProgress (1): 98/274 kBProgress (1): 102/274 kBProgress (1): 106/274 kBProgress (1): 110/274 kBProgress (1): 114/274 kBProgress (1): 118/274 kBProgress (1): 123/274 kBProgress (1): 127/274 kBProgress (1): 131/274 kBProgress (1): 135/274 kBProgress (1): 139/274 kBProgress (1): 143/274 kBProgress (1): 147/274 kBProgress (1): 151/274 kBProgress (1): 155/274 kBProgress (1): 159/274 kBProgress (1): 163/274 kBProgress (1): 168/274 kBProgress (1): 172/274 kBProgress (1): 176/274 kBProgress (1): 180/274 kBProgress (1): 184/274 kBProgress (1): 188/274 kBProgress (1): 192/274 kBProgress (1): 196/274 kBProgress (1): 200/274 kBProgress (1): 204/274 kBProgress (1): 209/274 kBProgress (1): 213/274 kBProgress (1): 217/274 kBProgress (1): 221/274 kBProgress (1): 225/274 kBProgress (1): 229/274 kBProgress (1): 233/274 kBProgress (1): 237/274 kBProgress (1): 241/274 kBProgress (1): 245/274 kBProgress (1): 250/274 kBProgress (1): 254/274 kBProgress (1): 258/274 kBProgress (1): 262/274 kBProgress (1): 266/274 kBProgress (1): 270/274 kBProgress (1): 274/274 kBProgress (1): 274 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-javadoc-plugin/2.7/maven-javadoc-plugin-2.7.jar (274 kB at 1.6 MB/s)
-[INFO] 
-[INFO] ----< org.apache.aries.blueprint:org.apache.aries.blueprint.itests >----
-[INFO] Building Apache Aries Blueprint iTests 1.0.2-SNAPSHOT
-[INFO] --------------------------------[ jar ]---------------------------------
-[INFO] 
-[INFO] >>> testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) > test-compile @ org.apache.aries.blueprint.itests >>>
-[INFO] 
-[INFO] --- maven-enforcer-plugin:1.3.1:enforce (default) @ org.apache.aries.blueprint.itests ---
-[INFO] Skipping Rule Enforcement.
-[INFO] 
-[INFO] --- maven-remote-resources-plugin:1.5:process (default) @ org.apache.aries.blueprint.itests ---
-[INFO] 
-[INFO] --- maven-paxexam-plugin:1.2.3:generate-depends-file (generate-config) @ org.apache.aries.blueprint.itests ---
-[INFO] Created: /app/source/blueprint/blueprint-itests/target/classes/META-INF/maven/dependencies.properties
-[INFO] 
-[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ org.apache.aries.blueprint.itests ---
-[INFO] Using 'UTF-8' encoding to copy filtered resources.
-[INFO] skip non existing resourceDirectory /app/source/blueprint/blueprint-itests/src/main/resources
-[INFO] skip non existing resourceDirectory /app/source/blueprint/blueprint-itests/src/main/filtered-resources
-[INFO] skip non existing resourceDirectory /app/source/blueprint/blueprint-itests/src/main/java
-[INFO] Copying 3 resources
-[INFO] 
-[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ org.apache.aries.blueprint.itests ---
-[INFO] No sources to compile
-[INFO] 
-[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ org.apache.aries.blueprint.itests ---
-[INFO] Using 'UTF-8' encoding to copy filtered resources.
-[INFO] Copying 13 resources
-[INFO] skip non existing resourceDirectory /app/source/blueprint/blueprint-itests/src/test/filtered-resources
-[INFO] Copying 3 resources
-[INFO] 
-[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ org.apache.aries.blueprint.itests ---
-[INFO] Nothing to compile - all classes are up to date
-[INFO] 
-[INFO] <<< testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) < test-compile @ org.apache.aries.blueprint.itests <<<
-[INFO] 
-[INFO] 
-[INFO] --- testrunner-maven-plugin:1.4-SNAPSHOT:testplugin (default-cli) @ org.apache.aries.blueprint.itests ---
-[INFO] No timeout specified. Using randomize.rounds: 0
-[INFO] ROUNDS_CALCULATED: Giving org.apache.aries.blueprint:org.apache.aries.blueprint.itests:1.0.2-SNAPSHOT 0 rounds to run for original
-[INFO] Locating tests...
-[INFO] Located 49 tests. Time taken: 1.0960001945495605 seconds
-[INFO] Getting original results (1 tests).
-[INFO] Created dependent test detector (class edu.illinois.cs.dt.tools.detection.detectors.OriginalDetector).
-
-[INFO] Found 0 tests, writing list to /app/source/blueprint/blueprint-itests/.dtfixingtools/detection-results/list.txt and dt lists to /app/source/blueprint/blueprint-itests/.dtfixingtools/detection-results/flaky-lists.json
-TRY_COPY_ALL_FAILING_TEST_OUTPUT
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  9.811 s
-[INFO] Finished at: 2026-03-26T11:03:12Z
-[INFO] ------------------------------------------------------------------------

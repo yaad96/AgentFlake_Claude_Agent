@@ -1,266 +1,0 @@
-[INFO] Scanning for projects...
-[INFO] 
-[INFO] -------------------------< tmp:tmp-checkstyle >-------------------------
-[INFO] Building tmp-checkstyle 1.0
-[INFO] --------------------------------[ jar ]---------------------------------
-[INFO] 
-[INFO] --- maven-checkstyle-plugin:2.17:check (default-cli) @ tmp-checkstyle ---
-Downloading from central: https://repo.maven.apache.org/maven2/com/puppycrawl/tools/checkstyle/6.11.2/checkstyle-6.11.2.jar
-Progress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.1/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.2/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.3/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.4/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.5/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.6/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.7/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.8/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 0.9/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.0/1.1 MBProgress (1): 1.1/1.1 MBProgress (1): 1.1/1.1 MBProgress (1): 1.1/1.1 MBProgress (1): 1.1/1.1 MBProgress (1): 1.1/1.1 MBProgress (1): 1.1 MB                        Downloaded from central: https://repo.maven.apache.org/maven2/com/puppycrawl/tools/checkstyle/6.11.2/checkstyle-6.11.2.jar (1.1 MB at 68 kB/s)
-[WARNING] File encoding has not been set, using platform encoding UTF-8, i.e. build is platform dependent!
-[INFO] Starting audit...
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:0: error: Missing package-info.java file.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:46: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:47:1: error: '{' at column 1 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:48:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:51:3: error: Method 'testEmitTuplesOutsideStreamingWindow' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:51:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:53:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:57:3: error: Method 'testHandleIdleTimeOutsideStreamingWindow' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:57:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:59:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:63:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:64: error: Line is longer than 80 characters (found 89).
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:64:31: error: Parameter trueEmitTuplesFalseHandleIdleTime should be final.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:65:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:69:55: error: '10' is a magic number.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:70:54: error: '10' is a magic number.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:72: error: Line is longer than 80 characters (found 120).
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:85:7: error: '{' at column 7 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:95:18: error: '3000' is a magic number.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:99: error: Line is longer than 80 characters (found 94).
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:105:37: error: 'typecast' is not followed by whitespace.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:123:3: error: Method 'testDoubleCheckpointAtleastOnce' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:123:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:125:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:126: error: Line is longer than 80 characters (found 98).
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:129:3: error: Method 'testDoubleCheckpointAtMostOnce' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:129:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:131:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:132: error: Line is longer than 80 characters (found 97).
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:135:3: error: Method 'testDoubleCheckpointExactlyOnce' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:135:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:137:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:138: error: Line is longer than 80 characters (found 97).
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:141: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:142:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:143:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:143:68: error: '1000L' is a magic number.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:143:78: error: '32' is a magic number.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:144:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:146:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:147:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:148:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:149:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:151: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:152:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:153:7: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:154:7: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:155:7: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:156:7: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:159:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:160:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:163:5: error: Method 'setSink' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:164:33: error: Parameter sink should be final.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:165:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:171:5: error: Method 'sweep' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:173:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:175:37: error: Avoid nested blocks.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:176:61: error: '500L' is a magic number.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:180:34: error: Avoid nested blocks.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:186:28: error: Avoid nested blocks.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:187:55: error: '1000L' is a magic number.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:190: error: Line is longer than 80 characters (found 87).
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:195:26: error: Avoid nested blocks.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:207:5: error: Method 'getCount' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:208:25: error: Parameter reset should be final.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:209:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:213:5: error: Method 'size' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:215:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:223:5: error: Method 'isEmpty' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:225:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:229:5: error: Method 'remove' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:231:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:237: error: Line is longer than 80 characters (found 89).
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:237:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:241: error: Line is longer than 80 characters (found 104).
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:241: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:242:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:243:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:243:22: error: Variable 'checkpointedWindows' must be private and have accessor methods.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:244:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:244:29: error: Variable 'checkpointTwice' must be private and have accessor methods.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:245:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:245:25: error: Variable 'numWindows' must be private and have accessor methods.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:247:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:248:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:251:5: error: Method 'beginWindow' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:252:29: error: Parameter windowId should be final.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:253:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:257:5: error: Method 'endWindow' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:259:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:263:5: error: Method 'checkpointed' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:264:30: error: Parameter windowId should be final.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:265:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:269:5: error: Method 'committed' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:270:27: error: Parameter windowId should be final.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:271:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:277:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:281: error: Line is longer than 80 characters (found 81).
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:281: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:282:3: error: '{' at column 3 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:283: error: Line is longer than 80 characters (found 86).
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:283:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:283:52: error: Variable 'output' must be private and have accessor methods.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:285:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:285:20: error: Variable 'trueEmitTuplesFalseHandleIdleTime' must be private and have accessor methods.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:286:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:288:5: error: Method 'emitTuples' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:290:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:292:14: error: '100L' is a magic number.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:297:29: error: Parameter windowId should be final.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:298:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:303:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:307:23: error: Parameter context should be final.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:308:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:313:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:316:5: error: Method 'handleIdleTime' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:318:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:320:14: error: '100L' is a magic number.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:324:5: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:324:23: error: Parameter delay should be final.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:325:5: error: '{' at column 5 should be on the previous line.
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:333: error: Line is longer than 80 characters (found 81).
-/app/source/tmp-checkstyle-7095/src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:333:3: error: Missing a Javadoc comment.
-Audit done.
-[INFO] There are 123 errors reported by Checkstyle 6.11.2 with sun_checks.xml ruleset.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[0] (javadoc) JavadocPackage: Missing package-info.java file.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[46] (javadoc) JavadocType: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[47,1] (blocks) LeftCurly: '{' at column 1 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[48,3] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[51,3] (design) DesignForExtension: Method 'testEmitTuplesOutsideStreamingWindow' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[51,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[53,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[57,3] (design) DesignForExtension: Method 'testHandleIdleTimeOutsideStreamingWindow' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[57,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[59,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[63,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[64] (sizes) LineLength: Line is longer than 80 characters (found 89).
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[64,31] (misc) FinalParameters: Parameter trueEmitTuplesFalseHandleIdleTime should be final.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[65,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[69,55] (coding) MagicNumber: '10' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[70,54] (coding) MagicNumber: '10' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[72] (sizes) LineLength: Line is longer than 80 characters (found 120).
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[85,7] (blocks) LeftCurly: '{' at column 7 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[95,18] (coding) MagicNumber: '3000' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[99] (sizes) LineLength: Line is longer than 80 characters (found 94).
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[105,37] (whitespace) WhitespaceAfter: 'typecast' is not followed by whitespace.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[123,3] (design) DesignForExtension: Method 'testDoubleCheckpointAtleastOnce' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[123,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[125,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[126] (sizes) LineLength: Line is longer than 80 characters (found 98).
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[129,3] (design) DesignForExtension: Method 'testDoubleCheckpointAtMostOnce' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[129,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[131,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[132] (sizes) LineLength: Line is longer than 80 characters (found 97).
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[135,3] (design) DesignForExtension: Method 'testDoubleCheckpointExactlyOnce' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[135,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[137,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[138] (sizes) LineLength: Line is longer than 80 characters (found 97).
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[141] (javadoc) JavadocType: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[142,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[143,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[143,68] (coding) MagicNumber: '1000L' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[143,78] (coding) MagicNumber: '32' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[144,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[146,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[147,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[148,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[149,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[151] (javadoc) JavadocType: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[152,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[153,7] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[154,7] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[155,7] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[156,7] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[159,5] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[160,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[163,5] (design) DesignForExtension: Method 'setSink' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[164,33] (misc) FinalParameters: Parameter sink should be final.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[165,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[171,5] (design) DesignForExtension: Method 'sweep' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[173,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[175,37] (blocks) AvoidNestedBlocks: Avoid nested blocks.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[176,61] (coding) MagicNumber: '500L' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[180,34] (blocks) AvoidNestedBlocks: Avoid nested blocks.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[186,28] (blocks) AvoidNestedBlocks: Avoid nested blocks.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[187,55] (coding) MagicNumber: '1000L' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[190] (sizes) LineLength: Line is longer than 80 characters (found 87).
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[195,26] (blocks) AvoidNestedBlocks: Avoid nested blocks.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[207,5] (design) DesignForExtension: Method 'getCount' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[208,25] (misc) FinalParameters: Parameter reset should be final.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[209,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[213,5] (design) DesignForExtension: Method 'size' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[215,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[223,5] (design) DesignForExtension: Method 'isEmpty' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[225,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[229,5] (design) DesignForExtension: Method 'remove' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[231,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[237] (sizes) LineLength: Line is longer than 80 characters (found 89).
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[237,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[241] (sizes) LineLength: Line is longer than 80 characters (found 104).
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[241] (javadoc) JavadocType: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[242,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[243,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[243,22] (design) VisibilityModifier: Variable 'checkpointedWindows' must be private and have accessor methods.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[244,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[244,29] (design) VisibilityModifier: Variable 'checkpointTwice' must be private and have accessor methods.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[245,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[245,25] (design) VisibilityModifier: Variable 'numWindows' must be private and have accessor methods.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[247,5] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[248,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[251,5] (design) DesignForExtension: Method 'beginWindow' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[252,29] (misc) FinalParameters: Parameter windowId should be final.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[253,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[257,5] (design) DesignForExtension: Method 'endWindow' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[259,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[263,5] (design) DesignForExtension: Method 'checkpointed' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[264,30] (misc) FinalParameters: Parameter windowId should be final.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[265,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[269,5] (design) DesignForExtension: Method 'committed' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[270,27] (misc) FinalParameters: Parameter windowId should be final.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[271,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[277,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[281] (sizes) LineLength: Line is longer than 80 characters (found 81).
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[281] (javadoc) JavadocType: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[282,3] (blocks) LeftCurly: '{' at column 3 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[283] (sizes) LineLength: Line is longer than 80 characters (found 86).
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[283,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[283,52] (design) VisibilityModifier: Variable 'output' must be private and have accessor methods.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[285,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[285,20] (design) VisibilityModifier: Variable 'trueEmitTuplesFalseHandleIdleTime' must be private and have accessor methods.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[286,5] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[288,5] (design) DesignForExtension: Method 'emitTuples' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[290,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[292,14] (coding) MagicNumber: '100L' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[297,29] (misc) FinalParameters: Parameter windowId should be final.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[298,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[303,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[307,23] (misc) FinalParameters: Parameter context should be final.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[308,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[313,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[316,5] (design) DesignForExtension: Method 'handleIdleTime' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[318,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[320,14] (coding) MagicNumber: '100L' is a magic number.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[324,5] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[324,23] (misc) FinalParameters: Parameter delay should be final.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[325,5] (blocks) LeftCurly: '{' at column 5 should be on the previous line.
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[333] (sizes) LineLength: Line is longer than 80 characters (found 81).
-[ERROR] src/main/java/com/datatorrent/stram/engine/InputNodeTest.java:[333,3] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[WARNING] checkstyle:check violations detected but failOnViolation set to false
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  24.416 s
-[INFO] Finished at: 2026-03-26T22:18:00Z
-[INFO] ------------------------------------------------------------------------

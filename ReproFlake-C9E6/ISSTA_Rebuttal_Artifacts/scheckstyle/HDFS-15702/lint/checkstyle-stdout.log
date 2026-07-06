@@ -1,774 +1,0 @@
-[INFO] Scanning for projects...
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-checkstyle-plugin/2.17/maven-checkstyle-plugin-2.17.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 13 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-checkstyle-plugin/2.17/maven-checkstyle-plugin-2.17.pom (13 kB at 16 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/28/maven-plugins-28.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-plugins/28/maven-plugins-28.pom (12 kB at 38 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-checkstyle-plugin/2.17/maven-checkstyle-plugin-2.17.jar
-Progress (1): 2.3/109 kBProgress (1): 5.0/109 kBProgress (1): 7.7/109 kBProgress (1): 10/109 kB Progress (1): 13/109 kBProgress (1): 16/109 kBProgress (1): 18/109 kBProgress (1): 21/109 kBProgress (1): 24/109 kBProgress (1): 27/109 kBProgress (1): 29/109 kBProgress (1): 32/109 kBProgress (1): 35/109 kBProgress (1): 38/109 kBProgress (1): 40/109 kBProgress (1): 44/109 kBProgress (1): 49/109 kBProgress (1): 53/109 kBProgress (1): 57/109 kBProgress (1): 61/109 kBProgress (1): 65/109 kBProgress (1): 67/109 kBProgress (1): 71/109 kBProgress (1): 75/109 kBProgress (1): 79/109 kBProgress (1): 83/109 kBProgress (1): 88/109 kBProgress (1): 92/109 kBProgress (1): 96/109 kBProgress (1): 100/109 kBProgress (1): 104/109 kBProgress (1): 108/109 kBProgress (1): 109 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-checkstyle-plugin/2.17/maven-checkstyle-plugin-2.17.jar (109 kB at 367 kB/s)
-[INFO] 
-[INFO] -------------------------< tmp:tmp-checkstyle >-------------------------
-[INFO] Building tmp-checkstyle 1.0
-[INFO] --------------------------------[ jar ]---------------------------------
-[INFO] 
-[INFO] --- maven-checkstyle-plugin:2.17:check (default-cli) @ tmp-checkstyle ---
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-integration-tools/1.6/doxia-integration-tools-1.6.pom
-Progress (1): 4.1 kBProgress (1): 7.0 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-integration-tools/1.6/doxia-integration-tools-1.6.pom (7.0 kB at 36 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-tools/3/doxia-tools-3.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 9.9 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-tools/3/doxia-tools-3.pom (9.9 kB at 18 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-logging-api/1.6/doxia-logging-api-1.6.pom
-Progress (1): 1.5 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-logging-api/1.6/doxia-logging-api-1.6.pom (1.5 kB at 34 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia/1.6/doxia-1.6.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 19 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia/1.6/doxia-1.6.pom (19 kB at 311 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-decoration-model/1.6/doxia-decoration-model-1.6.pom
-Progress (1): 3.0 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-decoration-model/1.6/doxia-decoration-model-1.6.pom (3.0 kB at 34 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-sitetools/1.6/doxia-sitetools-1.6.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 18 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-sitetools/1.6/doxia-sitetools-1.6.pom (18 kB at 190 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-resources/1.0.1/plexus-resources-1.0.1.pom
-Progress (1): 1.3 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-resources/1.0.1/plexus-resources-1.0.1.pom (1.3 kB at 11 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-interpolation/1.21/plexus-interpolation-1.21.pom
-Progress (1): 1.5 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-interpolation/1.21/plexus-interpolation-1.21.pom (1.5 kB at 20 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/puppycrawl/tools/checkstyle/6.11.2/checkstyle-6.11.2.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 20 kBProgress (1): 25 kBProgress (1): 29 kBProgress (1): 33 kBProgress (1): 37 kBProgress (1): 41 kBProgress (1): 45 kBProgress (1): 49 kBProgress (1): 53 kBProgress (1): 57 kBProgress (1): 61 kBProgress (1): 63 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/com/puppycrawl/tools/checkstyle/6.11.2/checkstyle-6.11.2.pom (63 kB at 515 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/antlr/antlr/2.7.7/antlr-2.7.7.pom
-Progress (1): 632 B                   Downloaded from central: https://repo.maven.apache.org/maven2/antlr/antlr/2.7.7/antlr-2.7.7.pom (632 B at 13 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/antlr/antlr4-runtime/4.5.1-1/antlr4-runtime-4.5.1-1.pom
-Progress (1): 2.3 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/antlr/antlr4-runtime/4.5.1-1/antlr4-runtime-4.5.1-1.pom (2.3 kB at 41 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/antlr/antlr4-master/4.5.1-1/antlr4-master-4.5.1-1.pom
-Progress (1): 3.8 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/antlr/antlr4-master/4.5.1-1/antlr4-master-4.5.1-1.pom (3.8 kB at 68 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/commons-beanutils/commons-beanutils/1.9.2/commons-beanutils-1.9.2.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 14 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/commons-beanutils/commons-beanutils/1.9.2/commons-beanutils-1.9.2.pom (14 kB at 251 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/33/commons-parent-33.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 12 kB Progress (1): 16 kBProgress (1): 20 kBProgress (1): 25 kBProgress (1): 29 kBProgress (1): 33 kBProgress (1): 37 kBProgress (1): 41 kBProgress (1): 45 kBProgress (1): 49 kBProgress (1): 53 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/commons/commons-parent/33/commons-parent-33.pom (53 kB at 885 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/commons-cli/commons-cli/1.3.1/commons-cli-1.3.1.pom
-Progress (1): 4.1 kBProgress (1): 8.2 kBProgress (1): 10 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/commons-cli/commons-cli/1.3.1/commons-cli-1.3.1.pom (10 kB at 217 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/google/guava/guava/18.0/guava-18.0.pom
-Progress (1): 4.1 kBProgress (1): 5.7 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/com/google/guava/guava/18.0/guava-18.0.pom (5.7 kB at 111 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/google/guava/guava-parent/18.0/guava-parent-18.0.pom
-Progress (1): 4.1 kBProgress (1): 7.7 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/com/google/guava/guava-parent/18.0/guava-parent-18.0.pom (7.7 kB at 164 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-core/1.2/doxia-core-1.2.jar
-Downloading from central: https://repo.maven.apache.org/maven2/commons-digester/commons-digester/1.6/commons-digester-1.6.jar
-Downloading from central: https://repo.maven.apache.org/maven2/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar
-Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-integration-tools/1.6/doxia-integration-tools-1.6.jar
-Downloading from central: https://repo.maven.apache.org/maven2/commons-io/commons-io/1.4/commons-io-1.4.jar
-Progress (1): 4.1/154 kBProgress (1): 7.7/154 kBProgress (1): 12/154 kB Progress (1): 16/154 kBProgress (1): 20/154 kBProgress (1): 24/154 kBProgress (1): 28/154 kBProgress (1): 32/154 kBProgress (1): 36/154 kBProgress (1): 40/154 kBProgress (1): 45/154 kBProgress (1): 49/154 kBProgress (1): 53/154 kBProgress (1): 57/154 kBProgress (1): 61/154 kBProgress (1): 65/154 kBProgress (1): 69/154 kBProgress (1): 73/154 kBProgress (1): 77/154 kBProgress (1): 81/154 kBProgress (1): 86/154 kBProgress (1): 90/154 kBProgress (1): 94/154 kBProgress (1): 98/154 kBProgress (1): 102/154 kBProgress (1): 106/154 kBProgress (2): 106/154 kB | 2.3/38 kBProgress (2): 106/154 kB | 5.0/38 kBProgress (2): 106/154 kB | 7.7/38 kBProgress (2): 106/154 kB | 10/38 kB Progress (2): 106/154 kB | 13/38 kBProgress (2): 106/154 kB | 16/38 kBProgress (2): 106/154 kB | 18/38 kBProgress (2): 106/154 kB | 21/38 kBProgress (2): 106/154 kB | 24/38 kBProgress (2): 106/154 kB | 27/38 kBProgress (2): 106/154 kB | 29/38 kBProgress (2): 106/154 kB | 32/38 kBProgress (2): 106/154 kB | 35/38 kBProgress (2): 106/154 kB | 38/38 kBProgress (2): 106/154 kB | 38 kB   Progress (3): 106/154 kB | 38 kB | 2.3/168 kBProgress (3): 106/154 kB | 38 kB | 5.0/168 kBProgress (3): 106/154 kB | 38 kB | 7.7/168 kBProgress (3): 106/154 kB | 38 kB | 10/168 kB Progress (3): 106/154 kB | 38 kB | 13/168 kBProgress (3): 106/154 kB | 38 kB | 16/168 kBProgress (3): 106/154 kB | 38 kB | 18/168 kBProgress (3): 106/154 kB | 38 kB | 21/168 kBProgress (3): 106/154 kB | 38 kB | 24/168 kBProgress (3): 106/154 kB | 38 kB | 27/168 kBProgress (3): 106/154 kB | 38 kB | 29/168 kBProgress (3): 106/154 kB | 38 kB | 32/168 kBProgress (3): 106/154 kB | 38 kB | 35/168 kBProgress (3): 106/154 kB | 38 kB | 38/168 kBProgress (3): 106/154 kB | 38 kB | 40/168 kBProgress (3): 106/154 kB | 38 kB | 43/168 kBProgress (3): 106/154 kB | 38 kB | 46/168 kBProgress (3): 106/154 kB | 38 kB | 49/168 kBProgress (3): 106/154 kB | 38 kB | 51/168 kBProgress (3): 106/154 kB | 38 kB | 54/168 kBProgress (4): 106/154 kB | 38 kB | 54/168 kB | 2.3/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 2.3/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 5.0/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 7.7/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 11/109 kB Progress (4): 106/154 kB | 38 kB | 58/168 kB | 14/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 16/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 19/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 22/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 25/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 27/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 30/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 33/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 36/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 38/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 41/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 44/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 47/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 49/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 52/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 55/109 kBProgress (4): 106/154 kB | 38 kB | 58/168 kB | 59/109 kBProgress (4): 106/154 kB | 38 kB | 62/168 kB | 59/109 kBProgress (4): 110/154 kB | 38 kB | 62/168 kB | 59/109 kBProgress (5): 110/154 kB | 38 kB | 62/168 kB | 59/109 kB | 2.3/45 kBProgress (5): 114/154 kB | 38 kB | 62/168 kB | 59/109 kB | 2.3/45 kBProgress (5): 118/154 kB | 38 kB | 62/168 kB | 59/109 kB | 2.3/45 kBProgress (5): 118/154 kB | 38 kB | 62/168 kB | 59/109 kB | 4.7/45 kBProgress (5): 122/154 kB | 38 kB | 62/168 kB | 59/109 kB | 4.7/45 kBProgress (5): 122/154 kB | 38 kB | 62/168 kB | 59/109 kB | 7.5/45 kBProgress (5): 126/154 kB | 38 kB | 62/168 kB | 59/109 kB | 7.5/45 kBProgress (5): 131/154 kB | 38 kB | 62/168 kB | 59/109 kB | 7.5/45 kBProgress (5): 131/154 kB | 38 kB | 62/168 kB | 59/109 kB | 10/45 kB Progress (5): 131/154 kB | 38 kB | 62/168 kB | 63/109 kB | 10/45 kBProgress (5): 135/154 kB | 38 kB | 62/168 kB | 63/109 kB | 10/45 kBProgress (5): 135/154 kB | 38 kB | 62/168 kB | 63/109 kB | 13/45 kBProgress (5): 135/154 kB | 38 kB | 62/168 kB | 67/109 kB | 13/45 kBProgress (5): 135/154 kB | 38 kB | 62/168 kB | 67/109 kB | 16/45 kBProgress (5): 139/154 kB | 38 kB | 62/168 kB | 67/109 kB | 16/45 kBProgress (5): 143/154 kB | 38 kB | 62/168 kB | 67/109 kB | 16/45 kBProgress (5): 147/154 kB | 38 kB | 62/168 kB | 67/109 kB | 16/45 kBProgress (5): 147/154 kB | 38 kB | 62/168 kB | 67/109 kB | 18/45 kBProgress (5): 151/154 kB | 38 kB | 62/168 kB | 67/109 kB | 18/45 kBProgress (5): 154 kB | 38 kB | 62/168 kB | 67/109 kB | 18/45 kB    Progress (5): 154 kB | 38 kB | 62/168 kB | 67/109 kB | 21/45 kBProgress (5): 154 kB | 38 kB | 62/168 kB | 67/109 kB | 24/45 kBProgress (5): 154 kB | 38 kB | 62/168 kB | 67/109 kB | 27/45 kBProgress (5): 154 kB | 38 kB | 62/168 kB | 67/109 kB | 29/45 kBProgress (5): 154 kB | 38 kB | 62/168 kB | 71/109 kB | 29/45 kBProgress (5): 154 kB | 38 kB | 66/168 kB | 71/109 kB | 29/45 kBProgress (5): 154 kB | 38 kB | 66/168 kB | 71/109 kB | 32/45 kBProgress (5): 154 kB | 38 kB | 70/168 kB | 71/109 kB | 32/45 kBProgress (5): 154 kB | 38 kB | 70/168 kB | 71/109 kB | 35/45 kBProgress (5): 154 kB | 38 kB | 70/168 kB | 71/109 kB | 38/45 kBProgress (5): 154 kB | 38 kB | 70/168 kB | 71/109 kB | 40/45 kBProgress (5): 154 kB | 38 kB | 70/168 kB | 71/109 kB | 43/45 kBProgress (5): 154 kB | 38 kB | 70/168 kB | 71/109 kB | 45 kB   Progress (5): 154 kB | 38 kB | 70/168 kB | 75/109 kB | 45 kBProgress (5): 154 kB | 38 kB | 74/168 kB | 75/109 kB | 45 kBProgress (5): 154 kB | 38 kB | 74/168 kB | 79/109 kB | 45 kBProgress (5): 154 kB | 38 kB | 74/168 kB | 83/109 kB | 45 kBProgress (5): 154 kB | 38 kB | 74/168 kB | 88/109 kB | 45 kBProgress (5): 154 kB | 38 kB | 74/168 kB | 92/109 kB | 45 kBProgress (5): 154 kB | 38 kB | 79/168 kB | 92/109 kB | 45 kBProgress (5): 154 kB | 38 kB | 81/168 kB | 92/109 kB | 45 kBProgress (5): 154 kB | 38 kB | 85/168 kB | 92/109 kB | 45 kBProgress (5): 154 kB | 38 kB | 89/168 kB | 92/109 kB | 45 kBProgress (5): 154 kB | 38 kB | 93/168 kB | 92/109 kB | 45 kBProgress (5): 154 kB | 38 kB | 97/168 kB | 92/109 kB | 45 kBProgress (5): 154 kB | 38 kB | 101/168 kB | 92/109 kB | 45 kB                                                             Downloaded from central: https://repo.maven.apache.org/maven2/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar (38 kB at 72 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-resources/1.0.1/plexus-resources-1.0.1.jar
-Progress (4): 154 kB | 101/168 kB | 96/109 kB | 45 kBProgress (4): 154 kB | 105/168 kB | 96/109 kB | 45 kBProgress (4): 154 kB | 105/168 kB | 100/109 kB | 45 kBProgress (4): 154 kB | 109/168 kB | 100/109 kB | 45 kBProgress (4): 154 kB | 114/168 kB | 100/109 kB | 45 kBProgress (4): 154 kB | 114/168 kB | 104/109 kB | 45 kBProgress (4): 154 kB | 114/168 kB | 108/109 kB | 45 kBProgress (4): 154 kB | 114/168 kB | 109 kB | 45 kB    Progress (4): 154 kB | 118/168 kB | 109 kB | 45 kBProgress (4): 154 kB | 122/168 kB | 109 kB | 45 kBProgress (4): 154 kB | 126/168 kB | 109 kB | 45 kBProgress (4): 154 kB | 130/168 kB | 109 kB | 45 kBProgress (4): 154 kB | 134/168 kB | 109 kB | 45 kBProgress (4): 154 kB | 138/168 kB | 109 kB | 45 kBProgress (4): 154 kB | 142/168 kB | 109 kB | 45 kBProgress (4): 154 kB | 146/168 kB | 109 kB | 45 kBProgress (4): 154 kB | 150/168 kB | 109 kB | 45 kBProgress (4): 154 kB | 154/168 kB | 109 kB | 45 kBProgress (4): 154 kB | 159/168 kB | 109 kB | 45 kBProgress (4): 154 kB | 163/168 kB | 109 kB | 45 kBProgress (4): 154 kB | 167/168 kB | 109 kB | 45 kBProgress (4): 154 kB | 168 kB | 109 kB | 45 kB    Progress (5): 154 kB | 168 kB | 109 kB | 45 kB | 2.3/22 kBProgress (5): 154 kB | 168 kB | 109 kB | 45 kB | 5.0/22 kBProgress (5): 154 kB | 168 kB | 109 kB | 45 kB | 7.7/22 kBProgress (5): 154 kB | 168 kB | 109 kB | 45 kB | 10/22 kB Progress (5): 154 kB | 168 kB | 109 kB | 45 kB | 13/22 kBProgress (5): 154 kB | 168 kB | 109 kB | 45 kB | 16/22 kBProgress (5): 154 kB | 168 kB | 109 kB | 45 kB | 20/22 kB                                                         Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-integration-tools/1.6/doxia-integration-tools-1.6.jar (45 kB at 78 kB/s)
-Progress (4): 154 kB | 168 kB | 109 kB | 22 kB                                              Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-interpolation/1.21/plexus-interpolation-1.21.jar
-Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/doxia/doxia-core/1.2/doxia-core-1.2.jar (154 kB at 266 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/puppycrawl/tools/checkstyle/6.11.2/checkstyle-6.11.2.jar
-Progress (4): 168 kB | 109 kB | 22 kB | 3.8/62 kBProgress (5): 168 kB | 109 kB | 22 kB | 3.8/62 kB | 0/1.1 MB                                                            Downloaded from central: https://repo.maven.apache.org/maven2/commons-io/commons-io/1.4/commons-io-1.4.jar (109 kB at 163 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/antlr/antlr/2.7.7/antlr-2.7.7.jar
-Progress (4): 168 kB | 22 kB | 7.8/62 kB | 0/1.1 MB                                                   Downloaded from central: https://repo.maven.apache.org/maven2/commons-digester/commons-digester/1.6/commons-digester-1.6.jar (168 kB at 251 kB/s)
-Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-resources/1.0.1/plexus-resources-1.0.1.jar (22 kB at 33 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/commons-beanutils/commons-beanutils/1.9.2/commons-beanutils-1.9.2.jar
-Downloading from central: https://repo.maven.apache.org/maven2/org/antlr/antlr4-runtime/4.5.1-1/antlr4-runtime-4.5.1-1.jar
-Progress (2): 12/62 kB | 0/1.1 MBProgress (2): 16/62 kB | 0/1.1 MBProgress (2): 16/62 kB | 0/1.1 MBProgress (2): 20/62 kB | 0/1.1 MBProgress (2): 20/62 kB | 0/1.1 MBProgress (2): 24/62 kB | 0/1.1 MBProgress (2): 24/62 kB | 0/1.1 MBProgress (2): 28/62 kB | 0/1.1 MBProgress (2): 32/62 kB | 0/1.1 MBProgress (2): 36/62 kB | 0/1.1 MBProgress (2): 40/62 kB | 0/1.1 MBProgress (2): 44/62 kB | 0/1.1 MBProgress (2): 44/62 kB | 0/1.1 MBProgress (2): 44/62 kB | 0/1.1 MBProgress (2): 44/62 kB | 0/1.1 MBProgress (2): 44/62 kB | 0/1.1 MBProgress (2): 44/62 kB | 0/1.1 MBProgress (2): 44/62 kB | 0/1.1 MBProgress (2): 44/62 kB | 0/1.1 MBProgress (2): 44/62 kB | 0.1/1.1 MBProgress (2): 44/62 kB | 0.1/1.1 MBProgress (2): 44/62 kB | 0.1/1.1 MBProgress (2): 48/62 kB | 0.1/1.1 MBProgress (2): 53/62 kB | 0.1/1.1 MBProgress (2): 57/62 kB | 0.1/1.1 MBProgress (2): 57/62 kB | 0.1/1.1 MBProgress (2): 61/62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MB   Progress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.1/1.1 MBProgress (2): 62 kB | 0.2/1.1 MBProgress (3): 62 kB | 0.2/1.1 MB | 3.4/445 kBProgress (3): 62 kB | 0.2/1.1 MB | 7.5/445 kBProgress (3): 62 kB | 0.2/1.1 MB | 12/445 kB Progress (3): 62 kB | 0.2/1.1 MB | 16/445 kBProgress (3): 62 kB | 0.2/1.1 MB | 20/445 kBProgress (3): 62 kB | 0.2/1.1 MB | 24/445 kBProgress (3): 62 kB | 0.2/1.1 MB | 28/445 kBProgress (3): 62 kB | 0.2/1.1 MB | 32/445 kBProgress (3): 62 kB | 0.2/1.1 MB | 36/445 kBProgress (3): 62 kB | 0.2/1.1 MB | 40/445 kBProgress (3): 62 kB | 0.2/1.1 MB | 44/445 kBProgress (3): 62 kB | 0.2/1.1 MB | 48/445 kBProgress (3): 62 kB | 0.2/1.1 MB | 53/445 kBProgress (3): 62 kB | 0.2/1.1 MB | 57/445 kBProgress (4): 62 kB | 0.2/1.1 MB | 57/445 kB | 3.8/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 57/445 kB | 7.8/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 57/445 kB | 12/302 kB Progress (4): 62 kB | 0.2/1.1 MB | 61/445 kB | 12/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 61/445 kB | 16/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 65/445 kB | 16/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 69/445 kB | 16/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 69/445 kB | 20/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 69/445 kB | 24/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 69/445 kB | 28/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 73/445 kB | 28/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 77/445 kB | 28/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 81/445 kB | 28/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 85/445 kB | 28/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 89/445 kB | 28/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 89/445 kB | 32/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 93/445 kB | 32/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 98/445 kB | 32/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 98/445 kB | 36/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 98/445 kB | 40/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 98/445 kB | 44/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 98/445 kB | 48/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 98/445 kB | 53/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 98/445 kB | 57/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 98/445 kB | 61/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 98/445 kB | 65/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 98/445 kB | 69/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 98/445 kB | 73/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 98/445 kB | 77/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 102/445 kB | 77/302 kBProgress (4): 62 kB | 0.2/1.1 MB | 106/445 kB | 77/302 kBProgress (5): 62 kB | 0.2/1.1 MB | 106/445 kB | 77/302 kB | 4.1/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 106/445 kB | 77/302 kB | 7.7/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 106/445 kB | 77/302 kB | 12/234 kB Progress (5): 62 kB | 0.2/1.1 MB | 106/445 kB | 77/302 kB | 12/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 106/445 kB | 77/302 kB | 16/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 106/445 kB | 77/302 kB | 20/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 106/445 kB | 77/302 kB | 24/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 106/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 106/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 110/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 110/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 114/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 118/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 122/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 122/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 122/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 122/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 122/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 122/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 122/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 126/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 130/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 134/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 139/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 139/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 139/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 139/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 139/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.2/1.1 MB | 139/445 kB | 77/302 kB | 28/234 kBProgress (5): 62 kB | 0.3/1.1 MB | 139/445 kB | 77/302 kB | 28/234 kB                                                                     Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/plexus/plexus-interpolation/1.21/plexus-interpolation-1.21.jar (62 kB at 71 kB/s)
-Downloading from central: https://repo.maven.apache.org/maven2/com/google/guava/guava/18.0/guava-18.0.jar
-Progress (4): 0.3/1.1 MB | 139/445 kB | 77/302 kB | 32/234 kBProgress (4): 0.3/1.1 MB | 139/445 kB | 77/302 kB | 36/234 kBProgress (4): 0.3/1.1 MB | 139/445 kB | 77/302 kB | 40/234 kBProgress (4): 0.3/1.1 MB | 139/445 kB | 77/302 kB | 44/234 kBProgress (4): 0.3/1.1 MB | 143/445 kB | 77/302 kB | 44/234 kBProgress (4): 0.3/1.1 MB | 143/445 kB | 77/302 kB | 48/234 kBProgress (4): 0.3/1.1 MB | 147/445 kB | 77/302 kB | 48/234 kBProgress (4): 0.3/1.1 MB | 147/445 kB | 77/302 kB | 53/234 kBProgress (4): 0.3/1.1 MB | 151/445 kB | 77/302 kB | 53/234 kBProgress (4): 0.3/1.1 MB | 151/445 kB | 77/302 kB | 57/234 kBProgress (4): 0.3/1.1 MB | 155/445 kB | 77/302 kB | 57/234 kBProgress (4): 0.3/1.1 MB | 155/445 kB | 77/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 159/445 kB | 77/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 163/445 kB | 77/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 163/445 kB | 77/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 167/445 kB | 77/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 171/445 kB | 77/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 171/445 kB | 77/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 171/445 kB | 81/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 171/445 kB | 85/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 171/445 kB | 89/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 171/445 kB | 93/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 171/445 kB | 98/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 171/445 kB | 102/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 171/445 kB | 106/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 171/445 kB | 110/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 171/445 kB | 114/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 171/445 kB | 118/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 171/445 kB | 122/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 171/445 kB | 126/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 175/445 kB | 126/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 179/445 kB | 126/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 184/445 kB | 126/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 188/445 kB | 126/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 192/445 kB | 126/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 196/445 kB | 126/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 200/445 kB | 126/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 204/445 kB | 126/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 208/445 kB | 126/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 212/445 kB | 126/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 212/445 kB | 130/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 212/445 kB | 134/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 212/445 kB | 139/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 212/445 kB | 143/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 212/445 kB | 147/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 212/445 kB | 151/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 212/445 kB | 155/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 212/445 kB | 159/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 212/445 kB | 163/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 212/445 kB | 167/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 216/445 kB | 167/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 220/445 kB | 167/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 225/445 kB | 167/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 229/445 kB | 167/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 233/445 kB | 167/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 237/445 kB | 167/302 kB | 61/234 kBProgress (4): 0.3/1.1 MB | 237/445 kB | 167/302 kB | 65/234 kBProgress (4): 0.3/1.1 MB | 237/445 kB | 167/302 kB | 69/234 kBProgress (4): 0.3/1.1 MB | 237/445 kB | 167/302 kB | 73/234 kBProgress (4): 0.3/1.1 MB | 237/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 237/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 237/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 241/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 245/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 249/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 253/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 257/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 261/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 266/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 270/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 274/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 278/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 282/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 167/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 171/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 175/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 179/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 184/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 188/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 192/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 196/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.3/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 286/445 kB | 200/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 286/445 kB | 204/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 286/445 kB | 208/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 286/445 kB | 212/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 286/445 kB | 216/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 290/445 kB | 216/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 294/445 kB | 216/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 298/445 kB | 216/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 302/445 kB | 216/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 306/445 kB | 216/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 311/445 kB | 216/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 315/445 kB | 216/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 319/445 kB | 216/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 319/445 kB | 220/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 319/445 kB | 225/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 319/445 kB | 229/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 319/445 kB | 233/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 323/445 kB | 233/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 327/445 kB | 233/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 331/445 kB | 233/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 335/445 kB | 233/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 335/445 kB | 237/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 335/445 kB | 241/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 335/445 kB | 245/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 335/445 kB | 249/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 335/445 kB | 253/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 335/445 kB | 257/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 335/445 kB | 261/302 kB | 77/234 kBProgress (4): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 77/234 kBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 77/234 kB | 0/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 77/234 kB | 0/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 77/234 kB | 0/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 77/234 kB | 0/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 77/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 81/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 85/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 89/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 93/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 98/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 102/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 106/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 110/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 114/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 118/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 122/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 335/445 kB | 266/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 339/445 kB | 266/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 343/445 kB | 266/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 347/445 kB | 266/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 352/445 kB | 266/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 352/445 kB | 270/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 352/445 kB | 274/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 352/445 kB | 278/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 352/445 kB | 282/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 352/445 kB | 286/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 352/445 kB | 286/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 352/445 kB | 290/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 352/445 kB | 294/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 352/445 kB | 294/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 352/445 kB | 298/302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 352/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MB    Progress (5): 0.4/1.1 MB | 352/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 352/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.4/1.1 MB | 352/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 352/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 356/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 360/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 364/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 368/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 368/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 372/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 372/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 376/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 380/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 384/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 388/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 392/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 397/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 397/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 401/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 401/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 401/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 401/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 405/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 409/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 413/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 417/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 421/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 425/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 429/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 433/445 kB | 302 kB | 126/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 433/445 kB | 302 kB | 130/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 433/445 kB | 302 kB | 134/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 433/445 kB | 302 kB | 139/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 433/445 kB | 302 kB | 143/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 438/445 kB | 302 kB | 143/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 438/445 kB | 302 kB | 143/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 442/445 kB | 302 kB | 143/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 442/445 kB | 302 kB | 143/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 445 kB | 302 kB | 143/234 kB | 0.1/2.3 MB    Progress (5): 0.5/1.1 MB | 445 kB | 302 kB | 143/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 445 kB | 302 kB | 143/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 445 kB | 302 kB | 143/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 445 kB | 302 kB | 143/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 445 kB | 302 kB | 143/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 445 kB | 302 kB | 143/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 445 kB | 302 kB | 143/234 kB | 0.1/2.3 MBProgress (5): 0.5/1.1 MB | 445 kB | 302 kB | 143/234 kB | 0.1/2.3 MB                                                                    Downloaded from central: https://repo.maven.apache.org/maven2/org/antlr/antlr4-runtime/4.5.1-1/antlr4-runtime-4.5.1-1.jar (302 kB at 218 kB/s)
-Downloaded from central: https://repo.maven.apache.org/maven2/antlr/antlr/2.7.7/antlr-2.7.7.jar (445 kB at 320 kB/s)
-Progress (3): 0.5/1.1 MB | 147/234 kB | 0.1/2.3 MBProgress (3): 0.5/1.1 MB | 151/234 kB | 0.1/2.3 MBProgress (3): 0.5/1.1 MB | 155/234 kB | 0.1/2.3 MBProgress (3): 0.5/1.1 MB | 159/234 kB | 0.1/2.3 MBProgress (3): 0.5/1.1 MB | 159/234 kB | 0.1/2.3 MBProgress (3): 0.6/1.1 MB | 159/234 kB | 0.1/2.3 MBProgress (3): 0.6/1.1 MB | 159/234 kB | 0.2/2.3 MBProgress (3): 0.6/1.1 MB | 159/234 kB | 0.2/2.3 MBProgress (3): 0.6/1.1 MB | 159/234 kB | 0.2/2.3 MBProgress (3): 0.6/1.1 MB | 159/234 kB | 0.2/2.3 MBProgress (3): 0.6/1.1 MB | 159/234 kB | 0.2/2.3 MBProgress (3): 0.6/1.1 MB | 159/234 kB | 0.2/2.3 MBProgress (3): 0.6/1.1 MB | 159/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 159/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 159/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 163/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 163/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 167/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 171/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 171/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.3/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.4/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.4/2.3 MBProgress (3): 0.6/1.1 MB | 175/234 kB | 0.4/2.3 MBProgress (3): 0.6/1.1 MB | 179/234 kB | 0.4/2.3 MBProgress (3): 0.6/1.1 MB | 179/234 kB | 0.4/2.3 MBProgress (3): 0.6/1.1 MB | 184/234 kB | 0.4/2.3 MBProgress (3): 0.6/1.1 MB | 188/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 188/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 192/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 192/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 192/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 196/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 200/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 204/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.4/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.5/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.5/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.5/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.5/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.5/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.5/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.6/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.6/2.3 MBProgress (3): 0.7/1.1 MB | 208/234 kB | 0.6/2.3 MBProgress (3): 0.7/1.1 MB | 212/234 kB | 0.6/2.3 MBProgress (3): 0.7/1.1 MB | 212/234 kB | 0.6/2.3 MBProgress (3): 0.7/1.1 MB | 216/234 kB | 0.6/2.3 MBProgress (3): 0.7/1.1 MB | 220/234 kB | 0.6/2.3 MBProgress (3): 0.7/1.1 MB | 220/234 kB | 0.6/2.3 MBProgress (3): 0.7/1.1 MB | 225/234 kB | 0.6/2.3 MBProgress (3): 0.7/1.1 MB | 229/234 kB | 0.6/2.3 MBProgress (3): 0.7/1.1 MB | 233/234 kB | 0.6/2.3 MBProgress (3): 0.7/1.1 MB | 234 kB | 0.6/2.3 MB    Progress (3): 0.7/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.7/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.7/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.8/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.8/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.8/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.8/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.8/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.8/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.8/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.8/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.8/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.8/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.8/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.8/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.8/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.8/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.9/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.9/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.9/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.9/1.1 MB | 234 kB | 0.6/2.3 MBProgress (3): 0.9/1.1 MB | 234 kB | 0.7/2.3 MBProgress (3): 0.9/1.1 MB | 234 kB | 0.7/2.3 MBProgress (3): 0.9/1.1 MB | 234 kB | 0.7/2.3 MBProgress (3): 0.9/1.1 MB | 234 kB | 0.7/2.3 MBProgress (3): 0.9/1.1 MB | 234 kB | 0.7/2.3 MBProgress (3): 0.9/1.1 MB | 234 kB | 0.7/2.3 MB                                              Downloaded from central: https://repo.maven.apache.org/maven2/commons-beanutils/commons-beanutils/1.9.2/commons-beanutils-1.9.2.jar (234 kB at 139 kB/s)
-Progress (2): 0.9/1.1 MB | 0.7/2.3 MBProgress (2): 0.9/1.1 MB | 0.8/2.3 MBProgress (2): 0.9/1.1 MB | 0.8/2.3 MBProgress (2): 0.9/1.1 MB | 0.8/2.3 MBProgress (2): 0.9/1.1 MB | 0.8/2.3 MBProgress (2): 0.9/1.1 MB | 0.8/2.3 MBProgress (2): 0.9/1.1 MB | 0.8/2.3 MBProgress (2): 0.9/1.1 MB | 0.8/2.3 MBProgress (2): 0.9/1.1 MB | 0.8/2.3 MBProgress (2): 0.9/1.1 MB | 0.8/2.3 MBProgress (2): 0.9/1.1 MB | 0.8/2.3 MBProgress (2): 0.9/1.1 MB | 0.8/2.3 MBProgress (2): 1.0/1.1 MB | 0.8/2.3 MBProgress (2): 1.0/1.1 MB | 0.8/2.3 MBProgress (2): 1.0/1.1 MB | 0.8/2.3 MBProgress (2): 1.0/1.1 MB | 0.8/2.3 MBProgress (2): 1.0/1.1 MB | 0.8/2.3 MBProgress (2): 1.0/1.1 MB | 0.8/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 0.9/2.3 MBProgress (2): 1.0/1.1 MB | 1.0/2.3 MBProgress (2): 1.0/1.1 MB | 1.0/2.3 MBProgress (2): 1.0/1.1 MB | 1.0/2.3 MBProgress (2): 1.0/1.1 MB | 1.0/2.3 MBProgress (2): 1.0/1.1 MB | 1.0/2.3 MBProgress (2): 1.0/1.1 MB | 1.0/2.3 MBProgress (2): 1.0/1.1 MB | 1.1/2.3 MBProgress (2): 1.0/1.1 MB | 1.1/2.3 MBProgress (2): 1.0/1.1 MB | 1.1/2.3 MBProgress (2): 1.0/1.1 MB | 1.1/2.3 MBProgress (2): 1.0/1.1 MB | 1.1/2.3 MBProgress (2): 1.1/1.1 MB | 1.1/2.3 MBProgress (2): 1.1/1.1 MB | 1.1/2.3 MBProgress (2): 1.1/1.1 MB | 1.1/2.3 MBProgress (2): 1.1/1.1 MB | 1.1/2.3 MBProgress (2): 1.1/1.1 MB | 1.1/2.3 MBProgress (2): 1.1 MB | 1.1/2.3 MB    Progress (2): 1.1 MB | 1.1/2.3 MBProgress (2): 1.1 MB | 1.2/2.3 MBProgress (2): 1.1 MB | 1.2/2.3 MBProgress (2): 1.1 MB | 1.2/2.3 MBProgress (2): 1.1 MB | 1.2/2.3 MBProgress (2): 1.1 MB | 1.2/2.3 MBProgress (2): 1.1 MB | 1.2/2.3 MBProgress (2): 1.1 MB | 1.3/2.3 MBProgress (2): 1.1 MB | 1.3/2.3 MBProgress (2): 1.1 MB | 1.3/2.3 MBProgress (2): 1.1 MB | 1.3/2.3 MBProgress (2): 1.1 MB | 1.3/2.3 MBProgress (2): 1.1 MB | 1.3/2.3 MBProgress (2): 1.1 MB | 1.3/2.3 MBProgress (2): 1.1 MB | 1.4/2.3 MBProgress (2): 1.1 MB | 1.4/2.3 MB                                 Downloaded from central: https://repo.maven.apache.org/maven2/com/puppycrawl/tools/checkstyle/6.11.2/checkstyle-6.11.2.jar (1.1 MB at 567 kB/s)
-Progress (1): 1.4/2.3 MBProgress (1): 1.4/2.3 MBProgress (1): 1.4/2.3 MBProgress (1): 1.4/2.3 MBProgress (1): 1.5/2.3 MBProgress (1): 1.5/2.3 MBProgress (1): 1.5/2.3 MBProgress (1): 1.5/2.3 MBProgress (1): 1.5/2.3 MBProgress (1): 1.5/2.3 MBProgress (1): 1.6/2.3 MBProgress (1): 1.6/2.3 MBProgress (1): 1.6/2.3 MBProgress (1): 1.6/2.3 MBProgress (1): 1.6/2.3 MBProgress (1): 1.6/2.3 MBProgress (1): 1.7/2.3 MBProgress (1): 1.7/2.3 MBProgress (1): 1.7/2.3 MBProgress (1): 1.7/2.3 MBProgress (1): 1.7/2.3 MBProgress (1): 1.7/2.3 MBProgress (1): 1.8/2.3 MBProgress (1): 1.8/2.3 MBProgress (1): 1.8/2.3 MBProgress (1): 1.8/2.3 MBProgress (1): 1.8/2.3 MBProgress (1): 1.8/2.3 MBProgress (1): 1.9/2.3 MBProgress (1): 1.9/2.3 MBProgress (1): 1.9/2.3 MBProgress (1): 1.9/2.3 MBProgress (1): 1.9/2.3 MBProgress (1): 1.9/2.3 MBProgress (1): 2.0/2.3 MBProgress (1): 2.0/2.3 MBProgress (1): 2.0/2.3 MBProgress (1): 2.0/2.3 MBProgress (1): 2.0/2.3 MBProgress (1): 2.0/2.3 MBProgress (1): 2.1/2.3 MBProgress (1): 2.1/2.3 MBProgress (1): 2.1/2.3 MBProgress (1): 2.1/2.3 MBProgress (1): 2.1/2.3 MBProgress (1): 2.1/2.3 MBProgress (1): 2.1/2.3 MBProgress (1): 2.2/2.3 MBProgress (1): 2.2/2.3 MBProgress (1): 2.2/2.3 MBProgress (1): 2.2/2.3 MBProgress (1): 2.2/2.3 MBProgress (1): 2.2/2.3 MBProgress (1): 2.3 MB                        Downloaded from central: https://repo.maven.apache.org/maven2/com/google/guava/guava/18.0/guava-18.0.jar (2.3 MB at 978 kB/s)
-[WARNING] File encoding has not been set, using platform encoding UTF-8, i.e. build is platform dependent!
-[INFO] Starting audit...
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:0: error: Missing package-info.java file.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:88:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:98: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:102:35: error: Parameter fileSys should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:102:46: error: Expected @param tag for 'fileSys'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:102:55: error: Parameter name should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:102:60: error: Expected @param tag for 'name'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:102:66: error: Parameter repl should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:102:70: error: Expected @param tag for 'repl'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:103:5: error: Parameter downnode should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:103:22: error: Parameter numDatanodes should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:103:26: error: Expected @param tag for 'numDatanodes'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:103:47: error: Expected @throws tag for 'IOException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:106:27: error: '+' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:106:28: error: '+' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:119:67: error: '+' should be on a new line.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:120:52: error: '+' should be on a new line.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:129:63: error: '+' should be on a new line.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:134:67: error: '+' should be on a new line.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:142:9: error: 'if' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:142:37: error: '+' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:142:38: error: '+' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:143:71: error: '+' should be on a new line.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:144:47: error: '+' should be on a new line.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:145:38: error: '+' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:145:39: error: '+' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:151:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:151:28: error: Parameter namenode should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:151:47: error: Parameter fsn should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:152:7: error: Parameter info should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:152:26: error: Parameter node should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:152:41: error: Parameter decommissioning should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:155:25: error: '10' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:161:27: error: Avoid inline conditionals.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:164:49: error: Avoid inline conditionals.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:167:49: error: Avoid inline conditionals.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:175: error: First sentence should end with a period.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:178:3: error: Method 'testDecommission' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:178:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:178:17: error: '360000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:178:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:179:41: error: Expected @throws tag for 'IOException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:180:25: error: '6' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:188:3: error: Method 'testDecommission2' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:188:19: error: '360000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:189:42: error: Expected @throws tag for 'IOException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:192:24: error: '4' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:193:57: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:196: error: Line is longer than 80 characters (found 98).
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:201:20: error: '4' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:231:21: error: '4' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:233: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:234: error: First sentence should end with a period.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:237:3: error: Method 'testDecommissionFederation' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:237:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:237:17: error: '360000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:237:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:238:51: error: Expected @throws tag for 'IOException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:252:3: error: Method 'testDecommissionOnStandby' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:252:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:252:17: error: '360000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:252:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:253:50: error: Expected @throws tag for 'Exception'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:256:9: error: '30000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:265:57: error: '1000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:269:26: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:279:20: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:288:65: error: '30' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:290:55: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:332:35: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:340:9: error: '30' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:362:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:362:33: error: Parameter numNamenodes should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:362:51: error: Parameter numDatanodes should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:366: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:367: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:369:8: error: 'for' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:375: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:396: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:400:26: error: '20' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:402:26: error: '1000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:411:42: error: '20' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:425:3: error: Method 'testRecommission' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:425:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:425:17: error: '120000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:425:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:426:41: error: Expected @throws tag for 'Exception'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:489:10: error: '500' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:489:15: error: '30000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:502: error: First sentence should end with a period.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:506:3: error: Method 'testClusterStats' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:506:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:506:17: error: '360000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:506:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:507:41: error: Expected @throws tag for 'Exception'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:510: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:511: error: First sentence should end with a period.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:515:3: error: Method 'testClusterStatsFederation' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:515:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:515:17: error: '360000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:515:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:516:51: error: Expected @throws tag for 'Exception'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:517:22: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:519: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:520:3: error: Method 'testClusterStats' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:520:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:520:32: error: Parameter numNameNodes should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:525: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:530: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:533: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:539: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:548:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:548:32: error: Parameter decomInfo should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:565:3: error: Method 'testHostsFile' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:565:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:565:17: error: '360000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:565:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:566:38: error: Expected @throws tag for 'IOException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:566:51: error: Expected @throws tag for 'InterruptedException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:570: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:573: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:576:3: error: Method 'testHostsFileFederation' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:576:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:576:17: error: '360000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:576:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:578:14: error: Expected @throws tag for 'IOException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:578:27: error: Expected @throws tag for 'InterruptedException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:580:19: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:582: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:583:3: error: Method 'testHostsFile' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:583:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:583:29: error: Parameter numNameNodes should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:597:21: error: ';' is preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:597:28: error: '5' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:599:43: error: '1000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:603: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:613: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:614:3: error: Method 'testDecommissionWithOpenfile' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:614:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:614:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:614:17: error: '120000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:614:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:618: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:620:21: error: '7' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:621: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:626: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:627: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:627:51: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:627:51: error: 'typecast' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:629: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:630: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:636: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:666:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:676:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:676:42: error: Parameter message should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:677:7: error: Parameter closedFileSet should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:678:7: error: Parameter openFilesMap should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:679:7: error: Parameter out should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:679:34: error: Parameter expOpenFilesListSize should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:683:9: error: 'if' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:689:9: error: 'if' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:703:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:703:52: error: Parameter closedFileSet should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:704:7: error: Parameter openFilesMap should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:764:10: error: '1000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:764:16: error: '60000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:770:3: error: Method 'testDecommissionWithOpenfileReporting' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:770:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:770:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:770:17: error: '180000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:770:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:779:9: error: '1000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:784:27: error: '4' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:789:45: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:790:43: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:793:25: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:796:59: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:796:59: error: 'typecast' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:796:62: error: '10' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:798:57: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:798:57: error: 'typecast' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:798:60: error: '10' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:804:25: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:806:69: error: '10' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:850:26: error: '1000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:870:3: error: Method 'testDecommissionWithOpenFileAndBlockRecovery' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:870:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:870:19: error: '360000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:873:21: error: '6' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:881:75: error: '4096' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:882:17: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:888:23: error: '8' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:905:33: error: '300L' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:905:39: error: '300L' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:917:3: error: Method 'testCloseWhileDecommission' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:917:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:917:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:917:17: error: '120000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:917:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:924:21: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:931:51: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:931:51: error: 'typecast' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:976:3: error: Method 'testAllocAndIBRWhileDecommission' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:976:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:976:17: error: '120000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:976:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:977:57: error: Expected @throws tag for 'IOException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:979:21: error: '6' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:988:13: error: '4096' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:988:28: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:993:27: error: '8' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:995:23: error: '8' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1020:23: error: '8' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1055: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1056: error: First sentence should end with a period.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1059:3: error: Method 'testDecommissionWithNamenodeRestart' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1059:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1059:17: error: '360000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1059:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1061:14: error: Expected @throws tag for 'IOException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1061:27: error: Expected @throws tag for 'InterruptedException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1068:72: error: '5' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1074: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1084:17: error: '+=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1084:19: error: '+=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1095: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1108: error: First sentence should end with a period.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1111:3: error: Method 'testDeadNodeCountAfterNamenodeRestart' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1111:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1111:17: error: '360000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1111:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1112:61: error: Expected @throws tag for 'Exception'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1132:66: error: '20000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1157:3: error: Method 'testIncludeByRegistrationName' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1158:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1158:17: error: '360000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1158:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1159:54: error: Expected @throws tag for 'Exception'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1184:28: error: Array brackets at illegal position.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1191:8: error: '500' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1191:13: error: '5000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1209:28: error: Array brackets at illegal position.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1221:8: error: '500' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1221:13: error: '5000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1223: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1224:3: error: Method 'testBlocksPerInterval' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1224:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1224:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1224:17: error: '120000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1224:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1231:9: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1235:21: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1243:52: error: '64' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1243:64: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1243:67: error: '0xBAD1DEA' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1244:49: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1246:52: error: '64' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1246:63: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1246:63: error: 'typecast' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1246:66: error: '0xBAD1DEA' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1249:52: error: '64' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1249:63: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1249:63: error: 'typecast' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1249:66: error: '0xBAD1DEA' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1252:52: error: '64' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1252:63: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1252:63: error: 'typecast' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1252:66: error: '0xBAD1DEA' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1256:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1256:29: error: Parameter datanodeManager should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1257:7: error: Parameter decomManager should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1257:42: error: Parameter expectedNumCheckedNodes should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1268: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1279:3: error: Method 'testPendingNodeButDecommissioned' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1279:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1279:17: error: '120000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1279:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1280:57: error: Expected @throws tag for 'Exception'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1317:11: error: '500' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1317:16: error: '30000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1326:3: error: Method 'testPendingNodes' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1326:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1326:16: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1326:17: error: '120000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1326:17: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1337:21: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1346:73: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1346:73: error: 'typecast' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1348:17: error: '123' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1355:15: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1355:16: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1355:20: error: '<' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1355:21: error: '<' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1362:15: error: '=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1362:16: error: '=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1362:20: error: '>=' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1362:22: error: '>=' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1374: error: Line has trailing spaces.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1378:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1378:40: error: Parameter decomManager should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1379:7: error: Parameter tracked should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1379:20: error: Parameter pending should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1386: error: First sentence should end with a period.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1392:3: error: Method 'testCountOnDecommissionedNodeList' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1393:58: error: Expected @throws tag for 'IOException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1393:69: error: '{' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1415:19: error: '==' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1415:21: error: '==' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1418:19: error: '==' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1418:21: error: '==' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1419:6: error: 'finally' is not preceded with whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1419:6: error: '}' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1424: error: First sentence should end with a period.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1428:3: error: Method 'testNodeUsageAfterDecommissioned' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1430:14: error: Expected @throws tag for 'IOException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1430:27: error: Expected @throws tag for 'InterruptedException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1431:42: error: '{' is followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1431:43: error: '26384L' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1431:51: error: '26384L' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1435: error: First sentence should end with a period.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1440:3: error: Method 'testNodeUsageWhileDecommissioining' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1442:14: error: Expected @throws tag for 'IOException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1442:27: error: Expected @throws tag for 'InterruptedException'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1443:42: error: '{' is followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1443:43: error: '26384L' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1447:3: error: Method 'nodeUsageVerification' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1447:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1448:37: error: Parameter numDatanodes should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1448:55: error: Parameter nodesCapacity should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1449:7: error: Parameter decommissionState should be final.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1477:20: error: '2000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1503:15: error: Avoid inline conditionals.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1512:3: error: Method 'testUsedCapacity' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1512:3: error: Missing a Javadoc comment.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1538:75: error: '+' should be on a new line.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1540:73: error: '+' should be on a new line.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1542:73: error: '+' should be on a new line.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1543:32: error: ',' is not followed by whitespace.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1549:3: error: Method 'testMultipleNodesDecommission' is not designed for extension - needs to be abstract, final or empty.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1549:19: error: '360000' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1550:54: error: Expected @throws tag for 'Exception'.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1551:21: error: '5' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1556:16: error: '3' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1569:52: error: '5' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1579:8: error: '500' is a magic number.
-/app/source/tmp-checkstyle-942/src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:1579:13: error: '30000' is a magic number.
-Audit done.
-[INFO] There are 346 errors reported by Checkstyle 6.11.2 with sun_checks.xml ruleset.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[0] (javadoc) JavadocPackage: Missing package-info.java file.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[88,3] (javadoc) JavadocVariable: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[98] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[102,35] (misc) FinalParameters: Parameter fileSys should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[102,46] (javadoc) JavadocMethod: Expected @param tag for 'fileSys'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[102,55] (misc) FinalParameters: Parameter name should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[102,60] (javadoc) JavadocMethod: Expected @param tag for 'name'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[102,66] (misc) FinalParameters: Parameter repl should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[102,70] (javadoc) JavadocMethod: Expected @param tag for 'repl'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[103,5] (misc) FinalParameters: Parameter downnode should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[103,22] (misc) FinalParameters: Parameter numDatanodes should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[103,26] (javadoc) JavadocMethod: Expected @param tag for 'numDatanodes'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[103,47] (javadoc) JavadocMethod: Expected @throws tag for 'IOException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[106,27] (whitespace) WhitespaceAround: '+' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[106,28] (whitespace) WhitespaceAround: '+' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[119,67] (whitespace) OperatorWrap: '+' should be on a new line.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[120,52] (whitespace) OperatorWrap: '+' should be on a new line.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[129,63] (whitespace) OperatorWrap: '+' should be on a new line.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[134,67] (whitespace) OperatorWrap: '+' should be on a new line.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[142,9] (whitespace) WhitespaceAround: 'if' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[142,37] (whitespace) WhitespaceAround: '+' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[142,38] (whitespace) WhitespaceAround: '+' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[143,71] (whitespace) OperatorWrap: '+' should be on a new line.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[144,47] (whitespace) OperatorWrap: '+' should be on a new line.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[145,38] (whitespace) WhitespaceAround: '+' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[145,39] (whitespace) WhitespaceAround: '+' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[151,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[151,28] (misc) FinalParameters: Parameter namenode should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[151,47] (misc) FinalParameters: Parameter fsn should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[152,7] (misc) FinalParameters: Parameter info should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[152,26] (misc) FinalParameters: Parameter node should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[152,41] (misc) FinalParameters: Parameter decommissioning should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[155,25] (coding) MagicNumber: '10' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[161,27] (coding) AvoidInlineConditionals: Avoid inline conditionals.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[164,49] (coding) AvoidInlineConditionals: Avoid inline conditionals.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[167,49] (coding) AvoidInlineConditionals: Avoid inline conditionals.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[175] (javadoc) JavadocStyle: First sentence should end with a period.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[178,3] (design) DesignForExtension: Method 'testDecommission' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[178,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[178,17] (coding) MagicNumber: '360000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[178,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[179,41] (javadoc) JavadocMethod: Expected @throws tag for 'IOException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[180,25] (coding) MagicNumber: '6' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[188,3] (design) DesignForExtension: Method 'testDecommission2' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[188,19] (coding) MagicNumber: '360000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[189,42] (javadoc) JavadocMethod: Expected @throws tag for 'IOException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[192,24] (coding) MagicNumber: '4' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[193,57] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[196] (sizes) LineLength: Line is longer than 80 characters (found 98).
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[201,20] (coding) MagicNumber: '4' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[231,21] (coding) MagicNumber: '4' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[233] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[234] (javadoc) JavadocStyle: First sentence should end with a period.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[237,3] (design) DesignForExtension: Method 'testDecommissionFederation' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[237,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[237,17] (coding) MagicNumber: '360000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[237,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[238,51] (javadoc) JavadocMethod: Expected @throws tag for 'IOException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[252,3] (design) DesignForExtension: Method 'testDecommissionOnStandby' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[252,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[252,17] (coding) MagicNumber: '360000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[252,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[253,50] (javadoc) JavadocMethod: Expected @throws tag for 'Exception'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[256,9] (coding) MagicNumber: '30000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[265,57] (coding) MagicNumber: '1000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[269,26] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[279,20] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[288,65] (coding) MagicNumber: '30' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[290,55] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[332,35] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[340,9] (coding) MagicNumber: '30' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[362,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[362,33] (misc) FinalParameters: Parameter numNamenodes should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[362,51] (misc) FinalParameters: Parameter numDatanodes should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[366] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[367] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[369,8] (whitespace) WhitespaceAround: 'for' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[375] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[396] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[400,26] (coding) MagicNumber: '20' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[402,26] (coding) MagicNumber: '1000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[411,42] (coding) MagicNumber: '20' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[425,3] (design) DesignForExtension: Method 'testRecommission' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[425,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[425,17] (coding) MagicNumber: '120000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[425,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[426,41] (javadoc) JavadocMethod: Expected @throws tag for 'Exception'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[489,10] (coding) MagicNumber: '500' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[489,15] (coding) MagicNumber: '30000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[502] (javadoc) JavadocStyle: First sentence should end with a period.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[506,3] (design) DesignForExtension: Method 'testClusterStats' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[506,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[506,17] (coding) MagicNumber: '360000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[506,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[507,41] (javadoc) JavadocMethod: Expected @throws tag for 'Exception'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[510] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[511] (javadoc) JavadocStyle: First sentence should end with a period.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[515,3] (design) DesignForExtension: Method 'testClusterStatsFederation' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[515,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[515,17] (coding) MagicNumber: '360000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[515,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[516,51] (javadoc) JavadocMethod: Expected @throws tag for 'Exception'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[517,22] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[519] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[520,3] (design) DesignForExtension: Method 'testClusterStats' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[520,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[520,32] (misc) FinalParameters: Parameter numNameNodes should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[525] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[530] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[533] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[539] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[548,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[548,32] (misc) FinalParameters: Parameter decomInfo should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[565,3] (design) DesignForExtension: Method 'testHostsFile' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[565,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[565,17] (coding) MagicNumber: '360000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[565,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[566,38] (javadoc) JavadocMethod: Expected @throws tag for 'IOException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[566,51] (javadoc) JavadocMethod: Expected @throws tag for 'InterruptedException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[570] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[573] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[576,3] (design) DesignForExtension: Method 'testHostsFileFederation' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[576,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[576,17] (coding) MagicNumber: '360000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[576,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[578,14] (javadoc) JavadocMethod: Expected @throws tag for 'IOException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[578,27] (javadoc) JavadocMethod: Expected @throws tag for 'InterruptedException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[580,19] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[582] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[583,3] (design) DesignForExtension: Method 'testHostsFile' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[583,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[583,29] (misc) FinalParameters: Parameter numNameNodes should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[597,21] (whitespace) NoWhitespaceBefore: ';' is preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[597,28] (coding) MagicNumber: '5' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[599,43] (coding) MagicNumber: '1000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[603] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[613] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[614,3] (design) DesignForExtension: Method 'testDecommissionWithOpenfile' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[614,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[614,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[614,17] (coding) MagicNumber: '120000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[614,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[618] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[620,21] (coding) MagicNumber: '7' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[621] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[626] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[627] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[627,51] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[627,51] (whitespace) WhitespaceAfter: 'typecast' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[629] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[630] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[636] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[666,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[676,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[676,42] (misc) FinalParameters: Parameter message should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[677,7] (misc) FinalParameters: Parameter closedFileSet should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[678,7] (misc) FinalParameters: Parameter openFilesMap should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[679,7] (misc) FinalParameters: Parameter out should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[679,34] (misc) FinalParameters: Parameter expOpenFilesListSize should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[683,9] (whitespace) WhitespaceAround: 'if' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[689,9] (whitespace) WhitespaceAround: 'if' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[703,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[703,52] (misc) FinalParameters: Parameter closedFileSet should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[704,7] (misc) FinalParameters: Parameter openFilesMap should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[764,10] (coding) MagicNumber: '1000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[764,16] (coding) MagicNumber: '60000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[770,3] (design) DesignForExtension: Method 'testDecommissionWithOpenfileReporting' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[770,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[770,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[770,17] (coding) MagicNumber: '180000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[770,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[779,9] (coding) MagicNumber: '1000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[784,27] (coding) MagicNumber: '4' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[789,45] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[790,43] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[793,25] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[796,59] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[796,59] (whitespace) WhitespaceAfter: 'typecast' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[796,62] (coding) MagicNumber: '10' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[798,57] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[798,57] (whitespace) WhitespaceAfter: 'typecast' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[798,60] (coding) MagicNumber: '10' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[804,25] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[806,69] (coding) MagicNumber: '10' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[850,26] (coding) MagicNumber: '1000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[870,3] (design) DesignForExtension: Method 'testDecommissionWithOpenFileAndBlockRecovery' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[870,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[870,19] (coding) MagicNumber: '360000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[873,21] (coding) MagicNumber: '6' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[881,75] (coding) MagicNumber: '4096' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[882,17] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[888,23] (coding) MagicNumber: '8' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[905,33] (coding) MagicNumber: '300L' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[905,39] (coding) MagicNumber: '300L' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[917,3] (design) DesignForExtension: Method 'testCloseWhileDecommission' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[917,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[917,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[917,17] (coding) MagicNumber: '120000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[917,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[924,21] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[931,51] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[931,51] (whitespace) WhitespaceAfter: 'typecast' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[976,3] (design) DesignForExtension: Method 'testAllocAndIBRWhileDecommission' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[976,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[976,17] (coding) MagicNumber: '120000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[976,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[977,57] (javadoc) JavadocMethod: Expected @throws tag for 'IOException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[979,21] (coding) MagicNumber: '6' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[988,13] (coding) MagicNumber: '4096' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[988,28] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[993,27] (coding) MagicNumber: '8' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[995,23] (coding) MagicNumber: '8' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1020,23] (coding) MagicNumber: '8' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1055] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1056] (javadoc) JavadocStyle: First sentence should end with a period.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1059,3] (design) DesignForExtension: Method 'testDecommissionWithNamenodeRestart' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1059,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1059,17] (coding) MagicNumber: '360000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1059,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1061,14] (javadoc) JavadocMethod: Expected @throws tag for 'IOException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1061,27] (javadoc) JavadocMethod: Expected @throws tag for 'InterruptedException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1068,72] (coding) MagicNumber: '5' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1074] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1084,17] (whitespace) WhitespaceAround: '+=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1084,19] (whitespace) WhitespaceAround: '+=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1095] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1108] (javadoc) JavadocStyle: First sentence should end with a period.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1111,3] (design) DesignForExtension: Method 'testDeadNodeCountAfterNamenodeRestart' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1111,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1111,17] (coding) MagicNumber: '360000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1111,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1112,61] (javadoc) JavadocMethod: Expected @throws tag for 'Exception'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1132,66] (coding) MagicNumber: '20000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1157,3] (design) DesignForExtension: Method 'testIncludeByRegistrationName' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1158,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1158,17] (coding) MagicNumber: '360000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1158,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1159,54] (javadoc) JavadocMethod: Expected @throws tag for 'Exception'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1184,28] (misc) ArrayTypeStyle: Array brackets at illegal position.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1191,8] (coding) MagicNumber: '500' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1191,13] (coding) MagicNumber: '5000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1209,28] (misc) ArrayTypeStyle: Array brackets at illegal position.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1221,8] (coding) MagicNumber: '500' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1221,13] (coding) MagicNumber: '5000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1223] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1224,3] (design) DesignForExtension: Method 'testBlocksPerInterval' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1224,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1224,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1224,17] (coding) MagicNumber: '120000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1224,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1231,9] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1235,21] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1243,52] (coding) MagicNumber: '64' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1243,64] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1243,67] (coding) MagicNumber: '0xBAD1DEA' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1244,49] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1246,52] (coding) MagicNumber: '64' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1246,63] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1246,63] (whitespace) WhitespaceAfter: 'typecast' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1246,66] (coding) MagicNumber: '0xBAD1DEA' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1249,52] (coding) MagicNumber: '64' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1249,63] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1249,63] (whitespace) WhitespaceAfter: 'typecast' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1249,66] (coding) MagicNumber: '0xBAD1DEA' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1252,52] (coding) MagicNumber: '64' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1252,63] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1252,63] (whitespace) WhitespaceAfter: 'typecast' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1252,66] (coding) MagicNumber: '0xBAD1DEA' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1256,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1256,29] (misc) FinalParameters: Parameter datanodeManager should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1257,7] (misc) FinalParameters: Parameter decomManager should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1257,42] (misc) FinalParameters: Parameter expectedNumCheckedNodes should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1268] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1279,3] (design) DesignForExtension: Method 'testPendingNodeButDecommissioned' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1279,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1279,17] (coding) MagicNumber: '120000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1279,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1280,57] (javadoc) JavadocMethod: Expected @throws tag for 'Exception'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1317,11] (coding) MagicNumber: '500' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1317,16] (coding) MagicNumber: '30000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1326,3] (design) DesignForExtension: Method 'testPendingNodes' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1326,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1326,16] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1326,17] (coding) MagicNumber: '120000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1326,17] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1337,21] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1346,73] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1346,73] (whitespace) WhitespaceAfter: 'typecast' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1348,17] (coding) MagicNumber: '123' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1355,15] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1355,16] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1355,20] (whitespace) WhitespaceAround: '<' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1355,21] (whitespace) WhitespaceAround: '<' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1362,15] (whitespace) WhitespaceAround: '=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1362,16] (whitespace) WhitespaceAround: '=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1362,20] (whitespace) WhitespaceAround: '>=' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1362,22] (whitespace) WhitespaceAround: '>=' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1374] (regexp) RegexpSingleline: Line has trailing spaces.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1378,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1378,40] (misc) FinalParameters: Parameter decomManager should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1379,7] (misc) FinalParameters: Parameter tracked should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1379,20] (misc) FinalParameters: Parameter pending should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1386] (javadoc) JavadocStyle: First sentence should end with a period.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1392,3] (design) DesignForExtension: Method 'testCountOnDecommissionedNodeList' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1393,58] (javadoc) JavadocMethod: Expected @throws tag for 'IOException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1393,69] (whitespace) WhitespaceAround: '{' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1415,19] (whitespace) WhitespaceAround: '==' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1415,21] (whitespace) WhitespaceAround: '==' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1418,19] (whitespace) WhitespaceAround: '==' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1418,21] (whitespace) WhitespaceAround: '==' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1419,6] (whitespace) WhitespaceAround: 'finally' is not preceded with whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1419,6] (whitespace) WhitespaceAround: '}' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1424] (javadoc) JavadocStyle: First sentence should end with a period.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1428,3] (design) DesignForExtension: Method 'testNodeUsageAfterDecommissioned' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1430,14] (javadoc) JavadocMethod: Expected @throws tag for 'IOException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1430,27] (javadoc) JavadocMethod: Expected @throws tag for 'InterruptedException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1431,42] (whitespace) NoWhitespaceAfter: '{' is followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1431,43] (coding) MagicNumber: '26384L' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1431,51] (coding) MagicNumber: '26384L' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1435] (javadoc) JavadocStyle: First sentence should end with a period.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1440,3] (design) DesignForExtension: Method 'testNodeUsageWhileDecommissioining' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1442,14] (javadoc) JavadocMethod: Expected @throws tag for 'IOException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1442,27] (javadoc) JavadocMethod: Expected @throws tag for 'InterruptedException'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1443,42] (whitespace) NoWhitespaceAfter: '{' is followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1443,43] (coding) MagicNumber: '26384L' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1447,3] (design) DesignForExtension: Method 'nodeUsageVerification' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1447,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1448,37] (misc) FinalParameters: Parameter numDatanodes should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1448,55] (misc) FinalParameters: Parameter nodesCapacity should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1449,7] (misc) FinalParameters: Parameter decommissionState should be final.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1477,20] (coding) MagicNumber: '2000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1503,15] (coding) AvoidInlineConditionals: Avoid inline conditionals.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1512,3] (design) DesignForExtension: Method 'testUsedCapacity' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1512,3] (javadoc) JavadocMethod: Missing a Javadoc comment.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1538,75] (whitespace) OperatorWrap: '+' should be on a new line.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1540,73] (whitespace) OperatorWrap: '+' should be on a new line.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1542,73] (whitespace) OperatorWrap: '+' should be on a new line.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1543,32] (whitespace) WhitespaceAfter: ',' is not followed by whitespace.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1549,3] (design) DesignForExtension: Method 'testMultipleNodesDecommission' is not designed for extension - needs to be abstract, final or empty.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1549,19] (coding) MagicNumber: '360000' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1550,54] (javadoc) JavadocMethod: Expected @throws tag for 'Exception'.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1551,21] (coding) MagicNumber: '5' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1556,16] (coding) MagicNumber: '3' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1569,52] (coding) MagicNumber: '5' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1579,8] (coding) MagicNumber: '500' is a magic number.
-[ERROR] src/main/java/org/apache/hadoop/hdfs/TestDecommission.java:[1579,13] (coding) MagicNumber: '30000' is a magic number.
-[WARNING] checkstyle:check violations detected but failOnViolation set to false
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  8.067 s
-[INFO] Finished at: 2026-03-27T12:14:02Z
-[INFO] ------------------------------------------------------------------------

@@ -1,2 +1,0 @@
-Flaky directory created from https://github.com/apache/bookkeeper at commit da1a2fa6b19ddcdba68834147bf6afbe5bf90cbf
-issue report: https://issues.apache.org/jira/browse/BOOKKEEPER-846
