@@ -764,6 +764,25 @@ def main():
         }
     }, indent=2), encoding="utf-8")
 
+    # One verify helper, defined here so BOTH the ID discrimination gate (on the
+    # pristine unfixed tree, below) and the post-fix verify share one verdict
+    # standard. verify_after_fix.verdict is written by agentic_verify.py.
+    verdict_path = steps / "verify_after_fix.verdict"
+
+    def _verify_once() -> str:
+        # Clear any prior verdict first so a verify that crashes BEFORE writing
+        # one cannot leave us reading a STALE verdict (e.g. a previous PASSED) —
+        # that would be a fabricated PASS, violating the PASSED/FAILED-only rule.
+        verdict_path.unlink(missing_ok=True)
+        rc = run([sys.executable, str(AGENTIC_VERIFY), container,
+                  "--docker-container", docker_container], check=False).returncode
+        if verdict_path.is_file():
+            return verdict_path.read_text(encoding="utf-8").strip()
+        # No verdict written -> verify itself crashed (container gone, missing
+        # env, ...). Not a real test result: fail closed and surface it.
+        log(f"WARNING: agentic_verify wrote no verdict (rc={rc}); treating as FAILED")
+        return "FAILED"
+
     # ---- restore the protected baseline, then re-apply via the applier -----
     log("restoring Flaky/ from the protected baseline")
     shutil.rmtree(flaky, ignore_errors=True)
@@ -775,6 +794,34 @@ def main():
     git(flaky, "init", "-q")
     git(flaky, "add", "-A")
     git(flaky, "commit", "-q", "-m", "baseline")
+
+    # ---- ID discrimination gate (fail-closed) ------------------------------
+    # NonDex ID flakiness is probabilistic and, for some subjects, not even
+    # reproducible at a fixed seed, so a single post-fix verify can PASS on
+    # UNFIXED code -> an empty/no-op patch is then scored PASSED (the observed
+    # shardingsphere false-PASS). Guard: the SAME verify must FAIL the UNFIXED
+    # victim at least once here — on the pristine tree, BEFORE apply_fix lands the
+    # patch — otherwise the verify cannot tell a fix from no-fix and any later
+    # PASS is meaningless, so we fail closed. Mirrors the TD forced-verify gate.
+    # Discriminative subjects (e.g. a fixed-seed order reversal) fail on run 1 and
+    # cost a single extra verify; only non-reproducing ones spend the full budget.
+    id_discriminative = True
+    if test_type == "id":
+        log(f"ID gate: does the UNFIXED victim fail the verify? "
+            f"(up to {VERIFY_PASS_RUNS} run(s), on the pristine tree)")
+        id_discriminative = False
+        for i in range(1, VERIFY_PASS_RUNS + 1):
+            bv = _verify_once()
+            log(f"  gate {i}/{VERIFY_PASS_RUNS}: unfixed victim -> {bv}")
+            if bv == "FAILED":
+                id_discriminative = True
+                log(f"  unfixed victim failed on run {i} -> verify is "
+                    f"discriminative; proceeding to apply + verify the fix.")
+                break
+        if not id_discriminative:
+            log(f"  unfixed victim PASSED all {VERIFY_PASS_RUNS} runs -> the NonDex "
+                f"verify cannot reproduce this container's flakiness; a fix PASS "
+                f"would be meaningless. Fail-closed (verdict FAILED).")
 
     log("apply_fix.py")
     run([sys.executable, str(APPLY_FIX), container,
@@ -919,22 +966,6 @@ def main():
     if not (test_type == "td" and not td_forced_ok):
         compile_in_container(docker_container, test_type, module)
 
-    verdict_path = steps / "verify_after_fix.verdict"
-
-    def _verify_once() -> str:
-        # Clear any prior verdict first so a verify that crashes BEFORE writing
-        # one cannot leave us reading a STALE verdict (e.g. a previous PASSED) —
-        # that would be a fabricated PASS, violating the PASSED/FAILED-only rule.
-        verdict_path.unlink(missing_ok=True)
-        rc = run([sys.executable, str(AGENTIC_VERIFY), container,
-                  "--docker-container", docker_container], check=False).returncode
-        if verdict_path.is_file():
-            return verdict_path.read_text(encoding="utf-8").strip()
-        # No verdict written -> verify itself crashed (container gone, missing
-        # env, ...). Not a real test result: fail closed and surface it.
-        log(f"WARNING: agentic_verify wrote no verdict (rc={rc}); treating as FAILED")
-        return "FAILED"
-
     # Initial verify, then — matching the orchestrator's bar — require
     # VERIFY_PASS_RUNS additional passing confirmation runs. A fix that passes
     # once but fails a confirmation is non-deterministic -> FAILED. The tree is
@@ -950,6 +981,14 @@ def main():
         # line and skip the verify command.
         log("TD forced-verify tree unavailable — recording FAILED (fail-closed; "
             "NOT running the non-discriminative bare-victim verify).")
+        verdict_path.write_text("FAILED\n", encoding="utf-8")
+        verdict = "FAILED"
+    elif test_type == "id" and not id_discriminative:
+        # The unfixed victim never failed the verify (see the ID gate above), so a
+        # pass here could not distinguish a real fix from a no-op patch. Do NOT run
+        # the non-discriminative verify; record FAILED (fail-closed).
+        log("ID verify is non-discriminative (unfixed victim never failed) — "
+            "recording FAILED (fail-closed).")
         verdict_path.write_text("FAILED\n", encoding="utf-8")
         verdict = "FAILED"
     else:
@@ -995,6 +1034,9 @@ def main():
         "agent_exit_code": agent_rc,
         "verdict": verdict,
         "verify_pass_runs": VERIFY_PASS_RUNS,
+        # ID only: did the UNFIXED victim fail the verify (i.e. is the verify
+        # discriminative for this container)? False => verdict was fail-closed.
+        "id_discriminative": (id_discriminative if test_type == "id" else None),
         "confirm_runs": confirm_runs,
         "patch_bytes": len(diff),
         "usage": usage,
