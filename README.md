@@ -56,18 +56,9 @@ Run from the repository root with the venv interpreter:
 .venv/bin/python AF_Claude_Agent/agentic/run_agentic.py <container> \
   --runs 1 \
   --models claude \
-  --max-iterations 5
+  --max-iterations 10
 ```
 
-Use a spend cap while testing:
-
-```bash
-AGENTIC_MAX_BUDGET_USD=0.50 \
-.venv/bin/python AF_Claude_Agent/agentic/run_agentic.py <container> \
-  --runs 1 \
-  --models claude \
-  --max-iterations 5
-```
 
 Model aliases are defined in `AF_Claude_Agent/agentic/agentic_config.py`.
 
@@ -83,37 +74,33 @@ Model aliases are defined in `AF_Claude_Agent/agentic/agentic_config.py`.
 ID example:
 
 ```bash
-AGENTIC_MAX_BUDGET_USD=0.50 \
 .venv/bin/python AF_Claude_Agent/agentic/run_agentic.py \
   incubatorshardingsphereshardingjdbcshardingjdbccored517e5eassertGetDatabaseProductName \
-  --runs 1 --models claude --max-iterations 5
+  --runs 1 --models claude --max-iterations 10
 ```
 
 OD example:
 
 ```bash
-AGENTIC_MAX_BUDGET_USD=0.50 \
 .venv/bin/python AF_Claude_Agent/agentic/run_agentic.py \
   wikidatatoolkitwdtkutil10f9711 \
-  --runs 1 --models claude --max-iterations 5
+  --runs 1 --models claude --max-iterations 10
 ```
 
 NIO example:
 
 ```bash
-AGENTIC_MAX_BUDGET_USD=0.50 \
 .venv/bin/python AF_Claude_Agent/agentic/run_agentic.py \
   quickcheckc1c1 \
-  --runs 1 --models claude --max-iterations 5
+  --runs 1 --models claude --max-iterations 10
 ```
 
 TD example:
 
 ```bash
-AGENTIC_MAX_BUDGET_USD=0.50 \
 .venv/bin/python AF_Claude_Agent/agentic/run_agentic.py \
   BOOKKEEPER-846 \
-  --runs 1 --models claude --max-iterations 5
+  --runs 1 --models claude --max-iterations 10
 ```
 
 Run all four sequentially:
@@ -121,10 +108,10 @@ Run all four sequentially:
 ```bash
 cd /path/to/AgentFlake_Claude_Agent
 
-AGENTIC_MAX_BUDGET_USD=0.50 .venv/bin/python AF_Claude_Agent/agentic/run_agentic.py incubatorshardingsphereshardingjdbcshardingjdbccored517e5eassertGetDatabaseProductName --runs 1 --models claude --max-iterations 5
-AGENTIC_MAX_BUDGET_USD=0.50 .venv/bin/python AF_Claude_Agent/agentic/run_agentic.py wikidatatoolkitwdtkutil10f9711 --runs 1 --models claude --max-iterations 5
-AGENTIC_MAX_BUDGET_USD=0.50 .venv/bin/python AF_Claude_Agent/agentic/run_agentic.py quickcheckc1c1 --runs 1 --models claude --max-iterations 5
-AGENTIC_MAX_BUDGET_USD=0.50 .venv/bin/python AF_Claude_Agent/agentic/run_agentic.py BOOKKEEPER-846 --runs 1 --models claude --max-iterations 5
+.venv/bin/python AF_Claude_Agent/agentic/run_agentic.py incubatorshardingsphereshardingjdbcshardingjdbccored517e5eassertGetDatabaseProductName --runs 1 --models claude --max-iterations 10
+.venv/bin/python AF_Claude_Agent/agentic/run_agentic.py wikidatatoolkitwdtkutil10f9711 --runs 1 --models claude --max-iterations 10
+.venv/bin/python AF_Claude_Agent/agentic/run_agentic.py quickcheckc1c1 --runs 1 --models claude --max-iterations 10
+.venv/bin/python AF_Claude_Agent/agentic/run_agentic.py BOOKKEEPER-846 --runs 1 --models claude --max-iterations 10
 ```
 
 ## Useful Options
