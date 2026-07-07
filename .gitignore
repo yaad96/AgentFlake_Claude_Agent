@@ -17,6 +17,9 @@ __pycache__/
 # macOS Finder metadata — purely Finder UI state, no code value
 .DS_Store
 
+# VS Code workspace settings — local editor state
+.vscode/
+
 # Claude Code session state — local-only, must not be committed
 .claude/
 
