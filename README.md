@@ -9,15 +9,11 @@ clean baseline, and stores the full run under `AF_Claude_Agent/data/<container>/
 ## Requirements
 
 The repository can install its Python dependencies and build its Docker images.
-A reviewer still needs two external things:
+Neede two external things:
 
 - Docker installed and running.
 - A valid Anthropic API key.
 
-Linux is supported. On a fresh Linux machine, install Docker Engine and Python
-with venv support first. On Debian/Ubuntu that usually means `docker`, `python3`,
-`python3-venv`, and `python3-pip`. The user running the tool must be able to run
-`docker` without `sudo`, or the bind-mounted run folders may become root-owned.
 
 Claude Code CLI is installed inside the project Docker images. The run scripts
 build the needed image from the included Dockerfile when the image is missing
@@ -103,8 +99,6 @@ cd /path/to/AgentFlake_Claude_Agent
 | `AGENTIC_MAX_BUDGET_USD=0.50` | Hard Claude Code spend cap per run. |
 | `AGENTIC_CLI_TIMEOUT_S=2400` | Wall-clock cap for Claude Code. |
 | `AGENTIC_VERIFY_PASS_RUNS=10` | Extra passing verification runs required after the first pass. |
-| `KEEP_SOURCE=1` | Keep source folders after completion. |
-| `KEEP_CONTAINER=1` | Keep the Docker container after completion. |
 | `AGENTIC_FORCE_REBUILD_IMAGE=1` | Rebuild the Docker image for a single run. |
 
 ## Output
