@@ -25,28 +25,7 @@ or when an existing local image does not contain `claude`.
 
 ## One-Command Setup
 
-From a fresh clone, run:
-
-```bash
-ANTHROPIC_API_KEY=sk-ant-your-key-here bash setup.sh --build-images
-```
-
-This command:
-
-- creates `.venv/`;
-- installs `AF_Claude_Agent/requirements.txt`;
-- stores the key in `AF_Claude_Agent/.anthropic_api_key`;
-- checks Docker; and
-- prebuilds all Docker images that this repo can build, skipping existing
-  images only when they already contain the Claude CLI.
-
-If you do not want to prebuild every image, omit `--build-images`. The first
-run of a container will build only the image it needs. If local images are
-stale, use `bash setup.sh --build-images --force-rebuild-images` or run a
-single container with `AGENTIC_FORCE_REBUILD_IMAGE=1`.
-
-`AF_Claude_Agent/.anthropic_api_key` and `.venv/` are gitignored. You can also
-use `export ANTHROPIC_API_KEY=...`; the environment variable wins over the file.
+From the repo root, create a file ".anthropic_api_key" and store your api key there. During the run, the key needed will be accessed from there. It is git-ignored, so its safe.
 
 ## Basic Run
 
@@ -162,18 +141,3 @@ Summaries are written to:
 AF_Claude_Agent/Complete_Containers_Summary.csv
 AF_Claude_Agent/data/<container>/summary.csv
 ```
-
-## How It Works
-
-1. `run_agentic.py` reads `AF_Claude_Agent/test_config.csv` and dispatches by
-   test type: ID, OD, NIO, or TD.
-2. The per-type shell script stages `AF_Claude_Agent/data/<container>/run_<NN>/`
-   and reproduces the flaky failure.
-3. `agentic_claude_cli.py` runs `claude -p` inside Docker with Bash/Read/Edit
-   tools enabled.
-4. Claude edits the staged project and self-verifies.
-5. The driver captures a patch, restores a clean baseline, applies the patch,
-   and runs `agentic_verify.py`.
-6. Final verdict is written as `PASSED`, `FAILED`, or `INCOMPLETE`.
-
-For implementation details, see `AF_Claude_Agent/agentic/HOW_TO_USE_CLAUDE_AGENT.md`.
