@@ -123,7 +123,8 @@ GITIGNORE_BODY = ("target/\n**/target/\n*.class\n*.jar\n*.war\n*.ear\n*.nar\n"
 # an expected merge/IO problem; an unexpected exception is caught by the caller
 # and also mapped to FAILED.
 def _td_build_forced_verify_tree(flaky, ext_baseline, forcing_tree, work_root,
-                                 victim_rel):
+                                 victim_rel, docker_container="",
+                                 container_flaky_path="/app/work/Flaky"):
     flaky = Path(flaky); ext_baseline = Path(ext_baseline)
     forcing_tree = Path(forcing_tree); work_root = Path(work_root)
 
@@ -275,8 +276,9 @@ def _td_build_forced_verify_tree(flaky, ext_baseline, forcing_tree, work_root,
             return (False, f"td-merge: conflict markers survived in {jf.name}")
 
     # ---- Replace base/Flaky with the materialized (fix + forcing) tree. ----
-    shutil.rmtree(flaky, ignore_errors=True)
-    shutil.copytree(wt, flaky, symlinks=True)
+    _replace_tree_from(wt, flaky, docker_container=docker_container,
+                       container_dest=container_flaky_path, symlinks=True,
+                       label="td-merge forced verify restore")
     shutil.rmtree(flaky / ".git", ignore_errors=True)
     log("td-merge: clean merge -> verifying (fix + forcing); forcing and "
         "pristine assertions confirmed present.")
@@ -474,6 +476,97 @@ def git(work_tree: Path, *args: str, gitdir: Path = None, check: bool = True):
     else:
         cmd = ["git", "-C", str(work_tree), *ident, *args]
     return run(cmd, env=env, check=check, capture_output=True, text=True)
+
+class RestoreTreeError(RuntimeError):
+    pass
+
+
+def _path_snapshot(path: Path, limit: int = 12) -> str:
+    """Small ownership/mode sample for restore failures."""
+    if not path.exists():
+        return "(path no longer exists)"
+    rows = []
+    try:
+        for i, p in enumerate(path.rglob("*")):
+            if i >= limit:
+                rows.append("...")
+                break
+            try:
+                st = p.lstat()
+                rel = p.relative_to(path)
+                rows.append(
+                    f"{rel} mode={oct(st.st_mode & 0o777)} "
+                    f"uid={st.st_uid} gid={st.st_gid}")
+            except OSError as exc:
+                rows.append(f"{p}: {exc}")
+    except OSError as exc:
+        rows.append(f"(could not list contents: {exc})")
+    return "; ".join(rows) if rows else "(empty directory)"
+
+
+def _reclaim_container_path(docker_container: str, container_path: str) -> str:
+    """Make a bind-mounted container path removable by the host user.
+
+    Maven/Claude run as root inside Docker and can leave root-owned target/
+    files under the bind mount. On Linux, host-side shutil.rmtree cannot remove
+    those files until ownership/mode are repaired from inside the container.
+    """
+    if not docker_container or not hasattr(os, "getuid") or not hasattr(os, "getgid"):
+        return ""
+    uid, gid = os.getuid(), os.getgid()
+    q = shlex.quote(container_path)
+    script = (
+        f"if [ -e {q} ]; then "
+        f"chown -R {uid}:{gid} {q} && chmod -R u+rwX {q}; "
+        "fi"
+    )
+    proc = run(["docker", "exec", "-u", "0", docker_container, "sh", "-lc", script],
+               check=False, capture_output=True, text=True)
+    if proc.returncode == 0:
+        return ""
+    return ((proc.stderr or proc.stdout or "").strip()
+            or f"docker exec chown returned {proc.returncode}")
+
+
+def _replace_tree_from(source: Path, dest: Path, *, docker_container: str = "",
+                       container_dest: str = "", symlinks: bool = False,
+                       label: str = "tree restore") -> None:
+    """Replace dest with source without silently ignoring deletion failures."""
+    source = Path(source)
+    dest = Path(dest)
+    if not source.is_dir():
+        raise RestoreTreeError(f"{label}: source tree missing: {source}")
+
+    notes = []
+    if dest.exists():
+        for attempt in (1, 2):
+            if docker_container and container_dest:
+                note = _reclaim_container_path(docker_container, container_dest)
+                if note:
+                    notes.append(f"ownership repair attempt {attempt}: {note}")
+            try:
+                shutil.rmtree(dest)
+            except Exception as exc:
+                notes.append(f"rmtree attempt {attempt}: {exc!r}")
+                continue
+            break
+
+    if dest.exists():
+        detail = _path_snapshot(dest)
+        msg = [
+            f"{label}: failed to remove existing tree before restore: {dest}",
+            "This usually means Docker left root-owned files in the bind mount.",
+            f"remaining entries: {detail}",
+        ]
+        if notes:
+            msg.append("attempts: " + " | ".join(notes))
+        raise RestoreTreeError("\n".join(msg))
+
+    try:
+        shutil.copytree(source, dest, symlinks=symlinks)
+    except Exception as exc:
+        raise RestoreTreeError(
+            f"{label}: failed to copy {source} -> {dest}: {exc!r}") from exc
 
 
 def build_test_code(base: Path, module: str, fqns) -> str:
@@ -801,8 +894,13 @@ def main():
 
     # ---- restore the protected baseline, then re-apply via the applier -----
     log("restoring Flaky/ from the protected baseline")
-    shutil.rmtree(flaky, ignore_errors=True)
-    shutil.copytree(ext_baseline, flaky)
+    try:
+        _replace_tree_from(ext_baseline, flaky,
+                           docker_container=docker_container,
+                           container_dest="/app/work/Flaky",
+                           label="protected baseline restore")
+    except RestoreTreeError as exc:
+        sys.exit(f"ERROR: {exc}")
     # A Flaky-local .git so apply_fix's `git apply` uses THIS tree (the outer
     # Valg repo gitignores data/**/Flaky, which makes git apply silently skip).
     # Safe now — the agent is no longer running. GIT_CEILING (in git()) keeps
@@ -967,7 +1065,8 @@ def main():
         else:
             try:
                 td_forced_ok, td_reason = _td_build_forced_verify_tree(
-                    flaky, ext_baseline, forcing_tree, ext, str(victim_rel))
+                    flaky, ext_baseline, forcing_tree, ext, str(victim_rel),
+                    docker_container=docker_container)
                 if not td_forced_ok:
                     log(f"TD forced-verify tree build failed: {td_reason} — "
                         f"failing closed (verdict FAILED).")
