@@ -15,21 +15,21 @@ Invoked by run_agentic_od.sh (with AGENTIC_DRIVER=claude_cli) exactly like the
 orchestrator:
 
     python3 agentic_claude_cli.py <result_container> --docker-container <name>
-            [--model claude-sonnet-4-6] [--max-budget-usd N]
+            [--model claude-sonnet-4-6] [--max-budget-usd N] [--max-iterations N]
 
 Preconditions (all set up by run_agentic_od.sh steps 0-9.5):
-    - data/<container>/Flaky/            staged source tree (host bind-mount)
-    - data/<container>/Flaky.pristine/   clean snapshot for restore
-    - data/<container>/traces-flaky/mvn.log   initial failure log
-    - container tm_<container> running, /app/work bound to data/<container>,
+    - data/<container>/run_<NN>/Flaky/            staged source tree (host bind-mount)
+    - data/<container>/run_<NN>/Flaky.pristine/   clean snapshot for restore
+    - data/<container>/run_<NN>/traces-flaky/mvn.log   initial failure log
+    - container tm_<container> running, /app/work bound to data/<container>/run_<NN>,
       with the Claude Code CLI installed (Dockerfile.od) and ANTHROPIC_API_KEY
       available in the host environment.
 
-Outputs (data/<container>/Steps_Output_Files/ + a per-trial folder):
-    prompt_user.txt, prompt_system.txt, trial.ndjson, claude.stderr,
-    patch.diff, llm_response.json, apply_report.json,
-    verify_after_fix.{log,verdict}, thinking.txt, tool_calls.jsonl, usage.json
-    -> all copied into data/claude_agent/<container>/run_<NN>/ with meta.json
+Outputs under data/<container>/run_<NN>/:
+    claude_inputs/ contains prompt_user.txt, prompt_system.txt, and trace_config.json.
+    claude_outputs/ contains trial.ndjson, claude.stderr, patch.diff,
+    llm_response.json, apply_report.json, verify_after_fix.{log,verdict},
+    thinking.txt, tool_calls.jsonl, usage.json, and meta.json.
 """
 
 from __future__ import annotations
@@ -39,6 +39,7 @@ import atexit
 import json
 import os
 import re
+import shlex
 import shutil
 import tempfile
 import subprocess
@@ -529,27 +530,38 @@ def assemble_prompts(row: dict, base: Path):
 
 
 def run_agent_in_container(docker_container: str, model: str,
-                           max_budget_usd, steps_rel: str) -> int:
-    """docker exec the Claude Code agent inside /app/work/Flaky. Reads the
-    prompt files from the bind-mounted Steps_Output_Files dir, writes the
-    stream-json log back to the same dir. Returns the agent's exit code."""
-    budget = (f"--max-budget-usd {max_budget_usd} " if max_budget_usd else "")
+                           max_budget_usd, max_turns,
+                           input_rel: str, output_rel: str) -> int:
+    """docker exec the Claude Code agent inside /app/work/Flaky."""
+    budget = (f"--max-budget-usd {shlex.quote(str(max_budget_usd))} "
+              if max_budget_usd else "")
+    if max_turns:
+        try:
+            max_turns = int(max_turns)
+        except (TypeError, ValueError):
+            sys.exit(
+                "ERROR: --max-iterations/AGENTIC_MAX_ITERATIONS must be "
+                f"an integer, got {max_turns!r}")
+        if max_turns < 1:
+            sys.exit("ERROR: --max-iterations/AGENTIC_MAX_ITERATIONS must be >= 1")
+    turns = (f"--max-turns {max_turns} " if max_turns else "")
+    model_arg = shlex.quote(str(model))
     inner = f"""
 set -o pipefail
 export PATH="/root/.local/bin:$PATH"
 export CLAUDE_CONFIG_DIR="$(mktemp -d)"
 cd /app/work/Flaky
-timeout -k 30s {AGENT_TIMEOUT_S}s claude -p "$(cat /app/work/{steps_rel}/prompt_user.txt)" \
-  --model {model} \
-  --append-system-prompt "$(cat /app/work/{steps_rel}/prompt_system.txt)" \
+timeout -k 30s {AGENT_TIMEOUT_S}s claude -p "$(cat /app/work/{input_rel}/prompt_user.txt)" \
+  --model {model_arg} \
+  --append-system-prompt "$(cat /app/work/{input_rel}/prompt_system.txt)" \
   --permission-mode bypassPermissions \
   --bare \
   --output-format stream-json --verbose --include-partial-messages \
-  {budget}> /app/work/{steps_rel}/trial.ndjson 2> /app/work/{steps_rel}/claude.stderr
+  {turns}{budget}> /app/work/{output_rel}/trial.ndjson 2> /app/work/{output_rel}/claude.stderr
 """
     # Auth for the in-container `claude` CLI. Prefer an explicit env export;
-    # otherwise fall back to agentic_config.ANTHROPIC_API_KEY (the same source
-    # the orchestrator uses). Without this the agent runs UNAUTHENTICATED
+    # otherwise fall back to AF_Claude_Agent/.anthropic_api_key via
+    # agentic_config.ANTHROPIC_API_KEY. Without this the agent runs UNAUTHENTICATED
     # (apiKeySource:none -> "Not logged in") and silently emits an empty patch
     # that is then misscored as a FAILED repair. Fail closed with a clear
     # message instead of burning a run.
@@ -562,18 +574,19 @@ timeout -k 30s {AGENT_TIMEOUT_S}s claude -p "$(cat /app/work/{steps_rel}/prompt_
             api_key = ""
     if not api_key:
         sys.exit("ERROR: no ANTHROPIC_API_KEY in the environment or "
-                 "agentic_config.py — the Claude Code agent cannot "
+                 "AF_Claude_Agent/.anthropic_api_key — the Claude Code agent cannot "
                  "authenticate and would emit an empty patch scored as a "
-                 "false FAILED. Export ANTHROPIC_API_KEY or set "
-                 "agentic_config.ANTHROPIC_API_KEY, then re-run.")
+                 "false FAILED. Export ANTHROPIC_API_KEY or put the key in "
+                 "AF_Claude_Agent/.anthropic_api_key, then re-run.")
     # IS_SANDBOX=1 lets --permission-mode bypassPermissions run as root inside
     # the container (claude otherwise refuses bypass under root/sudo).
     cmd = ["docker", "exec",
            "-e", f"ANTHROPIC_API_KEY={api_key}",
            "-e", "IS_SANDBOX=1",
            docker_container, "bash", "-c", inner]
+    turn_msg = f", max_turns={max_turns}" if max_turns else ""
     log(f"running Claude Code agent in {docker_container} (model={model}, "
-        f"timeout={AGENT_TIMEOUT_S}s)")
+        f"timeout={AGENT_TIMEOUT_S}s{turn_msg})")
     try:
         # Host-side timeout is a backstop only — the container-side `timeout`
         # above is the real one (it actually kills claude inside the container,
@@ -652,16 +665,14 @@ def parse_stream(ndjson_path: Path, steps: Path):
     return len(thinking), len(tool_calls), usage
 
 
-def next_experiment_dir(exp_root: Path) -> Path:
-    """Per-run folder at data/claude_agent/<container>/run_<NN>/."""
-    n = 0
-    if exp_root.is_dir():
-        for d in exp_root.glob("run_*"):
-            m = re.match(r"run_(\d+)$", d.name)
-            if m:
-                n = max(n, int(m.group(1)))
-    exp_root.mkdir(parents=True, exist_ok=True)
-    return exp_root / f"run_{n + 1:02d}"
+
+
+def current_run_label() -> str:
+    return (os.environ.get("AGENTIC_RUN_LABEL") or "run_01").strip()
+
+
+def container_run_dir(container: str) -> Path:
+    return Path(DATA_DIR) / container / current_run_label()
 
 
 def main():
@@ -670,8 +681,8 @@ def main():
     ap.add_argument("--docker-container")
     ap.add_argument("--model", default="claude-sonnet-4-6")
     ap.add_argument("--max-budget-usd", default=None)
-    ap.add_argument("--max-iterations", default=None,
-                    help="accepted for orchestrator compatibility; ignored")
+    ap.add_argument("--max-iterations", type=int, default=None,
+                    help="mapped to Claude Code --max-turns for this CLI driver")
     args = ap.parse_args()
 
     container = args.container
@@ -687,11 +698,14 @@ def main():
                  f"only (got '{test_type}').")
     module = (row.get("module") or ".").strip()
 
-    base = Path(DATA_DIR) / container
+    base = container_run_dir(container)
     flaky = base / "Flaky"
-    steps = base / "Steps_Output_Files"
+    inputs = base / "claude_inputs"
+    steps = base / "claude_outputs"
+    inputs.mkdir(parents=True, exist_ok=True)
     steps.mkdir(parents=True, exist_ok=True)
-    steps_rel = "Steps_Output_Files"
+    input_rel = "claude_inputs"
+    output_rel = "claude_outputs"
 
     log_dir = FAILURE_LOG_DIR.get(test_type, "traces-flaky")
     for p in (flaky, base / log_dir / "mvn.log"):
@@ -714,8 +728,8 @@ def main():
     # ---- assemble prompts --------------------------------------------------
     log("assembling prompts")
     user_prompt, system_prompt = assemble_prompts(row, base)
-    (steps / "prompt_user.txt").write_text(user_prompt, encoding="utf-8")
-    (steps / "prompt_system.txt").write_text(system_prompt, encoding="utf-8")
+    (inputs / "prompt_user.txt").write_text(user_prompt, encoding="utf-8")
+    (inputs / "prompt_system.txt").write_text(system_prompt, encoding="utf-8")
 
     # ---- protected baseline (external git-dir + copy) ----------------------
     log(f"snapshotting protected baseline at {ext}")
@@ -727,8 +741,10 @@ def main():
     git(flaky, "commit", "-q", "-m", "baseline", gitdir=ext_gitdir)
 
     # ---- run the agent -----------------------------------------------------
+    max_turns = args.max_iterations or os.environ.get("AGENTIC_MAX_ITERATIONS")
     agent_rc = run_agent_in_container(
-        docker_container, args.model, args.max_budget_usd, steps_rel)
+        docker_container, args.model, args.max_budget_usd, max_turns,
+        input_rel, output_rel)
     log(f"agent exit code: {agent_rc}")
 
     # ---- capture the patch (external git-dir; never the outer repo) --------
@@ -842,7 +858,7 @@ def main():
         wrapper_fqcn = (os.environ.get("WRAPPER_FQCN") or "").strip()
         if not wrapper_fqcn:
             try:  # fallback: persisted by run_agentic_nio.sh
-                tc = json.loads((steps / "trace_config.json").read_text(
+                tc = json.loads((inputs / "trace_config.json").read_text(
                     encoding="utf-8"))
                 wrapper_fqcn = (tc.get("wrapper_fqcn") or "").strip()
             except Exception:
@@ -1010,21 +1026,16 @@ def main():
     n_think, n_tools, usage = parse_stream(steps / "trial.ndjson", steps)
     log(f"parsed stream: thinking_chunks={n_think} tool_calls={n_tools}")
 
-    # ---- assemble the per-run folder: data/claude_agent/<container>/run_NN/
-    exp_root = Path(DATA_DIR) / "claude_agent" / container
-    exp = next_experiment_dir(exp_root)
-    exp.mkdir()
-    artifacts = ["prompt_user.txt", "prompt_system.txt", "trial.ndjson",
-                 "claude.stderr", "patch.diff", "llm_response.json",
-                 "apply_report.json", "verify_after_fix.log",
-                 "verify_after_fix.verdict", "thinking.txt",
-                 "tool_calls.jsonl", "usage.json"]
-    for name in artifacts:
-        src = steps / name
-        if src.is_file():
-            shutil.copy2(src, exp / name)
-    (exp / "meta.json").write_text(json.dumps({
+    # ---- write Claude metadata into the canonical output folder -------------
+    artifact_names = ["trial.ndjson", "claude.stderr", "patch.diff",
+                      "llm_response.json", "apply_report.json",
+                      "verify_after_fix.log", "verify_after_fix.verdict",
+                      "thinking.txt", "tool_calls.jsonl", "usage.json"]
+    artifacts = {name: name for name in artifact_names if (steps / name).is_file()}
+    (steps / "meta.json").write_text(json.dumps({
         "container": container,
+        "run_label": current_run_label(),
+        "run_dir": str(base),
         "docker_container": docker_container,
         "model": args.model,
         "test_type": test_type,
@@ -1034,17 +1045,18 @@ def main():
         "agent_exit_code": agent_rc,
         "verdict": verdict,
         "verify_pass_runs": VERIFY_PASS_RUNS,
-        # ID only: did the UNFIXED victim fail the verify (i.e. is the verify
-        # discriminative for this container)? False => verdict was fail-closed.
         "id_discriminative": (id_discriminative if test_type == "id" else None),
         "confirm_runs": confirm_runs,
         "patch_bytes": len(diff),
         "usage": usage,
+        "input_dir": "../claude_inputs",
+        "artifact_dir": ".",
+        "artifacts": artifacts,
     }, indent=2), encoding="utf-8")
 
     shutil.rmtree(ext, ignore_errors=True)
     log(f"verdict: {verdict}")
-    log(f"experiment folder: {exp}")
+    log(f"output folder: {steps}")
     sys.exit(0 if verdict == "PASSED" else 1)
 
 

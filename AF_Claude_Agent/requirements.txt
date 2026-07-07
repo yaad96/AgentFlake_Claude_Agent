@@ -1,26 +1,8 @@
-# AF_Claude_Agent — Python dependencies for the agentic flaky-test repair pipeline.
+# Python dependencies for AgentFlake Claude Agent.
 #
-#   python3 -m pip install -r requirements.txt
-#   # on an externally-managed (PEP 668) Python, e.g. Homebrew, add:
-#   python3 -m pip install --break-system-packages -r requirements.txt
-#
-# Tested on CPython 3.13/3.14 (macOS arm64). The orchestrator shells out to
-# these via sys.executable, so install them into whatever Python runs
-# run_agentic.py / agentic_orchestrator.py.
+# Claude itself is run through the Claude Code CLI inside Docker. The host
+# Python process only needs the Java patch-application parser used by
+# AF_Claude_Agent/LLM Scripts/apply_fix.py.
 
-# --- LLM provider SDKs (install at least the backend you use) ---------------
-anthropic>=0.40        # Claude backend  (agentic/agentic_orchestrator_anthropic.py)
-openai>=1.0            # OpenAI backend  (agentic/agentic_orchestrator_openai.py)
-
-# --- Patch application: tree-sitter AST splice layer ------------------------
-# REQUIRED. Powers Layer 3 in "LLM Scripts/apply_fix.py" — a real Java parser
-# that locates methods / class bodies for the structured (output_b.fixed_code)
-# splice instead of regex + brace counting. Immune to braces inside strings/
-# comments, call-sites sharing a method name, generics, and nested classes.
-#
-# apply_fix.py raises ImportError (with these install instructions) if either
-# package is missing. The silent-fallback design was rejected because it makes
-# apply reports inconsistent between machines and hides environmental drift in
-# a research pipeline. Needs py-tree-sitter that supports Parser(Language(capsule)).
 tree-sitter>=0.22
 tree-sitter-java>=0.23

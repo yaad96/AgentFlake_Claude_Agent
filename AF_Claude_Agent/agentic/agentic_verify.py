@@ -6,8 +6,8 @@ Type-aware verification helper for the agentic pipeline. Runs the appropriate
 post-patch surefire (or NonDex) command inside the running docker container,
 captures stdout/stderr, parses the Surefire summary line, and writes:
 
-    data/<container>/Steps_Output_Files/verify_after_fix.log
-    data/<container>/Steps_Output_Files/verify_after_fix.verdict   (PASSED|FAILED)
+    data/<container>/run_<NN>/claude_outputs/verify_after_fix.log
+    data/<container>/run_<NN>/claude_outputs/verify_after_fix.verdict   (PASSED|FAILED)
 
 Exits 0 on PASSED, 1 on FAILED. This keeps per-type docker verification logic
 out of the agent drivers.
@@ -37,6 +37,11 @@ REPROFLAKE_DIR = SCRIPT_DIR.parent
 LLM_SCRIPTS_DIR = REPROFLAKE_DIR / "LLM Scripts"
 sys.path.insert(0, str(LLM_SCRIPTS_DIR))
 from assemble_llm_context import DATA_DIR, load_csv_row  # type: ignore  # noqa: E402
+
+
+def container_run_dir(container: str) -> Path:
+    run_label = (os.environ.get("AGENTIC_RUN_LABEL") or "run_01").strip()
+    return Path(DATA_DIR) / container / run_label
 
 # Surefire summary line emitted at the end of every test invocation. We sum
 # Tests/Failures/Errors across all summary lines (NonDex emits N of them, one
@@ -223,8 +228,8 @@ def main():
     docker_container = args.docker_container or (
         "tm_" + re.sub(r"[^a-zA-Z0-9]", "_", args.container))
 
-    base = Path(DATA_DIR) / args.container
-    steps_dir = base / "Steps_Output_Files"
+    base = container_run_dir(args.container)
+    steps_dir = base / "claude_outputs"
     steps_dir.mkdir(parents=True, exist_ok=True)
     log_path = steps_dir / "verify_after_fix.log"
     verdict_path = steps_dir / "verify_after_fix.verdict"

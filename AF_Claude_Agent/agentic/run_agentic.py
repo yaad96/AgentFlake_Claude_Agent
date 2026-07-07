@@ -14,16 +14,14 @@ Usage:
     # multiple models in one shot:
     python3 run_agentic.py <container> --models claude,claude-opus --runs 3
 
-Model aliases are defined in agentic_config.py (CLAUDE_MODELS / OPENAI_MODELS).
+Model aliases are defined in agentic_config.py (CLAUDE_MODELS).
 Common aliases:
     claude / claude-sonnet  ->  claude-sonnet-4-6   (default)
     claude-opus / opus      ->  claude-opus-4-7
     haiku                   ->  claude-haiku-4-5-20251001
-    openai / gpt-4o         ->  gpt-4o  (routed to the OpenAI backend)
     Any full model ID is passed through unchanged.
 
-API keys are read from agentic_config.py first, then the environment.
-You can set ANTHROPIC_API_KEY / OPENAI_API_KEY in either place.
+ANTHROPIC_API_KEY is read from the environment first, then AF_Claude_Agent/.anthropic_api_key via agentic_config.py.
 """
 
 from __future__ import annotations
@@ -43,7 +41,7 @@ PASS_AT_K      = SCRIPT_DIR / "run_agentic_pass_at_k.py"
 sys.path.insert(0, str(SCRIPT_DIR))
 import agentic_config  # type: ignore  # noqa: E402
 
-SUPPORTED_TYPES = {"od", "td", "id", "nio", "unclassified", "unassigned", "brittle", "britle"}
+SUPPORTED_TYPES = {"od", "td", "id", "nio"}
 
 
 # ---------------------------------------------------------------------------
@@ -51,50 +49,28 @@ SUPPORTED_TYPES = {"od", "td", "id", "nio", "unclassified", "unassigned", "britt
 # ---------------------------------------------------------------------------
 
 def resolve_model(alias: str) -> tuple[str, str]:
-    """Return (canonical_model_id, provider) for an alias or full model ID.
-
-    Provider is 'anthropic' or 'openai'. Full model IDs are passed through
-    with provider inferred from the prefix.
-    """
+    """Return (canonical_model_id, provider) for a Claude alias or model ID."""
     key = alias.lower()
 
-    # Check config dicts first.
     if key in agentic_config.CLAUDE_MODELS:
         return agentic_config.CLAUDE_MODELS[key], "anthropic"
-    if key in agentic_config.OPENAI_MODELS:
-        return agentic_config.OPENAI_MODELS[key], "openai"
-
-    # Pass full IDs through with provider inferred from prefix.
     if key.startswith("claude"):
         return alias, "anthropic"
-    if key.startswith(("gpt", "o1", "o3", "o4")):
-        return alias, "openai"
 
-    # Unknown — assume Anthropic.
-    return alias, "anthropic"
+    sys.exit(
+        "ERROR: Claude CLI mode supports only Claude models. "
+        f"Got '{alias}'."
+    )
 
 
-def get_api_key(provider: str) -> tuple[str, str]:
-    """Return (api_key, source) where source is 'env' or 'config'.
-
-    Precedence: environment variable > agentic_config value.
-    """
-    if provider == "anthropic":
-        env_val    = os.environ.get("ANTHROPIC_API_KEY", "").strip()
-        config_val = (agentic_config.ANTHROPIC_API_KEY or "").strip()
-        if env_val:
-            return env_val, "env"
-        if config_val:
-            return config_val, "config"
-        return "", ""
-    if provider == "openai":
-        env_val    = os.environ.get("OPENAI_API_KEY", "").strip()
-        config_val = (agentic_config.OPENAI_API_KEY or "").strip()
-        if env_val:
-            return env_val, "env"
-        if config_val:
-            return config_val, "config"
-        return "", ""
+def get_api_key(provider: str = "anthropic") -> tuple[str, str]:
+    """Return (api_key, source) for the Claude CLI backend."""
+    env_val = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    config_val = (agentic_config.ANTHROPIC_API_KEY or "").strip()
+    if env_val:
+        return env_val, "env"
+    if config_val:
+        return config_val, "config"
     return "", ""
 
 
@@ -129,10 +105,10 @@ def main() -> None:
                     help="independent runs per model for pass@k (default 3)")
     ap.add_argument("--max-iterations", type=int,
                     default=agentic_config.MAX_ITERATIONS,
-                    help=f"hard cap on patch attempts per run "
+                    help=f"Claude Code max turns per run "
                          f"(default from config: {agentic_config.MAX_ITERATIONS})")
     ap.add_argument("--keep-workspace", action="store_true",
-                    help="keep data/<container>/ scratch workspace after each batch")
+                    help="keep the docker container after each batch; run folders are always kept")
     args = ap.parse_args()
 
     # ---- validate container ----
@@ -166,10 +142,9 @@ def main() -> None:
 
         api_key, source = get_api_key(provider)
         if not api_key:
-            key_var = "ANTHROPIC_API_KEY" if provider == "anthropic" else "OPENAI_API_KEY"
-            sys.exit(f"ERROR: No API key found for '{model_id}' ({provider}).\n"
-                     f"       Set {key_var} in agentic_config.py or export it as "
-                     f"an environment variable.")
+            sys.exit(f"ERROR: No ANTHROPIC_API_KEY found for '{model_id}'.\n"
+                     "       Set ANTHROPIC_API_KEY in agentic_config.py or export it as "
+                     "an environment variable.")
 
         resolved.append((alias, model_id, provider))
         key_display = api_key[:8] + "..." + api_key[-4:] if len(api_key) > 12 else "***"
@@ -204,10 +179,7 @@ def main() -> None:
         # and orchestrator see it even if it was only set in agentic_config.py.
         env = os.environ.copy()
         api_key, _ = get_api_key(provider)
-        if provider == "anthropic":
-            env["ANTHROPIC_API_KEY"] = api_key
-        elif provider == "openai":
-            env["OPENAI_API_KEY"] = api_key
+        env["ANTHROPIC_API_KEY"] = api_key
 
         proc = subprocess.run(cmd, env=env)
         exit_codes[model_id] = proc.returncode

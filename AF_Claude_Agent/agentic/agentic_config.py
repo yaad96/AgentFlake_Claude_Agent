@@ -5,19 +5,35 @@ Edit this file to tune behaviour, set API keys, and choose model versions.
 Every value here can also be overridden at run time via CLI flags or env vars
 (env vars always take precedence over values set in this file):
 
-  CLI flags:  --max-iterations, --model   on run_agentic.py / agentic_orchestrator.py
-  Env vars:   AGENTIC_MAX_ITERATIONS, AGENTIC_MODEL, ANTHROPIC_API_KEY, OPENAI_API_KEY
+  CLI flags:  --max-iterations, --model   on run_agentic.py / agentic_claude_cli.py
+  Env vars:   AGENTIC_MAX_ITERATIONS, AGENTIC_MODEL, ANTHROPIC_API_KEY
 """
+
+from pathlib import Path
+
+_CONFIG_DIR = Path(__file__).resolve().parent
+_PROJECT_DIR = _CONFIG_DIR.parent
+ANTHROPIC_API_KEY_FILE = _PROJECT_DIR / ".anthropic_api_key"
+
+def _read_secret_file(path: Path) -> str:
+    try:
+        for line in path.read_text(encoding="utf-8").splitlines():
+            value = line.strip()
+            if value and not value.startswith("#"):
+                return value
+    except FileNotFoundError:
+        return ""
+    return ""
 
 # ===========================================================================
 # API KEYS
-# Set your keys here so you don't need to export them in the shell.
-# Leave as "" to rely on the corresponding environment variable instead.
-# Environment variables always win over values set here.
+# Put your Anthropic key in AF_Claude_Agent/.anthropic_api_key, or export
+# ANTHROPIC_API_KEY in the shell. Environment variables always win.
+# Leave the file empty to rely only on the environment variable.
 # ===========================================================================
 
-ANTHROPIC_API_KEY: str = ""   # "sk-ant-..."  — used by all claude-* models
-OPENAI_API_KEY: str    = ""   # "sk-..."       — used by all gpt-* / openai models
+ANTHROPIC_API_KEY: str = _read_secret_file(ANTHROPIC_API_KEY_FILE)   # "sk-ant-..."  — used by all claude-* models
+OPENAI_API_KEY: str    = ""   # unused by the Claude CLI pipeline
 
 
 # ===========================================================================

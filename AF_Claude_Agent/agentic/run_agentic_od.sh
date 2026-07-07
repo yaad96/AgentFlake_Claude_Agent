@@ -3,17 +3,16 @@
 # run_agentic_od.sh — agentic OD repair pipeline
 #
 # Mirrors run_od_tracemop.sh's setup (steps 1-7) but replaces steps
-# 8-11 (assemble_llm_context_od.py / call_llm.py / apply_fix.py /
-# verify_victim / feedback_loop.sh) with a single call to the agentic
-# orchestrator, which runs an iterative tool-use loop with bounded
+# 8-11 with a single call to the
+# Claude CLI driver, which runs an iterative tool-use loop with bounded
 # attempts.
 #
-# Steps performed (output dir = data/<container>/Steps_Output_Files/):
+# Steps performed (output dir = data/<container>/run_<NN>/claude_outputs/):
 #   1.  unzip + apply Fixed.patch
 #   2.  start docker container with parent data dir mounted
 #   3.  run mvn surefire:test on Flaky/ -> traces-flaky/mvn.log
 #   9.5 snapshot Flaky/ -> Flaky.pristine + write trace_config.json
-#   AGENT  agentic_orchestrator.py        -> llm_response.json
+#   AGENT  agentic_claude_cli.py        -> llm_response.json
 #                                            apply_report.json
 #                                            verify_after_fix.{log,verdict}
 #                                            agentic_conversation.json
@@ -23,25 +22,45 @@
 #   ./run_agentic_od.sh <result_container>
 #
 # Requires:
-#   ANTHROPIC_API_KEY in the environment + pip install anthropic
+#   ANTHROPIC_API_KEY in the environment or .anthropic_api_key + install AF_Claude_Agent/requirements.txt
 # ============================================================
 
 set -euo pipefail
 
 RESULT_CONTAINER="${1:?Usage: $0 <result_container>}"
 
-if [[ -z "${ANTHROPIC_API_KEY:-}" && -z "${OPENAI_API_KEY:-}" ]]; then
-  echo "ERROR: no LLM API key is set. The agentic orchestrator requires one."
-  echo "       export ANTHROPIC_API_KEY=sk-ant-...   (for claude-* models)"
-  echo "       export OPENAI_API_KEY=sk-...          (for gpt-* models)"
-  exit 1
-fi
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPROFLAKE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ANTHROPIC_API_KEY_FILE="$REPROFLAKE_DIR/.anthropic_api_key"
 
-DATA_DIR="$REPROFLAKE_DIR/data/$RESULT_CONTAINER"
-STEPS_OUT_DIR="$DATA_DIR/Steps_Output_Files"
+if [[ -z "${ANTHROPIC_API_KEY:-}" && -f "$ANTHROPIC_API_KEY_FILE" ]]; then
+  ANTHROPIC_API_KEY="$(sed -n "s/^[[:space:]]*//; s/[[:space:]]*$//; /^[#]/d; /^$/d; p; q" "$ANTHROPIC_API_KEY_FILE")"
+  export ANTHROPIC_API_KEY
+fi
+
+if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
+  echo "ERROR: ANTHROPIC_API_KEY is required. Export it or put it in $ANTHROPIC_API_KEY_FILE."; exit 1
+fi
+
+DATA_ROOT="$REPROFLAKE_DIR/data/$RESULT_CONTAINER"
+if [[ -n "${AGENTIC_RUN_LABEL:-}" ]]; then
+  RUN_LABEL="$AGENTIC_RUN_LABEL"
+else
+  n=1
+  while :; do
+    RUN_LABEL="$(printf 'run_%02d' "$n")"
+    [[ ! -e "$DATA_ROOT/$RUN_LABEL" ]] && break
+    n=$((n + 1))
+  done
+fi
+if [[ ! "$RUN_LABEL" =~ ^run_[0-9]+$ ]]; then
+  echo "ERROR: AGENTIC_RUN_LABEL must look like run_NN (got '$RUN_LABEL')."; exit 1
+fi
+export AGENTIC_RUN_LABEL="$RUN_LABEL"
+DATA_DIR="$DATA_ROOT/$RUN_LABEL"
+CLAUDE_INPUTS_DIR="$DATA_DIR/claude_inputs"
+CLAUDE_OUTPUTS_DIR="$DATA_DIR/claude_outputs"
+STEPS_OUT_DIR="$CLAUDE_OUTPUTS_DIR"
 CSV="$REPROFLAKE_DIR/test_config.csv"
 
 # ----- parse CSV row ----------------------------------------
@@ -81,10 +100,35 @@ if ((${#DOCKER_PLATFORM_ARGS[@]})); then
   echo "[setup] Docker platform: ${DOCKER_PLATFORM_ARGS[*]}"
 fi
 
-if ((${#DOCKER_PLATFORM_ARGS[@]})) || ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
-  echo "[setup] Docker image '$IMAGE' not found — building from $DOCKERFILE"
-  docker build "${DOCKER_PLATFORM_ARGS[@]}" -t "$IMAGE" -f "$REPROFLAKE_DIR/$DOCKERFILE" "$REPROFLAKE_DIR"
-fi
+image_has_claude() {
+  docker run --rm --entrypoint sh "$1" -lc 'command -v claude >/dev/null 2>&1'
+}
+
+ensure_docker_image() {
+  local image="$1"
+  local dockerfile="${2:-}"
+
+  if [[ "${AGENTIC_FORCE_REBUILD_IMAGE:-0}" == "1" ]] && docker image inspect "$image" >/dev/null 2>&1; then
+    echo "[setup] force rebuilding Docker image '$image'"
+  elif ! docker image inspect "$image" >/dev/null 2>&1; then
+    echo "[setup] Docker image '$image' not found"
+  elif image_has_claude "$image"; then
+    echo "[setup] Docker image '$image' is ready"
+    return 0
+  else
+    echo "[setup] Docker image '$image' exists but lacks Claude CLI or cannot run"
+  fi
+
+  if [[ -z "$dockerfile" ]]; then
+    echo "ERROR: image '$image' is missing/stale and no Dockerfile is available in this repo." >&2
+    echo "       Rebuild or install an image with the Claude CLI, or choose a supported Java/test-type combination." >&2
+    exit 1
+  fi
+  echo "[setup] building Docker image '$image' from $dockerfile"
+  docker build "${DOCKER_PLATFORM_ARGS[@]}" -t "$image" -f "$REPROFLAKE_DIR/$dockerfile" "$REPROFLAKE_DIR"
+}
+
+ensure_docker_image "$IMAGE" "${DOCKERFILE:-}"
 
 CONTAINER="tm_${RESULT_CONTAINER//[^a-zA-Z0-9]/_}"
 
@@ -207,7 +251,7 @@ if (( TESTS < 1 || FAILURES + ERRORS < 1 )); then
 fi
 echo "[sanity ] Flaky run failed as expected (Tests=$TESTS Failures=$FAILURES Errors=$ERRORS)"
 
-mkdir -p "$STEPS_OUT_DIR"
+mkdir -p "$CLAUDE_INPUTS_DIR" "$CLAUDE_OUTPUTS_DIR"
 
 # ============================================================
 # STEP 9.5 — snapshot Flaky/ for between-iteration restore
@@ -217,7 +261,7 @@ rm -rf "$DATA_DIR/Flaky.pristine"
 cp -r "$DATA_DIR/Flaky" "$DATA_DIR/Flaky.pristine"
 
 echo "[step 9.5] Writing trace_config.json"
-cat > "$STEPS_OUT_DIR/trace_config.json" <<JSONEOF
+cat > "$CLAUDE_INPUTS_DIR/trace_config.json" <<JSONEOF
 {
   "docker_container": "$CONTAINER",
   "test_type": "od",
@@ -235,36 +279,36 @@ JSONEOF
 # ============================================================
 # AGENT — bounded-iteration tool-use loop
 # ============================================================
-if [[ "${AGENTIC_DRIVER:-orchestrator}" == "claude_cli" ]]; then
   echo "[agent ] launching agentic_claude_cli.py (Claude Code agent, model=${AGENTIC_MODEL:-claude-sonnet-4-6})"
   set +e
-  python3 "$SCRIPT_DIR/agentic_claude_cli.py" "$RESULT_CONTAINER" \
+  "${AGENTIC_PYTHON:-python3}" "$SCRIPT_DIR/agentic_claude_cli.py" "$RESULT_CONTAINER" \
     --docker-container "$CONTAINER" \
     --model "${AGENTIC_MODEL:-claude-sonnet-4-6}" \
     ${AGENTIC_MAX_BUDGET_USD:+--max-budget-usd "$AGENTIC_MAX_BUDGET_USD"}
   AGENT_RC=$?
   set -e
-else
-  echo "[agent ] launching agentic_orchestrator.py (max_iterations=${AGENTIC_MAX_ITERATIONS:-10})"
-  set +e
-  python3 "$SCRIPT_DIR/agentic_orchestrator.py" "$RESULT_CONTAINER" \
-    --docker-container "$CONTAINER" \
-    --max-iterations "${AGENTIC_MAX_ITERATIONS:-10}" \
-    ${AGENTIC_MODEL:+--model "$AGENTIC_MODEL"}
-  AGENT_RC=$?
-  set -e
-
-  # Durably archive this orchestrator run into the AGENTIC_FULL_RUNS layout:
-  #   data/AGENTIC_FULL_RUNS/<container>_runs/<model>/run_<N>   (never overwrites).
-  # (The claude_cli branch already writes data/claude_agent/<container>/run_<NN>.)
-  if [[ -f "$STEPS_OUT_DIR/verify_after_fix.verdict" || -f "$STEPS_OUT_DIR/run_verdict.txt" ]]; then
-    bash "$SCRIPT_DIR/archive_orchestrator_run.sh" \
-      "$RESULT_CONTAINER" "$STEPS_OUT_DIR" "${AGENTIC_MODEL:-claude-sonnet-4-6}" "$REPROFLAKE_DIR" \
-      || echo "[archive] WARNING: archival failed (run still in $STEPS_OUT_DIR)"
-  fi
-fi
 
 # Clean up the snapshot (kept on KEEP_SOURCE=1 for post-mortem inspection).
+cleanup_completed_source_dirs() {
+  local verdict=""
+  if [[ -f "$STEPS_OUT_DIR/run_verdict.txt" ]]; then
+    verdict="$(cat "$STEPS_OUT_DIR/run_verdict.txt")"
+  elif [[ -f "$STEPS_OUT_DIR/verify_after_fix.verdict" ]]; then
+    verdict="$(cat "$STEPS_OUT_DIR/verify_after_fix.verdict")"
+  fi
+
+  if [[ "$verdict" == "PASSED" || "$verdict" == "FAILED" ]]; then
+    if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
+      echo "[cleanup] removing completed-run source dirs: Fixed Flaky Flakym2 FlakyCodeChange"
+      if command -v docker >/dev/null 2>&1; then
+        docker exec -u 0 "$CONTAINER" chown -R "$(id -u):$(id -g)" /app/work >/dev/null 2>&1 || true
+      fi
+      rm -rf "$DATA_DIR/Fixed" "$DATA_DIR/Flaky" "$DATA_DIR/Flakym2" "$DATA_DIR/FlakyCodeChange" ||         echo "[cleanup] WARNING: failed to remove one or more source dirs" >&2
+    fi
+  fi
+}
+cleanup_completed_source_dirs
+
 if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
   rm -rf "$DATA_DIR/Flaky.pristine"
 fi
@@ -281,7 +325,7 @@ for v in flaky fixed; do
   fi
 done
 echo
-echo "Pipeline outputs ($STEPS_OUT_DIR/):"
+echo "Claude outputs ($CLAUDE_OUTPUTS_DIR/):"
 for f in run_summary.csv trace_config.json rv_trace_diff.log llm_trace_summary.txt llm_context.txt \
          llm_response.json apply_report.json verify_after_fix.log \
          verify_after_fix.verdict agentic_conversation.json \

@@ -19,3 +19,9 @@ __pycache__/
 
 # Claude Code session state — local-only, must not be committed
 .claude/
+
+# Local API keys
+AF_Claude_Agent/.anthropic_api_key
+
+# Local Python virtual environment
+.venv/

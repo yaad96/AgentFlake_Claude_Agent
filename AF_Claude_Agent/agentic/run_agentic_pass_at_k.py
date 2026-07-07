@@ -4,10 +4,9 @@ run_agentic_pass_at_k.py — pass@k harness for the agentic pipeline.
 
 Direct counterpart to TraceMop Scripts/run_pass_at_k.py, adapted for:
   - Per-type entry points under `agentic/` (run_agentic_<type>.sh)
-  - Both Claude (Messages API) and OpenAI (Chat Completions) models; the
-    orchestrator routes to the matching backend based on the model id.
+  - Claude CLI models only.
   - Per-run archive layout that includes the agentic conversation
-    transcript + per-iteration log produced by agentic_orchestrator.py
+    transcript + per-iteration log produced by agentic_claude_cli.py
   - Reusing the existing CSV writer / pass@k metric so the agentic
     Complete Containers Summary stays joinable with non-agentic runs
 
@@ -15,8 +14,8 @@ Usage:
   ./run_agentic_pass_at_k.py <container> [--runs 3] [--max-iterations 10]
                              [--keep-workspace] [--model claude-sonnet-4-6]
 
-Archives under:
-  data/AGENTIC_FULL_RUNS/<container>_runs/Claude/run_<N>/
+Run output layout:
+  data/<container>/run_<NN>/
 """
 
 from __future__ import annotations
@@ -45,24 +44,20 @@ DATA_DIR = REPROFLAKE_DIR / "data"
 CSV_FILE = REPROFLAKE_DIR / "test_config.csv"
 
 TYPE_TO_SCRIPT = {
-    "od":           SCRIPT_DIR / "run_agentic_od.sh",
-    "td":           SCRIPT_DIR / "run_agentic_td.sh",
-    "id":           SCRIPT_DIR / "run_agentic_id.sh",
-    "nio":          SCRIPT_DIR / "run_agentic_nio.sh",
-    "unclassified": SCRIPT_DIR / "run_agentic_unclassified.sh",
-    "unassigned":   SCRIPT_DIR / "run_agentic_unclassified.sh",
-    "brittle":      SCRIPT_DIR / "run_agentic_brittle.sh",
-    "britle":       SCRIPT_DIR / "run_agentic_brittle.sh",  # CSV typo alias
+    "od":  SCRIPT_DIR / "run_agentic_od.sh",
+    "td":  SCRIPT_DIR / "run_agentic_td.sh",
+    "id":  SCRIPT_DIR / "run_agentic_id.sh",
+    "nio": SCRIPT_DIR / "run_agentic_nio.sh",
 }
 
-# Map model IDs (or short aliases) to the Anthropic API key env var.
-# Any model starting with "claude" uses ANTHROPIC_API_KEY.
-# gpt-*/o-series route to OPENAI_API_KEY; everything else to ANTHROPIC_API_KEY.
+# Claude CLI mode only supports Claude model IDs.
 def _api_key_var(model_id: str) -> str:
     key = (model_id or "").strip().lower()
-    if key.startswith(("gpt", "o1", "o3", "o4")):
-        return "OPENAI_API_KEY"
-    return "ANTHROPIC_API_KEY"  # default (claude-* and any other)
+    if not key.startswith("claude"):
+        sys.exit(
+            f"ERROR: Claude CLI mode supports only Claude models; got '{model_id}'."
+        )
+    return "ANTHROPIC_API_KEY"
 
 SENTINEL = ".run_complete"
 
@@ -109,35 +104,6 @@ def preflight(container):
     return row, test_type, script
 
 
-# ---------------------------------------------------------------------------
-# Archive (same layout as non-agentic so existing tools work)
-# ---------------------------------------------------------------------------
-
-def archive_run(data_dir: Path, per_run_dir: Path):
-    skip_target = shutil.ignore_patterns("target")
-    sources_with_target = [
-        ("Fixed", skip_target), ("Flaky", skip_target),
-        ("FlakyCodeChange", skip_target),
-    ]
-    sources_no_target = [
-        ("result", None),
-        ("traces-fixed", None), ("traces-flaky", None),
-        ("traces-flakycc", None), ("traces-pass", None), ("traces-fail", None),
-    ]
-    for sub, ignore in sources_with_target + sources_no_target:
-        src = data_dir / sub
-        if src.is_dir():
-            shutil.copytree(src, per_run_dir / sub, symlinks=True, ignore=ignore)
-    steps = data_dir / "Steps_Output_Files"
-    if steps.is_dir():
-        shutil.copytree(steps, per_run_dir / "Steps_Output_Files", symlinks=True)
-    for f in ["Fixed.patch", "FlakyCodeChange.patch", "FixedCodeChange.patch",
-              "flaky_info.txt", "issue_description.txt"]:
-        src = data_dir / f
-        if src.is_file():
-            shutil.copy2(src, per_run_dir / f)
-
-
 def docker_image_for_java(java_version: str) -> str:
     return {
         "8": "flaky_base_jdk8",
@@ -167,6 +133,21 @@ def restore_workspace_owner(container_name: str, data_dir: Path | None = None,
     )
 
 
+def cleanup_completed_source_dirs(per_run_dir: Path, verdict: str):
+    """Drop large reconstructed source trees after PASSED or FAILED runs."""
+    if verdict not in {"PASSED", "FAILED"}:
+        return
+    removed = []
+    for name in ("Fixed", "Flaky", "Flakym2", "FlakyCodeChange"):
+        path = per_run_dir / name
+        if path.exists():
+            shutil.rmtree(path, ignore_errors=True)
+            if not path.exists():
+                removed.append(name)
+    if removed:
+        print(f"[wrapper] cleaned completed-run source dirs: {', '.join(removed)}")
+
+
 # ---------------------------------------------------------------------------
 # Per-run parse
 # ---------------------------------------------------------------------------
@@ -183,12 +164,15 @@ def parse_run(per_run_dir: Path, container, test_type, run_n, model="claude"):
     folder. Returns a dict shaped to match parse_run in the non-agentic
     harness so downstream summary writers don't need to branch.
     """
-    steps = per_run_dir / "Steps_Output_Files"
+    steps = per_run_dir / "claude_outputs"
+    meta = safe_json(per_run_dir / "claude_outputs" / "meta.json") or {}
+    model = meta.get("model") or model
     run_verdict_file = steps / "run_verdict.txt"          # authoritative 3-state
     verdict_file = steps / "verify_after_fix.verdict"     # binary fallback
     apply_file = steps / "apply_report.json"
     llm_resp = steps / "llm_response.json"
     iter_log = steps / "agentic_iterations.jsonl"
+    tool_calls_file = steps / "tool_calls.jsonl"
     verify_log = steps / "verify_after_fix.log"
     pipeline = per_run_dir / "pipeline.log"
 
@@ -205,16 +189,22 @@ def parse_run(per_run_dir: Path, container, test_type, run_n, model="claude"):
     apply_rep = safe_json(apply_file) or {}
     resp = safe_json(llm_resp) or {}
 
-    # Token counts live on llm_response.json["usage"] for agentic runs (the
-    # orchestrator's _sum_usage tracks them cumulatively across all turns
-    # within the iteration loop).
-    usage = resp.get("usage") or {}
+    # Claude CLI writes usage.json as a wrapper object:
+    # {"usage": {...token fields...}, "duration_ms": ...}. The old
+    # orchestrator wrote token fields directly on llm_response.json["usage"].
+    usage_blob = safe_json(steps / "usage.json") or {}
+    meta_usage = meta.get("usage") or {}
+    usage = (resp.get("usage") or usage_blob.get("usage") or
+             meta_usage.get("usage") or usage_blob or meta_usage or {})
     in_tokens = ((usage.get("input_tokens") or 0)
                  + (usage.get("cache_creation_input_tokens") or 0)
                  + (usage.get("cache_read_input_tokens") or 0))
     out_tokens = usage.get("output_tokens") or 0
     total = in_tokens + out_tokens
-    elapsed_llm = float(resp.get("elapsed_seconds") or 0)
+    duration_ms = (resp.get("duration_ms") or usage_blob.get("duration_ms") or
+                   meta_usage.get("duration_ms") or 0)
+    elapsed_llm = float(resp.get("elapsed_seconds") or
+                        ((duration_ms or 0) / 1000.0))
 
     # Read per-iteration jsonl tail for finer-grained data if needed.
     iterations = []
@@ -278,12 +268,23 @@ def parse_run(per_run_dir: Path, container, test_type, run_n, model="claude"):
         if not fail_snippet:
             fail_snippet = result.get("reason", "")[:200]
 
-    # Aggregate tool usage across all iterations of this run into a compact
-    # "name:count; name:count" string (sorted by count desc, then name).
+    # Aggregate tool usage into a compact "name:count; name:count" string.
+    # The old orchestrator wrote agentic_iterations.jsonl; Claude CLI writes
+    # one tool-use record per line in tool_calls.jsonl.
     tool_counts = {}
     for it in iterations:
         for t in (it.get("tools_used") or []):
             tool_counts[t] = tool_counts.get(t, 0) + 1
+    if tool_calls_file.is_file():
+        for line in tool_calls_file.read_text(encoding="utf-8",
+                                              errors="replace").splitlines():
+            try:
+                rec = json.loads(line)
+            except Exception:
+                continue
+            name = rec.get("name")
+            if name:
+                tool_counts[name] = tool_counts.get(name, 0) + 1
     tools_used_str = "; ".join(
         f"{name}:{cnt}" for name, cnt in
         sorted(tool_counts.items(), key=lambda kv: (-kv[1], kv[0])))
@@ -312,7 +313,7 @@ def parse_run(per_run_dir: Path, container, test_type, run_n, model="claude"):
         "failure_markers": markers,
         "fail_snippet": fail_snippet,
         "elapsed_total_seconds": round(elapsed_total, 1),
-        "agentic_iterations": len(iterations),
+        "agentic_iterations": len(iterations) or int(usage_blob.get("num_turns") or 0),
     }
 
 
@@ -368,31 +369,36 @@ CSV_COLS = [
 
 
 def collect_all_rows_on_disk(runs_root: Path, container: str,
-                             test_type: str) -> list:
-    """Scan every model-dir/run-N sub-directory under runs_root. The model
-    directory name is the model ID (or alias) as passed to --model; any
-    subdirectory whose children match 'run N' is treated as a model directory.
-    """
+                             test_type: str, model: str = "claude") -> list:
+    """Scan flat run_NN directories under data/<container>."""
     rows = []
     if not runs_root.is_dir():
         return rows
-    for model_dir in sorted(runs_root.iterdir()):
-        if not model_dir.is_dir():
+    run_dirs = []
+    for d in runs_root.iterdir():
+        if not d.is_dir():
             continue
-        run_dirs = []
-        for d in model_dir.iterdir():
+        if not (d / SENTINEL).is_file():
+            continue
+        m = re.match(r"run_(\d+)$", d.name)
+        if m:
+            run_dirs.append((int(m.group(1)), d))
+    run_dirs.sort()
+    for run_n, d in run_dirs:
+        rows.append(parse_run(d, container, test_type, run_n, model=model))
+    return rows
+
+
+def next_run_number(runs_root: Path) -> int:
+    highest = 0
+    if runs_root.is_dir():
+        for d in runs_root.iterdir():
             if not d.is_dir():
                 continue
             m = re.match(r"run_(\d+)$", d.name)
             if m:
-                run_dirs.append((int(m.group(1)), d))
-        if not run_dirs:
-            continue
-        run_dirs.sort()
-        for run_n, d in run_dirs:
-            rows.append(parse_run(d, container, test_type, run_n,
-                                  model=model_dir.name))
-    return rows
+                highest = max(highest, int(m.group(1)))
+    return highest + 1
 
 
 _first_append_this_process = True
@@ -414,7 +420,7 @@ def append_complete_summary(rows):
             "container": r["container"],
             "test_type": r["test_type"],
             "model": r["model"],
-            "run": f"run_{r['run']}",
+            "run": f"run_{int(r['run']):02d}",
             "final verdict": r["verdict"],
             "rv_traces_used": "agentic",
             "input_tokens": r["input_tokens_total"],
@@ -494,56 +500,56 @@ def main():
     ap.add_argument("container")
     ap.add_argument("--runs", type=int, default=3)
     ap.add_argument("--max-iterations", type=int, default=10,
-                    help="hard cap on submit_patch attempts per run (default 10)")
+                    help="Claude Code max turns per run (default 10)")
     ap.add_argument("--model", default="claude-sonnet-4-6",
-                    help="Anthropic model id passed to agentic_orchestrator.py")
+                    help="Claude model id passed to agentic_claude_cli.py")
     ap.add_argument("--keep-workspace", action="store_true",
-                    help="don't clean data/<container>/ scratch workspace after the batch")
+                    help="keep the docker container after the batch; run folders are always kept")
     args = ap.parse_args()
 
     row, test_type, script = preflight(args.container)
 
     api_key_var = _api_key_var(args.model)
-    if not os.environ.get(api_key_var):
-        sys.exit(f"ERROR: {api_key_var} env var not set (required for model '{args.model}')")
+    api_key = (os.environ.get(api_key_var) or
+               getattr(agentic_config, "ANTHROPIC_API_KEY", "") or "").strip()
+    if not api_key:
+        sys.exit(f"ERROR: {api_key_var} env var not set and no key found in config "
+                 f"(required for model '{args.model}')")
+    os.environ[api_key_var] = api_key
 
-    runs_root = DATA_DIR / "AGENTIC_FULL_RUNS" / f"{args.container}_runs"
+    runs_root = DATA_DIR / args.container
     runs_root.mkdir(parents=True, exist_ok=True)
     print(f"[wrapper] container={args.container}  test_type={test_type}  "
-          f"runs={args.runs}  max_iterations={args.max_iterations}  "
+          f"runs={args.runs}  max_turns={args.max_iterations}  "
           f"model={args.model}")
     print(f"[wrapper] runs_root={runs_root}")
 
-    data_container_dir = DATA_DIR / args.container
-    # Archive directory uses the model ID directly so multiple models can
-    # coexist under the same runs_root without overwriting each other.
-    model_dir_label = args.model
     container_name = "tm_" + re.sub(r"[^a-zA-Z0-9]", "_", args.container)
     docker_image = docker_image_for_java(row.get("java", "8"))
 
     rows = []
-    for run_n in range(1, args.runs + 1):
-        per_run_dir = runs_root / model_dir_label / f"run_{run_n}"
+    start_run = next_run_number(runs_root)
+    for run_n in range(start_run, start_run + args.runs):
+        run_label = f"run_{run_n:02d}"
+        per_run_dir = runs_root / run_label
+        data_container_dir = per_run_dir
         sentinel = per_run_dir / SENTINEL
 
-        if per_run_dir.exists():
-            print(f"[wrapper] clearing {per_run_dir} for fresh run")
-            shutil.rmtree(per_run_dir, ignore_errors=True)
-        per_run_dir.mkdir(parents=True, exist_ok=True)
+        per_run_dir.mkdir(parents=True, exist_ok=False)
 
         restore_workspace_owner(container_name, data_container_dir, docker_image)
 
         # Wipe dynamic outputs so this run can't be contaminated by stale
         # artefacts from the previous run (same rationale as the non-agentic
         # harness — see run_pass_at_k.py).
-        for stale in ("Steps_Output_Files", "result",
+        for stale in ("claude_inputs", "claude_outputs", "result",
                       "traces-fixed", "traces-flaky", "traces-flakycc",
                       "traces-pass", "traces-fail"):
             stale_path = data_container_dir / stale
             if stale_path.is_dir():
                 shutil.rmtree(stale_path, ignore_errors=True)
 
-        print(f"[wrapper] === starting {args.model}/run_{run_n} ===")
+        print(f"[wrapper] === starting {args.model}/{run_label} ===")
         t0 = time.time()
         pipeline_log = per_run_dir / "pipeline.log"
         env = os.environ.copy()
@@ -551,11 +557,12 @@ def main():
         env["KEEP_CONTAINER"] = "1"
         env["AGENTIC_MAX_ITERATIONS"] = str(args.max_iterations)
         env["AGENTIC_MODEL"] = args.model
-        if args.model.strip().lower().startswith("claude") and "AGENTIC_DRIVER" not in env:
-            env["AGENTIC_DRIVER"] = "claude_cli"
-        # Stream the orchestrator's stdout live instead of block-buffering it
-        # through this pipe, so [iter]/[apply]/[verify] lines appear in real time.
+        env["AGENTIC_DRIVER"] = "claude_cli"
+        env["AGENTIC_RUN_LABEL"] = run_label
+        # Stream the Claude CLI driver's stdout live instead of block-buffering it
+        # through this pipe, so [apply]/[verify] lines appear in real time.
         env["PYTHONUNBUFFERED"] = "1"
+        env["AGENTIC_PYTHON"] = sys.executable
 
         with open(pipeline_log, "w", encoding="utf-8") as logf:
             p = subprocess.Popen(
@@ -572,15 +579,13 @@ def main():
         restore_workspace_owner(container_name, data_container_dir, docker_image)
 
         elapsed = time.time() - t0
-        print(f"[wrapper] === finished {args.model}/run_{run_n} "
+        print(f"[wrapper] === finished {args.model}/{run_label} "
               f"(exit={exit_code}, wall={elapsed:.0f}s) ===")
-
-        archive_run(data_container_dir, per_run_dir)
 
         # Defense in depth: if per-type script exited non-zero AND the
         # orchestrator did not already write INCOMPLETE/PASSED, force a
         # terminal verdict so parse_run can't misread a stale verdict.
-        v_file = per_run_dir / "Steps_Output_Files" / "verify_after_fix.verdict"
+        v_file = per_run_dir / "claude_outputs" / "verify_after_fix.verdict"
         if exit_code != 0 and not v_file.is_file():
             v_file.parent.mkdir(parents=True, exist_ok=True)
             v_file.write_text("INCOMPLETE\n")
@@ -593,24 +598,22 @@ def main():
         row_data = parse_run(per_run_dir, args.container, test_type, run_n,
                              model=args.model)
         row_data["elapsed_total_seconds"] = round(elapsed, 1)
+        cleanup_completed_source_dirs(per_run_dir, row_data["verdict"])
         rows.append(row_data)
 
         all_rows = collect_all_rows_on_disk(runs_root, args.container,
-                                            test_type)
+                                            test_type, args.model)
         write_summary(all_rows, runs_root, args.container, row, args.runs)
         append_complete_summary([row_data])
 
-    all_rows = collect_all_rows_on_disk(runs_root, args.container, test_type)
+    all_rows = collect_all_rows_on_disk(runs_root, args.container, test_type, args.model)
     if all_rows:
         write_summary(all_rows, runs_root, args.container, row, args.runs)
 
+    restore_workspace_owner(container_name, runs_root, docker_image)
     if not args.keep_workspace:
-        restore_workspace_owner(container_name, data_container_dir, docker_image)
         subprocess.run(["docker", "rm", "-f", container_name],
                        capture_output=True)
-        if data_container_dir.is_dir():
-            print(f"[wrapper] cleaning workspace {data_container_dir.name}/")
-            shutil.rmtree(data_container_dir)
 
     n = sum(1 for r in rows if r['verdict'] in ('PASSED', 'FAILED'))
     c = sum(1 for r in rows if r['verdict'] == 'PASSED')
