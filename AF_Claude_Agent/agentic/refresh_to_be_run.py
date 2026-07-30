@@ -178,8 +178,11 @@ def merge(*sources: dict[str, set[str]]) -> dict[str, set[str]]:
 # ---------------------------------------------------------------------------
 
 def write_container_csv(path: Path, containers: list[str]) -> None:
+    # lineterminator="\n": csv defaults to RFC-4180 CRLF, which leaves a
+    # trailing \r on every name when these files are consumed from the shell
+    # (`while read c` → container name ends in \r → lookup fails).
     with open(path, "w", encoding="utf-8", newline="") as f:
-        w = csv.writer(f)
+        w = csv.writer(f, lineterminator="\n")
         w.writerow(["container"])
         for c in containers:
             w.writerow([c])
