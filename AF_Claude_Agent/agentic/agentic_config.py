@@ -71,7 +71,7 @@ DEFAULT_MODEL: str = "claude-sonnet-4-6"
 # ITERATION LIMITS
 # ===========================================================================
 
-MAX_ITERATIONS: int = 10
+MAX_ITERATIONS: int = 75
 # Hard cap on submit_patch attempts per container run.
 # The agent may call as many read-only context tools as it likes per
 # iteration; this only counts the terminal "submit a fix" action.
