@@ -54,6 +54,8 @@ ID example:
   --runs 1 --models claude --max-iterations 10
 ```
 
+Run data for this test can be found in `AF_Claude_Agent_Data.zip/ID/incubatorshardingsphereshardingjdbcshardingjdbccored517e5eassertGetDatabaseProductName`
+
 OD example:
 
 ```bash
@@ -62,6 +64,8 @@ OD example:
   --runs 1 --models claude --max-iterations 10
 ```
 
+Run data for this test can be found in `AF_Claude_Agent_Data.zip/OD/wikidatatoolkitwdtkutil10f9711`
+
 NIO example:
 
 ```bash
@@ -69,6 +73,7 @@ NIO example:
   quickcheckc1c1 \
   --runs 1 --models claude --max-iterations 10
 ```
+Run data for this test can be found in `AF_Claude_Agent_Data.zip/NIO/quickcheckc1c1`
 
 TD example:
 
@@ -77,6 +82,7 @@ TD example:
   BOOKKEEPER-846 \
   --runs 1 --models claude --max-iterations 10
 ```
+Run data for this test can be found in `AF_Claude_Agent_Data.zip/TD/BOOKKEEPER-846`
 
 Run all four sequentially:
 
@@ -135,3 +141,5 @@ Summaries are written to:
 AF_Claude_Agent/Complete_Containers_Summary.csv
 AF_Claude_Agent/data/<container>/summary.csv
 ```
+
+All the run data are in ```AF_Claude_Agent_Data.zip```
