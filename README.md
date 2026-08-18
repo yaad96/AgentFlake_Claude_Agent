@@ -90,7 +90,7 @@ Run data for this test is in `AF_Claude_Agent_Data.zip/TD/BOOKKEEPER-846`.
 
 | Option / env var | Purpose |
 |---|---|
-| `--runs N` | Independent runs for pass@k. |
+| `--runs N` | Independent runs for pass@k, which counts a test as repaired if at least one of the N independently sampled runs yields a verified fix. |
 | `--models claude,opus,haiku` | One or more Claude models. |
 | `--max-iterations N` | Max Claude Code turns per run. |
 | `AGENTIC_MAX_BUDGET_USD=0.50` | Hard Claude Code spend cap per run. |
