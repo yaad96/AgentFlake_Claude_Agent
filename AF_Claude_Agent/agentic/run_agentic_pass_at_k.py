@@ -12,7 +12,9 @@ Direct counterpart to TraceMop Scripts/run_pass_at_k.py, adapted for:
 
 Usage:
   ./run_agentic_pass_at_k.py <container> [--runs 3] [--max-iterations 10]
-                             [--keep-workspace] [--model claude-sonnet-4-6]
+                             [--model claude-sonnet-4-6]
+                             [--max-budget-usd 0.50] [--verify-pass-runs 10]
+                             [--cli-timeout-s 2400] [--force-rebuild-image]
 
 Run output layout:
   data/<container>/run_<NN>/
@@ -69,7 +71,11 @@ COMPLETE_SUMMARY_COLS = [
     "timestamp", "container", "test_type", "model", "run", "final verdict",
     "rv_traces_used",
     "input_tokens", "output_tokens", "total_tokens", "llm_seconds",
-    "validation_runs", "temperature", "tools_used",
+    "validation_requested", "validation_runs", "validation_valid",
+    "validation_passes",
+    "validation_failures", "validation_incomplete", "reason_code",
+    "validation_reason_code", "evaluation_incomplete",
+    "temperature", "tools_used",
 ]
 
 
@@ -138,7 +144,8 @@ def cleanup_completed_source_dirs(per_run_dir: Path, verdict: str):
     if verdict not in {"PASSED", "FAILED"}:
         return
     removed = []
-    for name in ("Fixed", "Flaky", "Flakym2", "FlakyCodeChange"):
+    for name in ("Fixed", "FixedCodeChange", "Flaky", "Flaky.pristine",
+                 "Flakym2", "FlakyCodeChange"):
         path = per_run_dir / name
         if path.exists():
             shutil.rmtree(path, ignore_errors=True)
@@ -159,6 +166,330 @@ def safe_json(path: Path):
         return None
 
 
+VALID_VERDICTS = {"PASSED", "FAILED", "INCOMPLETE"}
+PUBLIC_VERDICTS = {"PASSED", "FAILED"}
+INCOMPLETE_FAIL_CLOSED_REASON = "EVALUATION_INCOMPLETE_FAIL_CLOSED"
+
+
+def _normalise_verdict(value):
+    """Return the internal validation state represented by *value*.
+
+    The TD validator's JSON uses reason-bearing states (for example
+    ``infra_error`` and ``oracle_merge_conflict``). Reports retain this state for
+    attempt accounting, but publish only PASSED/FAILED at the run level. Keep
+    this conversion deliberately conservative so the caller can explicitly
+    fail closed on unknown/incomplete evaluation state.
+    """
+    if value is None:
+        return None
+    value = str(value).strip().upper().replace("-", "_").replace(" ", "_")
+    if value in VALID_VERDICTS:
+        return value
+    if value in {"PASS", "SUCCESS", "SUCCEEDED"}:
+        return "PASSED"
+    if value in {"FAIL", "TEST_FAILED", "TEST_FAILURE", "ASSERTION_FAILED"}:
+        return "FAILED"
+    if value in {
+        "INFRA", "INFRA_ERROR", "INFRA_FAILURE", "UNSCORABLE",
+        "ORACLE_MERGE_CONFLICT", "NON_DISCRIMINATIVE", "BLOCKED",
+    }:
+        return "INCOMPLETE"
+    return None
+
+
+def _public_verdict(internal_state):
+    """Map evaluator state to the two public verdicts, failing closed."""
+    return "PASSED" if internal_state == "PASSED" else "FAILED"
+
+
+def _json_scopes(payload):
+    """Yield the common nesting levels used by validation result JSON."""
+    if not isinstance(payload, dict):
+        return
+    yield payload
+    for key in ("result", "aggregate", "validation", "summary", "totals",
+                "stats", "compile", "composition"):
+        child = payload.get(key)
+        if isinstance(child, dict):
+            yield child
+
+
+def _first_json_value(payload, keys):
+    for scope in _json_scopes(payload) or ():
+        for key in keys:
+            value = scope.get(key)
+            if value is not None and value != "":
+                return value
+    return None
+
+
+def _int_json_value(payload, keys):
+    value = _first_json_value(payload, keys)
+    if isinstance(value, bool) or value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _reason_from_json(payload):
+    """Extract, without discarding, a validator reason code and detail."""
+    raw = _first_json_value(payload, (
+        "reason_code", "failure_reason_code", "category", "reason",
+        "terminal_reason", "final_reason",
+    ))
+    detail = _first_json_value(payload, (
+        "reason_detail", "reason_message", "message", "detail", "error",
+    ))
+    code = ""
+    if isinstance(raw, dict):
+        code = str(raw.get("code") or raw.get("category") or "").strip()
+        if not detail:
+            detail = raw.get("message") or raw.get("detail")
+    elif raw is not None:
+        code = str(raw).strip()
+    if isinstance(detail, (dict, list)):
+        detail = json.dumps(detail, sort_keys=True)
+    return code, str(detail or "").strip()
+
+
+def _attempt_records_from_json(payload):
+    """Find embedded per-attempt result objects in an aggregate document."""
+    for scope in _json_scopes(payload) or ():
+        for key in ("attempts", "runs", "results", "validation_results"):
+            value = scope.get(key)
+            if isinstance(value, list):
+                records = [item for item in value if isinstance(item, dict)]
+                if records:
+                    return records
+            if isinstance(value, dict):
+                records = [item for item in value.values()
+                           if isinstance(item, dict)]
+                if records and any(
+                        _normalise_verdict(_first_json_value(item, (
+                            "verdict", "run_verdict", "final_verdict",
+                            "status", "outcome")))
+                        for item in records):
+                    return records
+    return []
+
+
+def _attempt_result_files(validation_dirs):
+    """Return only validation-attempt results, excluding baseline/build JSON."""
+    files = []
+    for validation_dir in validation_dirs:
+        for dirname in ("runs", "attempts"):
+            root = validation_dir / dirname
+            if root.is_dir():
+                files.extend(root.glob("*/result.json"))
+                # agentic_verify archives one selected result per validation run
+                # as attempt_NN.json, alongside attempt_NN.command_MM.json.
+                files.extend(root.glob("attempt_[0-9][0-9].json"))
+    return sorted(set(files), key=lambda p: str(p))
+
+
+def read_validation_evidence(per_run_dir: Path, meta: dict | None = None):
+    """Read the new TD validation evidence without modifying any artifact.
+
+    ``claude_outputs/td_validation`` is canonical.  The run-root location is
+    also accepted so partially migrated runs remain reportable.  Per-attempt
+    result files are preferred over inferred/configured counts; older runs fall
+    back to the number of confirmations that were actually recorded in meta.
+    """
+    steps = per_run_dir / "claude_outputs"
+    validation_dirs = []
+    for path in (steps / "td_validation", per_run_dir / "td_validation"):
+        if path.is_dir() and path not in validation_dirs:
+            validation_dirs.append(path)
+
+    aggregate = None
+    aggregate_path = None
+    for validation_dir in validation_dirs:
+        for name in ("aggregate.json", "result.json"):
+            candidate = validation_dir / name
+            payload = safe_json(candidate)
+            if isinstance(payload, dict):
+                aggregate, aggregate_path = payload, candidate
+                break
+        if aggregate is not None:
+            break
+
+    result_files = _attempt_result_files(validation_dirs)
+    file_records = []
+    for path in result_files:
+        payload = safe_json(path)
+        if isinstance(payload, dict):
+            file_records.append(payload)
+    embedded_records = _attempt_records_from_json(aggregate)
+    records = file_records or embedded_records
+
+    verdict = _normalise_verdict(_first_json_value(aggregate, (
+        "run_verdict", "verdict", "final_verdict", "outcome", "status")))
+    # The aggregate is internal validator evidence and may legitimately retain
+    # INCOMPLETE.  It is never emitted as the public run verdict; callers map
+    # it to FAILED while keeping this flag and the original reason for audit.
+    aggregate_internal = _normalise_verdict(
+        _first_json_value(aggregate, ("internal_status", "validation_status")))
+    terminal_ready = bool(aggregate) and aggregate.get("terminal_ready") is True
+    evaluation_incomplete = bool(aggregate) and (
+        verdict not in PUBLIC_VERDICTS
+        or aggregate_internal == "INCOMPLETE"
+        or bool(aggregate.get("evaluation_incomplete"))
+        or not terminal_ready)
+    reason_code, reason_detail = _reason_from_json(aggregate)
+    for validation_dir in validation_dirs:
+        auxiliary = safe_json(validation_dir / "orchestrator_result.json")
+        if not isinstance(auxiliary, dict):
+            continue
+        auxiliary_state = _normalise_verdict(auxiliary.get("internal_status"))
+        if auxiliary_state == "INCOMPLETE":
+            evaluation_incomplete = True
+        if not reason_code:
+            auxiliary_code, auxiliary_detail = _reason_from_json(auxiliary)
+            # Keep the low-level cause in diagnostic fields.  The public
+            # reason_code is assigned by parse_run() when it fails closed.
+            reason_code = str(
+                auxiliary.get("diagnostic_reason_code") or auxiliary_code or ""
+            ).strip()
+            reason_detail = auxiliary_detail
+        if reason_code or reason_detail:
+            break
+    if not reason_code:
+        for record in reversed(records):
+            record_verdict = _normalise_verdict(_first_json_value(record, (
+                "verdict", "run_verdict", "final_verdict", "outcome", "status")))
+            if record_verdict and record_verdict != "PASSED":
+                reason_code, reason_detail = _reason_from_json(record)
+                if reason_code or reason_detail:
+                    break
+
+    # The aggregate schema distinguishes requested from actual attempts. Honour
+    # its explicit actual count; otherwise count concrete run/result records.
+    # Never substitute requested_attempts or agentic_config.VERIFY_PASS_RUNS.
+    explicit_attempts = _int_json_value(aggregate, (
+        "actual_attempts", "completed_attempts", "attempt_count",
+        "validation_attempts", "validation_runs", "runs_completed",
+    ))
+    attempts = explicit_attempts if explicit_attempts is not None else len(records)
+    requested = _int_json_value(aggregate, ("requested_attempts",)) or 0
+    valid = _int_json_value(aggregate, ("valid_attempts",))
+
+    attempt_verdicts = [
+        _normalise_verdict(_first_json_value(record, (
+            "verdict", "run_verdict", "final_verdict", "outcome", "status")))
+        for record in records
+    ]
+    passes = _int_json_value(aggregate, (
+        "passed_attempts", "pass_count", "validation_passes"))
+    failures = _int_json_value(aggregate, (
+        "failed_attempts", "failure_count", "validation_failures"))
+    incomplete = _int_json_value(aggregate, (
+        "incomplete_attempts", "infra_attempts", "validation_incomplete"))
+    if passes is None:
+        passes = sum(v == "PASSED" for v in attempt_verdicts)
+    if failures is None:
+        failures = sum(v == "FAILED" for v in attempt_verdicts)
+    if incomplete is None:
+        incomplete = sum(v == "INCOMPLETE" for v in attempt_verdicts)
+    if valid is None:
+        valid = passes + failures
+
+    archive_logs = []
+    for validation_dir in validation_dirs:
+        runs_dir = validation_dir / "runs"
+        if runs_dir.is_dir():
+            archive_logs.extend(runs_dir.glob("attempt_[0-9][0-9].log"))
+
+    # A PASS is a completeness claim, not merely a label.  Every requested
+    # attempt must exist, be valid, and pass; contradictory or partial
+    # aggregate evidence fails closed even if its top-level verdict says PASS.
+    if verdict == "PASSED" and (
+            requested < 1
+            or attempts != requested
+            or valid != attempts
+            or passes != attempts
+            or failures != 0
+            or incomplete != 0
+            or len(embedded_records) != attempts
+            or len(result_files) != attempts
+            or len(set(archive_logs)) != attempts
+            or any(value != "PASSED" for value in attempt_verdicts)):
+        evaluation_incomplete = True
+    if (aggregate_internal in PUBLIC_VERDICTS
+            and verdict in PUBLIC_VERDICTS
+            and aggregate_internal != verdict):
+        evaluation_incomplete = True
+
+    stats = {"tests": 0, "failures": 0, "errors": 0, "skipped": 0,
+             "failure_markers": 0}
+    stat_aliases = {
+        "tests": ("tests", "tests_run"),
+        "failures": ("failures", "test_failures"),
+        "errors": ("errors", "test_errors"),
+        "skipped": ("skipped", "test_skipped", "skips"),
+        "failure_markers": ("failure_markers", "markers"),
+    }
+    if records:
+        for record in records:
+            stats_record = record
+            command_attempts = record.get("attempts")
+            if isinstance(command_attempts, list):
+                selected = record.get("selected_command_attempt",
+                                      record.get("selected_attempt"))
+                matches = [item for item in command_attempts
+                           if isinstance(item, dict) and
+                           (selected is None or item.get("attempt") == selected)]
+                if matches:
+                    stats_record = matches[-1]
+            for name, aliases in stat_aliases.items():
+                stats[name] += _int_json_value(stats_record, aliases) or 0
+    else:
+        for name, aliases in stat_aliases.items():
+            stats[name] = _int_json_value(aggregate, aliases) or 0
+
+    # Legacy Claude metadata records only confirmations.  Count the initial run
+    # only when its log exists, rather than reporting the configured target.
+    if attempts == 0 and isinstance(meta, dict):
+        confirmations = meta.get("confirm_runs")
+        if isinstance(confirmations, list):
+            attempts = len(confirmations)
+            had_initial = (steps / "verify_after_fix.log").is_file()
+            if had_initial:
+                attempts += 1
+            legacy_verdicts = [
+                _normalise_verdict(item.get("verdict"))
+                for item in confirmations if isinstance(item, dict)
+            ]
+            passes = sum(v == "PASSED" for v in legacy_verdicts)
+            failures = sum(v == "FAILED" for v in legacy_verdicts)
+            incomplete = sum(v == "INCOMPLETE" for v in legacy_verdicts)
+            # Confirmation runs only exist after the initial verification passed.
+            # For a one-run legacy PASS, meta's final verdict supplies that fact.
+            if had_initial and (confirmations or
+                                _normalise_verdict(meta.get("verdict")) == "PASSED"):
+                passes += 1
+            valid = passes + failures
+
+    return {
+        "aggregate": aggregate or {},
+        "aggregate_path": str(aggregate_path.relative_to(per_run_dir))
+        if aggregate_path else "",
+        "terminal_ready": terminal_ready,
+        "verdict": verdict,
+        "reason_code": reason_code,
+        "reason_detail": reason_detail,
+        "evaluation_incomplete": evaluation_incomplete,
+        "requested": requested,
+        "attempts": attempts,
+        "valid": valid or 0,
+        "passes": passes,
+        "failures": failures,
+        "incomplete": incomplete,
+        "stats": stats,
+    }
+
+
 def parse_run(per_run_dir: Path, container, test_type, run_n, model="claude"):
     """Extract a single CSV row's worth of data from an agentic per-run
     folder. Returns a dict shaped to match parse_run in the non-agentic
@@ -167,7 +498,7 @@ def parse_run(per_run_dir: Path, container, test_type, run_n, model="claude"):
     steps = per_run_dir / "claude_outputs"
     meta = safe_json(per_run_dir / "claude_outputs" / "meta.json") or {}
     model = meta.get("model") or model
-    run_verdict_file = steps / "run_verdict.txt"          # authoritative 3-state
+    run_verdict_file = steps / "run_verdict.txt"          # authoritative binary
     verdict_file = steps / "verify_after_fix.verdict"     # binary fallback
     apply_file = steps / "apply_report.json"
     llm_resp = steps / "llm_response.json"
@@ -176,15 +507,46 @@ def parse_run(per_run_dir: Path, container, test_type, run_n, model="claude"):
     verify_log = steps / "verify_after_fix.log"
     pipeline = per_run_dir / "pipeline.log"
 
-    # Prefer the authoritative run verdict; fall back to the binary verify
-    # file for older runs that predate run_verdict.txt.
-    verdict = "INCOMPLETE"
-    for vf in (run_verdict_file, verdict_file):
-        if vf.is_file():
-            v = vf.read_text(encoding="utf-8").strip()
-            if v in ("PASSED", "FAILED", "INCOMPLETE"):
-                verdict = v
-                break
+    validation = read_validation_evidence(per_run_dir, meta)
+
+    # Prefer the authoritative run verdict, then the structured validator
+    # aggregate, and finally the binary verify file used by older runs.
+    internal_verdict = None
+    verdict_source = "default"
+    if run_verdict_file.is_file():
+        # File existence is authoritative.  An empty/unrecognised value is
+        # malformed terminal evidence and therefore fails closed; do not fall
+        # through to a potentially stale legacy PASS.
+        internal_verdict = _normalise_verdict(
+            run_verdict_file.read_text(encoding="utf-8", errors="replace"))
+        verdict_source = "run_verdict.txt"
+    if verdict_source == "default" and validation.get("verdict"):
+        internal_verdict = validation["verdict"]
+        verdict_source = validation.get("aggregate_path") or "td_validation"
+    if verdict_source == "default":
+        value = _normalise_verdict(meta.get("verdict"))
+        if value:
+            internal_verdict, verdict_source = value, "meta.json"
+    if verdict_source == "default" and verdict_file.is_file():
+        value = _normalise_verdict(
+            verdict_file.read_text(encoding="utf-8", errors="replace"))
+        if value:
+            internal_verdict, verdict_source = value, "verify_after_fix.verdict"
+
+    aggregate_internal = validation.get("verdict")
+    evaluation_incomplete = bool(
+        internal_verdict not in PUBLIC_VERDICTS
+        or aggregate_internal == "INCOMPLETE"
+        or validation.get("evaluation_incomplete")
+        or (test_type == "td" and (
+            not validation.get("aggregate")
+            or not run_verdict_file.is_file()))
+        or (internal_verdict in PUBLIC_VERDICTS
+            and aggregate_internal in PUBLIC_VERDICTS
+            and internal_verdict != aggregate_internal)
+    )
+    verdict = ("FAILED" if evaluation_incomplete
+               else _public_verdict(internal_verdict))
 
     apply_rep = safe_json(apply_file) or {}
     resp = safe_json(llm_resp) or {}
@@ -231,13 +593,22 @@ def parse_run(per_run_dir: Path, container, test_type, run_n, model="claude"):
         for ap in (la.get("applied") or []):
             imports_inferred.extend(ap.get("imports_inferred") or [])
 
-    # Verify log parse.
-    tests = failures = errors = markers = 0
+    # Structured attempt results are authoritative. Fall back to the legacy
+    # canonical log only when the validator did not publish test statistics.
+    validation_stats = validation.get("stats") or {}
+    tests = int(validation_stats.get("tests") or 0)
+    failures = int(validation_stats.get("failures") or 0)
+    errors = int(validation_stats.get("errors") or 0)
+    skipped = int(validation_stats.get("skipped") or 0)
+    markers = int(validation_stats.get("failure_markers") or 0)
     fail_snippet = ""
-    if verify_log.is_file():
+    if not validation.get("aggregate") and verify_log.is_file():
         log = verify_log.read_text(encoding="utf-8", errors="replace")
-        for m in re.finditer(r"Tests run:\s*(\d+),\s*Failures:\s*(\d+),\s*Errors:\s*(\d+)", log):
+        for m in re.finditer(
+                r"Tests run:\s*(\d+),\s*Failures:\s*(\d+),\s*"
+                r"Errors:\s*(\d+)(?:,\s*Skipped:\s*(\d+))?", log):
             tests, failures, errors = int(m.group(1)), int(m.group(2)), int(m.group(3))
+            skipped = int(m.group(4) or 0)
         markers = len(re.findall(r"<<< (?:FAILURE|ERROR)!", log))
         if markers > 0:
             for line in log.splitlines():
@@ -257,8 +628,18 @@ def parse_run(per_run_dir: Path, container, test_type, run_n, model="claude"):
                     pass
                 break
 
+    validation_reason_code = validation.get("reason_code") or ""
+    reason_code = (INCOMPLETE_FAIL_CLOSED_REASON if evaluation_incomplete
+                   else validation_reason_code)
+    reason_detail = validation.get("reason_detail") or ""
     cat = classify(verdict, apply_rep, recompile_ok, failures, errors,
-                   markers, pipeline)
+                   markers, pipeline, reason_code=reason_code)
+    if not fail_snippet and reason_detail:
+        fail_snippet = reason_detail.replace("\n", " | ")[:200]
+    if not fail_snippet and validation_reason_code and verdict != "PASSED":
+        fail_snippet = validation_reason_code[:200]
+    if not fail_snippet and reason_code and verdict != "PASSED":
+        fail_snippet = reason_code[:200]
     if not fail_snippet and verdict != "PASSED":
         for la in layers:
             r = la.get("reason") or ""
@@ -295,6 +676,10 @@ def parse_run(per_run_dir: Path, container, test_type, run_n, model="claude"):
         "model": model,
         "run": run_n,
         "verdict": verdict,
+        "verdict_source": verdict_source,
+        "reason_code": reason_code,
+        "validation_reason_code": validation_reason_code,
+        "evaluation_incomplete": evaluation_incomplete,
         "tools_used": tools_used_str,
         "fail_category": cat,
         "input_tokens_total": in_tokens,
@@ -310,18 +695,27 @@ def parse_run(per_run_dir: Path, container, test_type, run_n, model="claude"):
         "verify_tests": tests,
         "verify_failures": failures,
         "verify_errors": errors,
+        "verify_skipped": skipped,
         "failure_markers": markers,
+        "validation_requested": int(validation.get("requested") or 0),
+        "validation_runs": int(validation.get("attempts") or 0),
+        "validation_valid": int(validation.get("valid") or 0),
+        "validation_passes": int(validation.get("passes") or 0),
+        "validation_failures": int(validation.get("failures") or 0),
+        "validation_incomplete": int(validation.get("incomplete") or 0),
+        "validation_artifact": validation.get("aggregate_path") or "",
         "fail_snippet": fail_snippet,
         "elapsed_total_seconds": round(elapsed_total, 1),
         "agentic_iterations": len(iterations) or int(usage_blob.get("num_turns") or 0),
     }
 
 
-def classify(verdict, apply_rep, recompile_ok, failures, errors, markers, pipeline):
+def classify(verdict, apply_rep, recompile_ok, failures, errors, markers,
+             pipeline, reason_code=""):
     if verdict == "PASSED":
         return "passed"
-    if verdict == "INCOMPLETE":
-        return "incomplete"
+    if reason_code:
+        return reason_code
     if pipeline.is_file():
         log = pipeline.read_text(encoding="utf-8", errors="replace")
         if any(s in log for s in [
@@ -358,12 +752,18 @@ def pass_at_k(n, c, k):
 
 CSV_COLS = [
     "container", "test_type", "model", "run", "verdict", "fail_category",
+    "verdict_source", "reason_code", "validation_reason_code",
+    "evaluation_incomplete",
     "agentic_iterations",
     "input_tokens_total", "output_tokens_total", "total_tokens",
     "llm_finish_reason", "elapsed_llm_seconds", "elapsed_total_seconds",
     "apply_layer", "apply_path_rewritten", "apply_imports_inferred",
     "recompile_ok", "host_compile_ok",
-    "verify_tests", "verify_failures", "verify_errors", "failure_markers",
+    "validation_requested", "validation_runs", "validation_valid",
+    "validation_passes", "validation_failures",
+    "validation_incomplete", "validation_artifact",
+    "verify_tests", "verify_failures", "verify_errors", "verify_skipped",
+    "failure_markers",
     "fail_snippet",
 ]
 
@@ -401,15 +801,12 @@ def next_run_number(runs_root: Path) -> int:
     return highest + 1
 
 
-_first_append_this_process = True
-
-
 def append_complete_summary(rows):
     """Append per-run rows to the shared Complete Containers Summary.csv.
     Tagged with rv_traces_used='agentic' so the agentic rows are visually
-    and machine-distinguishable from the non-agentic pass@k batches.
+    and machine-distinguishable from the non-agentic pass@k batches. Preserve
+    columns owned by other pipelines when the shared header evolves.
     """
-    global _first_append_this_process
     if not rows:
         return
     timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -427,54 +824,57 @@ def append_complete_summary(rows):
             "output_tokens": r["output_tokens_total"],
             "total_tokens": r["total_tokens"],
             "llm_seconds": round(r["elapsed_llm_seconds"], 1),
-            "validation_runs": agentic_config.VERIFY_PASS_RUNS,
+            "validation_requested": r.get("validation_requested", 0),
+            "validation_runs": r.get("validation_runs", 0),
+            "validation_valid": r.get("validation_valid", 0),
+            "validation_passes": r.get("validation_passes", 0),
+            "validation_failures": r.get("validation_failures", 0),
+            "validation_incomplete": r.get("validation_incomplete", 0),
+            "reason_code": r.get("reason_code", ""),
+            "validation_reason_code": r.get("validation_reason_code", ""),
+            "evaluation_incomplete": r.get("evaluation_incomplete", False),
             "temperature": agentic_config.TEMPERATURE,
             "tools_used": r.get("tools_used", ""),
         })
 
-    if _first_append_this_process:
-        _first_append_this_process = False
-        existing_header = None
-        if COMPLETE_SUMMARY_FILE.is_file() and COMPLETE_SUMMARY_FILE.stat().st_size > 0:
-            with open(COMPLETE_SUMMARY_FILE, encoding="utf-8", newline="") as f:
-                try:
-                    existing_header = next(csv.reader(f))
-                except StopIteration:
-                    existing_header = None
-        if existing_header == COMPLETE_SUMMARY_COLS:
-            with open(COMPLETE_SUMMARY_FILE, "a", encoding="utf-8", newline="") as f:
-                w = csv.DictWriter(f, fieldnames=COMPLETE_SUMMARY_COLS,
-                                   quoting=csv.QUOTE_ALL, extrasaction="ignore")
-                for r in new_row_dicts:
-                    w.writerow(r)
-        else:
-            # Header drift / new file path: full rewrite. DictReader skips
-            # blank lines, so any pre-existing blank separator rows are dropped
-            # here and none are written back.
-            existing_rows = []
-            if COMPLETE_SUMMARY_FILE.is_file():
-                with open(COMPLETE_SUMMARY_FILE, encoding="utf-8", newline="") as f:
-                    existing_rows = list(csv.DictReader(f))
-            for r in existing_rows:
-                if "verdict" in r and "final verdict" not in r:
-                    r["final verdict"] = r.pop("verdict")
-            tmp = COMPLETE_SUMMARY_FILE.with_suffix(
-                COMPLETE_SUMMARY_FILE.suffix + ".tmp")
-            with open(tmp, "w", encoding="utf-8", newline="") as f:
-                w = csv.DictWriter(f, fieldnames=COMPLETE_SUMMARY_COLS,
-                                   quoting=csv.QUOTE_ALL, extrasaction="ignore")
-                w.writeheader()
-                for r in existing_rows:
-                    w.writerow(r)
-                for r in new_row_dicts:
-                    w.writerow(r)
-            tmp.replace(COMPLETE_SUMMARY_FILE)
-    else:
+    existing_header = []
+    if COMPLETE_SUMMARY_FILE.is_file() and COMPLETE_SUMMARY_FILE.stat().st_size > 0:
+        with open(COMPLETE_SUMMARY_FILE, encoding="utf-8", newline="") as f:
+            try:
+                existing_header = next(csv.reader(f))
+            except StopIteration:
+                existing_header = []
+
+    if existing_header and all(col in existing_header
+                               for col in COMPLETE_SUMMARY_COLS):
+        # An existing superset may contain non-agentic fields. Reuse it exactly.
         with open(COMPLETE_SUMMARY_FILE, "a", encoding="utf-8", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=COMPLETE_SUMMARY_COLS,
-                               quoting=csv.QUOTE_ALL, extrasaction="ignore")
-            for r in new_row_dicts:
-                w.writerow(r)
+            writer = csv.DictWriter(f, fieldnames=existing_header,
+                                    quoting=csv.QUOTE_ALL, extrasaction="ignore")
+            writer.writerows(new_row_dicts)
+    else:
+        existing_rows = []
+        if existing_header:
+            with open(COMPLETE_SUMMARY_FILE, encoding="utf-8", newline="") as f:
+                existing_rows = list(csv.DictReader(f))
+        for existing in existing_rows:
+            if "verdict" in existing and not existing.get("final verdict"):
+                existing["final verdict"] = existing.get("verdict", "")
+        fields = list(existing_header)
+        for col in COMPLETE_SUMMARY_COLS:
+            if col not in fields:
+                fields.append(col)
+        if not fields:
+            fields = list(COMPLETE_SUMMARY_COLS)
+        tmp = COMPLETE_SUMMARY_FILE.with_suffix(
+            COMPLETE_SUMMARY_FILE.suffix + ".tmp")
+        with open(tmp, "w", encoding="utf-8", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fields,
+                                    quoting=csv.QUOTE_ALL, extrasaction="ignore")
+            writer.writeheader()
+            writer.writerows(existing_rows)
+            writer.writerows(new_row_dicts)
+        tmp.replace(COMPLETE_SUMMARY_FILE)
     print(f"[wrapper] appended {len(rows)} row(s) to "
           f"{COMPLETE_SUMMARY_FILE.name}")
 
@@ -503,9 +903,26 @@ def main():
                     help="Claude Code max turns per run (default 10)")
     ap.add_argument("--model", default="claude-sonnet-4-6",
                     help="Claude model id passed to agentic_claude_cli.py")
-    ap.add_argument("--keep-workspace", action="store_true",
-                    help="keep the docker container after the batch; run folders are always kept")
+    ap.add_argument("--max-budget-usd", default=None,
+                    help="hard Claude Code spend cap per run")
+    ap.add_argument("--verify-pass-runs", type=int, default=None,
+                    help="extra passing verification runs required after the first pass")
+    ap.add_argument("--cli-timeout-s", type=int, default=None,
+                    help="wall-clock cap in seconds for Claude Code")
+    ap.add_argument("--force-rebuild-image", action="store_true",
+                    help="rebuild the Docker image even if one already exists")
     args = ap.parse_args()
+
+    # Optional per-run knobs, forwarded verbatim to the per-type shell script.
+    script_flags = []
+    if args.max_budget_usd is not None:
+        script_flags += ["--max-budget-usd", str(args.max_budget_usd)]
+    if args.verify_pass_runs is not None:
+        script_flags += ["--verify-pass-runs", str(args.verify_pass_runs)]
+    if args.cli_timeout_s is not None:
+        script_flags += ["--cli-timeout-s", str(args.cli_timeout_s)]
+    if args.force_rebuild_image:
+        script_flags.append("--force-rebuild-image")
 
     row, test_type, script = preflight(args.container)
 
@@ -553,7 +970,6 @@ def main():
         t0 = time.time()
         pipeline_log = per_run_dir / "pipeline.log"
         env = os.environ.copy()
-        env.pop("KEEP_SOURCE", None)
         env["KEEP_CONTAINER"] = "1"
         env["AGENTIC_MAX_ITERATIONS"] = str(args.max_iterations)
         env["AGENTIC_MODEL"] = args.model
@@ -566,7 +982,7 @@ def main():
 
         with open(pipeline_log, "w", encoding="utf-8") as logf:
             p = subprocess.Popen(
-                [str(script), args.container],
+                [str(script), args.container, *script_flags],
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 env=env, text=True, bufsize=1,
             )
@@ -582,16 +998,110 @@ def main():
         print(f"[wrapper] === finished {args.model}/{run_label} "
               f"(exit={exit_code}, wall={elapsed:.0f}s) ===")
 
-        # Defense in depth: if per-type script exited non-zero AND the
-        # orchestrator did not already write INCOMPLETE/PASSED, force a
-        # terminal verdict so parse_run can't misread a stale verdict.
-        v_file = per_run_dir / "claude_outputs" / "verify_after_fix.verdict"
-        if exit_code != 0 and not v_file.is_file():
-            v_file.parent.mkdir(parents=True, exist_ok=True)
-            v_file.write_text("INCOMPLETE\n")
-        elif not v_file.is_file():
-            v_file.parent.mkdir(parents=True, exist_ok=True)
-            v_file.write_text("INCOMPLETE\n")
+        # Normalise the public terminal artifact to the binary contract.  The
+        # validator may retain INCOMPLETE internally, but reporting fails that
+        # state closed and preserves its diagnostic evidence separately.
+        steps_dir = per_run_dir / "claude_outputs"
+        steps_dir.mkdir(parents=True, exist_ok=True)
+        run_verdict_file = steps_dir / "run_verdict.txt"
+        legacy_verdict_file = steps_dir / "verify_after_fix.verdict"
+        meta_payload = safe_json(steps_dir / "meta.json") or {}
+        validation_evidence = read_validation_evidence(per_run_dir, meta_payload)
+        raw_run_verdict = (run_verdict_file.read_text(
+            encoding="utf-8", errors="replace")
+            if run_verdict_file.is_file() else None)
+        run_state = _normalise_verdict(raw_run_verdict)
+        aggregate_state = validation_evidence.get("verdict")
+        meta_state = _normalise_verdict(meta_payload.get("verdict"))
+        legacy_state = (
+            _normalise_verdict(legacy_verdict_file.read_text(
+                encoding="utf-8", errors="replace"))
+            if legacy_verdict_file.is_file() else None
+        )
+
+        if raw_run_verdict is not None:
+            internal_terminal = run_state
+            terminal_source = "run_verdict.txt"
+        elif aggregate_state:
+            internal_terminal = aggregate_state
+            terminal_source = (validation_evidence.get("aggregate_path")
+                               or "td_validation")
+        elif meta_state:
+            internal_terminal = meta_state
+            terminal_source = "meta.json"
+        elif legacy_state:
+            internal_terminal = legacy_state
+            terminal_source = "verify_after_fix.verdict"
+        else:
+            internal_terminal = None
+            terminal_source = "missing"
+
+        evaluation_incomplete = bool(
+            internal_terminal not in PUBLIC_VERDICTS
+            or aggregate_state == "INCOMPLETE"
+            or validation_evidence.get("evaluation_incomplete")
+            or (test_type == "td" and (
+                not validation_evidence.get("aggregate")
+                or raw_run_verdict is None))
+            or (internal_terminal in PUBLIC_VERDICTS
+                and aggregate_state in PUBLIC_VERDICTS
+                and internal_terminal != aggregate_state)
+            or (internal_terminal == "PASSED" and exit_code != 0)
+        )
+        public_terminal = ("FAILED" if evaluation_incomplete
+                           else _public_verdict(internal_terminal))
+
+        if evaluation_incomplete:
+            if raw_run_verdict is not None and run_state is None:
+                diagnostic_reason = "invalid_run_verdict"
+            elif validation_evidence.get("reason_code"):
+                diagnostic_reason = validation_evidence["reason_code"]
+            elif aggregate_state == "INCOMPLETE":
+                diagnostic_reason = "aggregate_incomplete"
+            elif internal_terminal == "INCOMPLETE":
+                diagnostic_reason = "terminal_incomplete"
+            else:
+                diagnostic_reason = ("orchestrator_nonzero_exit"
+                                     if exit_code != 0
+                                     else "missing_terminal_verdict")
+            validation_dir = steps_dir / "td_validation"
+            validation_dir.mkdir(parents=True, exist_ok=True)
+            orchestrator_result = validation_dir / "orchestrator_result.json"
+            if not orchestrator_result.exists():
+                with open(orchestrator_result, "x", encoding="utf-8") as f:
+                    json.dump({
+                        "schema_version": 1,
+                        "verdict": "FAILED",
+                        "reason_code": INCOMPLETE_FAIL_CLOSED_REASON,
+                        "internal_status": "INCOMPLETE",
+                        "diagnostic_reason_code": diagnostic_reason,
+                        "terminal_source": terminal_source,
+                        "exit_code": exit_code,
+                        "requested_attempts": int(
+                            validation_evidence.get("requested") or 0),
+                        "actual_attempts": int(
+                            validation_evidence.get("attempts") or 0),
+                        "valid_attempts": int(
+                            validation_evidence.get("valid") or 0),
+                        "passed_attempts": int(
+                            validation_evidence.get("passes") or 0),
+                        "failed_attempts": int(
+                            validation_evidence.get("failures") or 0),
+                        "incomplete_attempts": int(
+                            validation_evidence.get("incomplete") or 0),
+                    }, f, indent=2)
+                    f.write("\n")
+
+        # Preserve a malformed/three-state/conflicting original before
+        # replacing it with the canonical public value.
+        canonical_raw = (raw_run_verdict or "").strip()
+        if raw_run_verdict is not None and canonical_raw != public_terminal:
+            validation_dir = steps_dir / "td_validation"
+            validation_dir.mkdir(parents=True, exist_ok=True)
+            internal_copy = validation_dir / "run_verdict.internal.txt"
+            if not internal_copy.exists():
+                internal_copy.write_text(raw_run_verdict, encoding="utf-8")
+        run_verdict_file.write_text(f"{public_terminal}\n", encoding="utf-8")
 
         sentinel.write_text(f"exit_code={exit_code}\nelapsed={elapsed:.1f}\n")
 
@@ -611,9 +1121,7 @@ def main():
         write_summary(all_rows, runs_root, args.container, row, args.runs)
 
     restore_workspace_owner(container_name, runs_root, docker_image)
-    if not args.keep_workspace:
-        subprocess.run(["docker", "rm", "-f", container_name],
-                       capture_output=True)
+    subprocess.run(["docker", "rm", "-f", container_name], capture_output=True)
 
     n = sum(1 for r in rows if r['verdict'] in ('PASSED', 'FAILED'))
     c = sum(1 for r in rows if r['verdict'] == 'PASSED')

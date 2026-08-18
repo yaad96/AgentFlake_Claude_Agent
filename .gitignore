@@ -28,3 +28,7 @@ AF_Claude_Agent/.anthropic_api_key
 
 # Local Python virtual environment
 .venv/
+
+# staged trees + logs from run_td_credible.sh (results.jsonl is the only artefact worth keeping)
+AF_Claude_Agent/data_td_credible/*
+!AF_Claude_Agent/data_td_credible/results.jsonl

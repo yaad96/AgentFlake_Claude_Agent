@@ -6,13 +6,51 @@
 # 8-11 with a call to agentic_claude_cli.py. The Claude CLI agent then iterates
 # through context tools up to the configured Claude Code turn cap.
 #
-# Usage:  ./run_agentic_td.sh <result_container>
+# Usage:  ./run_agentic_td.sh <result_container> [options]
 # Requires: ANTHROPIC_API_KEY or .anthropic_api_key + install AF_Claude_Agent/requirements.txt
 # ============================================================
 
 set -euo pipefail
 
-RESULT_CONTAINER="${1:?Usage: $0 <result_container>}"
+# ---- CLI options (positional container + optional flags) -------------------
+RESULT_CONTAINER=""
+FORCE_REBUILD_IMAGE=0
+MAX_BUDGET_USD=""
+VERIFY_PASS_RUNS=""
+CLI_TIMEOUT_S=""
+
+usage() {
+  cat >&2 <<USAGE
+Usage: $0 <result_container> [options]
+
+Options:
+  --force-rebuild-image     rebuild the Docker image even if one already exists
+  --max-budget-usd <usd>    hard Claude Code spend cap for this run
+  --verify-pass-runs <n>    extra passing verification runs after the first pass
+  --cli-timeout-s <sec>     wall-clock cap for Claude Code
+  -h, --help                show this help
+USAGE
+}
+
+while (( $# )); do
+  case "$1" in
+    --force-rebuild-image) FORCE_REBUILD_IMAGE=1; shift ;;
+    --max-budget-usd)   MAX_BUDGET_USD="${2:?--max-budget-usd needs a value}";   shift 2 ;;
+    --verify-pass-runs) VERIFY_PASS_RUNS="${2:?--verify-pass-runs needs a value}"; shift 2 ;;
+    --cli-timeout-s)    CLI_TIMEOUT_S="${2:?--cli-timeout-s needs a value}";     shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    --*) echo "ERROR: unknown option '$1'" >&2; usage; exit 2 ;;
+    *)
+      if [[ -n "$RESULT_CONTAINER" ]]; then
+        echo "ERROR: unexpected argument '$1'" >&2; usage; exit 2
+      fi
+      RESULT_CONTAINER="$1"; shift ;;
+  esac
+done
+
+if [[ -z "$RESULT_CONTAINER" ]]; then
+  echo "ERROR: <result_container> is required" >&2; usage; exit 2
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPROFLAKE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -23,7 +61,9 @@ if [[ -z "${ANTHROPIC_API_KEY:-}" && -f "$ANTHROPIC_API_KEY_FILE" ]]; then
   export ANTHROPIC_API_KEY
 fi
 
-if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
+# AGENTIC_SIMULATED_AGENT replays a recorded agent instead of calling the API,
+# so no key is needed; everything after the agent still runs for real.
+if [[ -z "${ANTHROPIC_API_KEY:-}" && -z "${AGENTIC_SIMULATED_AGENT:-}" ]]; then
   echo "ERROR: ANTHROPIC_API_KEY is required. Export it or put it in $ANTHROPIC_API_KEY_FILE."; exit 1
 fi
 
@@ -88,7 +128,7 @@ ensure_docker_image() {
   local image="$1"
   local dockerfile="${2:-}"
 
-  if [[ "${AGENTIC_FORCE_REBUILD_IMAGE:-0}" == "1" ]] && docker image inspect "$image" >/dev/null 2>&1; then
+  if [[ "$FORCE_REBUILD_IMAGE" == "1" ]] && docker image inspect "$image" >/dev/null 2>&1; then
     echo "[setup] force rebuilding Docker image '$image'"
   elif ! docker image inspect "$image" >/dev/null 2>&1; then
     echo "[setup] Docker image '$image' not found"
@@ -113,6 +153,39 @@ ensure_docker_image "$IMAGE" "${DOCKERFILE:-}"
 CONTAINER="tm_${RESULT_CONTAINER//[^a-zA-Z0-9]/_}"
 cleanup_container() {
   local rc=$?
+  local completed_failed=0
+  if (( rc != 0 )) \
+      && [[ -f "$STEPS_OUT_DIR/run_verdict.txt" ]] \
+      && [[ "$(tr -d '[:space:]' < "$STEPS_OUT_DIR/run_verdict.txt")" == "FAILED" ]] \
+      && [[ -f "$STEPS_OUT_DIR/td_validation/aggregate.json" ]] \
+      && grep -Eq '"terminal_ready"[[:space:]]*:[[:space:]]*true' \
+           "$STEPS_OUT_DIR/td_validation/aggregate.json" \
+      && grep -Eq '"verdict"[[:space:]]*:[[:space:]]*"FAILED"' \
+           "$STEPS_OUT_DIR/td_validation/aggregate.json"; then
+    completed_failed=1
+  fi
+  if (( rc != 0 && completed_failed == 0 )); then
+    mkdir -p "$STEPS_OUT_DIR/td_validation"
+    printf 'FAILED\n' > "$STEPS_OUT_DIR/run_verdict.txt"
+    printf 'FAILED\n' > "$STEPS_OUT_DIR/verify_after_fix.verdict"
+    {
+      printf '{\n'
+      printf '  "schema_version": 1,\n'
+      printf '  "terminal_ready": true,\n'
+      printf '  "verdict": "FAILED",\n'
+      printf '  "internal_status": "INCOMPLETE",\n'
+      printf '  "evaluation_incomplete": true,\n'
+      printf '  "reason_code": "LAUNCHER_EXIT_%s_FAIL_CLOSED",\n' "$rc"
+      printf '  "requested_attempts": 0,\n'
+      printf '  "actual_attempts": 0,\n'
+      printf '  "valid_attempts": 0,\n'
+      printf '  "passed_attempts": 0,\n'
+      printf '  "failed_attempts": 0,\n'
+      printf '  "incomplete_attempts": 0,\n'
+      printf '  "runs": []\n'
+      printf '}\n'
+    } > "$STEPS_OUT_DIR/td_validation/aggregate.json"
+  fi
   [[ "${KEEP_CONTAINER:-0}" == "1" ]] && return $rc
   docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
   return $rc
@@ -130,17 +203,16 @@ container        : $CONTAINER
 EOF
 
 # STEP 0 — cleanup
-if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
-  if [[ -d "$DATA_DIR/Fixed" || -d "$DATA_DIR/Flaky" || -d "$DATA_DIR/FlakyCodeChange" || -d "$DATA_DIR/Flakym2" || -d "$DATA_DIR/Flaky.pristine" || -d "$DATA_DIR/result" ]]; then
-    echo "[step 0 ] Cleaning mutated source dirs from previous run"
-    rm -rf "$DATA_DIR/Fixed" "$DATA_DIR/FlakyCodeChange" "$DATA_DIR/Flaky" \
-           "$DATA_DIR/Flakym2" "$DATA_DIR/Flaky.pristine" "$DATA_DIR/result"
-  fi
+if [[ -d "$DATA_DIR/Fixed" || -d "$DATA_DIR/FixedCodeChange" || -d "$DATA_DIR/Flaky" || -d "$DATA_DIR/FlakyCodeChange" || -d "$DATA_DIR/Flakym2" || -d "$DATA_DIR/Flaky.pristine" || -d "$DATA_DIR/result" ]]; then
+  echo "[step 0 ] Cleaning mutated source dirs from previous run"
+  rm -rf "$DATA_DIR/Fixed" "$DATA_DIR/FixedCodeChange" \
+         "$DATA_DIR/FlakyCodeChange" "$DATA_DIR/Flaky" \
+         "$DATA_DIR/Flakym2" "$DATA_DIR/Flaky.pristine" "$DATA_DIR/result"
 fi
 
 # STEP 1 — unzip + patches
 need_step1=0
-for d in Fixed FlakyCodeChange Flakym2; do
+for d in Fixed FixedCodeChange FlakyCodeChange Flakym2; do
   [[ -d "$DATA_DIR/$d" ]] || need_step1=1
 done
 if (( need_step1 )); then
@@ -171,11 +243,14 @@ if (( need_step1 )); then
     patch -p1 -d "$DATA_DIR/$target" < "$DATA_DIR/$patch_file" >/dev/null
   }
   apply_variant "Fixed"           "Fixed.patch"
+  apply_variant "FixedCodeChange" "FixedCodeChange.patch"
   apply_variant "FlakyCodeChange" "FlakyCodeChange.patch"
 fi
 
-# STEP 2 — start container
-echo "[step 2 ] Starting container '$CONTAINER' from image '$IMAGE'"
+# STEP 2 — start a setup-only container. Claude is not launched in this
+# container: it temporarily sees the private reference trees solely so the
+# launcher can capture the deterministic failure trace.
+echo "[step 2 ] Starting setup container '$CONTAINER' from image '$IMAGE'"
 docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
 mkdir -p "$DATA_DIR/Flakym2/.m2"
 docker run -d "${DOCKER_PLATFORM_ARGS[@]}" --name "$CONTAINER" \
@@ -243,13 +318,30 @@ cat > "$CLAUDE_INPUTS_DIR/trace_config.json" <<JSONEOF
 }
 JSONEOF
 
+# The repair agent must never see Fixed/, FixedCodeChange/, ground-truth patch
+# files, or issue-description artifacts. Stop the setup container and restart
+# with three narrow mounts: its editable checkout, read-only prompt/harness
+# inputs, and writable outputs. The Maven cache remains shared.
+echo "[step 10 ] Restarting '$CONTAINER' with a ground-truth-free mount set"
+docker exec -u 0 "$CONTAINER" chown -R "$(id -u):$(id -g)" \
+  /app/work/FlakyCodeChange /app/work/traces-flakycc >/dev/null 2>&1 || true
+docker rm -f "$CONTAINER" >/dev/null
+docker run -d "${DOCKER_PLATFORM_ARGS[@]}" --name "$CONTAINER" \
+  --mount type=bind,source="$DATA_DIR/Flaky",target=/app/work/Flaky \
+  --mount type=bind,source="$CLAUDE_INPUTS_DIR",target=/app/work/claude_inputs,readonly \
+  --mount type=bind,source="$CLAUDE_OUTPUTS_DIR",target=/app/work/claude_outputs \
+  --mount type=bind,source="$DATA_DIR/Flakym2/.m2",target=/root/.m2 \
+  "$IMAGE" tail -f /dev/null >/dev/null
+
 # AGENT
   echo "[agent ] launching agentic_claude_cli.py (Claude Code agent, model=${AGENTIC_MODEL:-claude-sonnet-4-6})"
   set +e
   "${AGENTIC_PYTHON:-python3}" "$SCRIPT_DIR/agentic_claude_cli.py" "$RESULT_CONTAINER" \
     --docker-container "$CONTAINER" \
     --model "${AGENTIC_MODEL:-claude-sonnet-4-6}" \
-    ${AGENTIC_MAX_BUDGET_USD:+--max-budget-usd "$AGENTIC_MAX_BUDGET_USD"}
+    ${MAX_BUDGET_USD:+--max-budget-usd "$MAX_BUDGET_USD"} \
+    ${VERIFY_PASS_RUNS:+--verify-pass-runs "$VERIFY_PASS_RUNS"} \
+    ${CLI_TIMEOUT_S:+--cli-timeout-s "$CLI_TIMEOUT_S"}
   AGENT_RC=$?
   set -e
 
@@ -262,27 +354,29 @@ cleanup_completed_source_dirs() {
   fi
 
   if [[ "$verdict" == "PASSED" || "$verdict" == "FAILED" ]]; then
-    if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
-      echo "[cleanup] removing completed-run source dirs: Fixed Flaky Flakym2 FlakyCodeChange"
-      if command -v docker >/dev/null 2>&1; then
-        docker exec -u 0 "$CONTAINER" chown -R "$(id -u):$(id -g)" /app/work >/dev/null 2>&1 || true
-      fi
-      rm -rf "$DATA_DIR/Fixed" "$DATA_DIR/Flaky" "$DATA_DIR/Flakym2" "$DATA_DIR/FlakyCodeChange" ||         echo "[cleanup] WARNING: failed to remove one or more source dirs" >&2
+    echo "[cleanup] removing completed-run source dirs: Fixed FixedCodeChange Flaky Flakym2 FlakyCodeChange"
+    if command -v docker >/dev/null 2>&1; then
+      docker exec -u 0 "$CONTAINER" chown -R "$(id -u):$(id -g)" \
+        /app/work/Flaky /app/work/claude_outputs /root/.m2 >/dev/null 2>&1 || true
     fi
+    rm -rf "$DATA_DIR/Fixed" "$DATA_DIR/FixedCodeChange" \
+           "$DATA_DIR/Flaky" "$DATA_DIR/Flakym2" \
+           "$DATA_DIR/FlakyCodeChange" || \
+      echo "[cleanup] WARNING: failed to remove one or more source dirs" >&2
   fi
 }
 cleanup_completed_source_dirs
 
-if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
-  rm -rf "$DATA_DIR/Flaky.pristine"
-fi
+rm -rf "$DATA_DIR/Flaky.pristine"
 
 echo
 echo "=========================================="
 echo "[AGENTIC TD] Done."
 for f in run_summary.csv trace_config.json rv_trace_diff.log llm_trace_summary.txt llm_context.txt \
          llm_response.json apply_report.json verify_after_fix.log \
-         verify_after_fix.verdict agentic_conversation.json \
+         verify_after_fix.verdict verify_after_fix.result.json run_verdict.txt \
+         td_validation/aggregate.json td_validation/calibration.json \
+         td_validation/composition.json agentic_conversation.json \
          agentic_iterations.jsonl; do
   if [[ -f "$STEPS_OUT_DIR/$f" ]]; then
     sz=$(wc -c < "$STEPS_OUT_DIR/$f" | tr -d ' ')

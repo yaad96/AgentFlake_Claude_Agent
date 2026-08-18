@@ -19,7 +19,7 @@
 #                                            agentic_iterations.jsonl
 #
 # Usage:
-#   ./run_agentic_od.sh <result_container>
+#   ./run_agentic_od.sh <result_container> [options]
 #
 # Requires:
 #   ANTHROPIC_API_KEY in the environment or .anthropic_api_key + install AF_Claude_Agent/requirements.txt
@@ -27,7 +27,45 @@
 
 set -euo pipefail
 
-RESULT_CONTAINER="${1:?Usage: $0 <result_container>}"
+# ---- CLI options (positional container + optional flags) -------------------
+RESULT_CONTAINER=""
+FORCE_REBUILD_IMAGE=0
+MAX_BUDGET_USD=""
+VERIFY_PASS_RUNS=""
+CLI_TIMEOUT_S=""
+
+usage() {
+  cat >&2 <<USAGE
+Usage: $0 <result_container> [options]
+
+Options:
+  --force-rebuild-image     rebuild the Docker image even if one already exists
+  --max-budget-usd <usd>    hard Claude Code spend cap for this run
+  --verify-pass-runs <n>    extra passing verification runs after the first pass
+  --cli-timeout-s <sec>     wall-clock cap for Claude Code
+  -h, --help                show this help
+USAGE
+}
+
+while (( $# )); do
+  case "$1" in
+    --force-rebuild-image) FORCE_REBUILD_IMAGE=1; shift ;;
+    --max-budget-usd)   MAX_BUDGET_USD="${2:?--max-budget-usd needs a value}";   shift 2 ;;
+    --verify-pass-runs) VERIFY_PASS_RUNS="${2:?--verify-pass-runs needs a value}"; shift 2 ;;
+    --cli-timeout-s)    CLI_TIMEOUT_S="${2:?--cli-timeout-s needs a value}";     shift 2 ;;
+    -h|--help) usage; exit 0 ;;
+    --*) echo "ERROR: unknown option '$1'" >&2; usage; exit 2 ;;
+    *)
+      if [[ -n "$RESULT_CONTAINER" ]]; then
+        echo "ERROR: unexpected argument '$1'" >&2; usage; exit 2
+      fi
+      RESULT_CONTAINER="$1"; shift ;;
+  esac
+done
+
+if [[ -z "$RESULT_CONTAINER" ]]; then
+  echo "ERROR: <result_container> is required" >&2; usage; exit 2
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPROFLAKE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -108,7 +146,7 @@ ensure_docker_image() {
   local image="$1"
   local dockerfile="${2:-}"
 
-  if [[ "${AGENTIC_FORCE_REBUILD_IMAGE:-0}" == "1" ]] && docker image inspect "$image" >/dev/null 2>&1; then
+  if [[ "$FORCE_REBUILD_IMAGE" == "1" ]] && docker image inspect "$image" >/dev/null 2>&1; then
     echo "[setup] force rebuilding Docker image '$image'"
   elif ! docker image inspect "$image" >/dev/null 2>&1; then
     echo "[setup] Docker image '$image' not found"
@@ -160,12 +198,10 @@ EOF
 # ============================================================
 # STEP 0 — START-OF-RUN CLEANUP (mirrors run_od_tracemop.sh)
 # ============================================================
-if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
-  if [[ -d "$DATA_DIR/Fixed" || -d "$DATA_DIR/Flaky" || -d "$DATA_DIR/FlakyCodeChange" || -d "$DATA_DIR/Flakym2" || -d "$DATA_DIR/Flaky.pristine" || -d "$DATA_DIR/result" ]]; then
-    echo "[step 0 ] Cleaning mutated source dirs from previous run"
-    rm -rf "$DATA_DIR/Fixed" "$DATA_DIR/FlakyCodeChange" "$DATA_DIR/Flaky" \
-           "$DATA_DIR/Flakym2" "$DATA_DIR/Flaky.pristine" "$DATA_DIR/result"
-  fi
+if [[ -d "$DATA_DIR/Fixed" || -d "$DATA_DIR/Flaky" || -d "$DATA_DIR/FlakyCodeChange" || -d "$DATA_DIR/Flakym2" || -d "$DATA_DIR/Flaky.pristine" || -d "$DATA_DIR/result" ]]; then
+  echo "[step 0 ] Cleaning mutated source dirs from previous run"
+  rm -rf "$DATA_DIR/Fixed" "$DATA_DIR/FlakyCodeChange" "$DATA_DIR/Flaky" \
+         "$DATA_DIR/Flakym2" "$DATA_DIR/Flaky.pristine" "$DATA_DIR/result"
 fi
 
 # ============================================================
@@ -284,11 +320,13 @@ JSONEOF
   "${AGENTIC_PYTHON:-python3}" "$SCRIPT_DIR/agentic_claude_cli.py" "$RESULT_CONTAINER" \
     --docker-container "$CONTAINER" \
     --model "${AGENTIC_MODEL:-claude-sonnet-4-6}" \
-    ${AGENTIC_MAX_BUDGET_USD:+--max-budget-usd "$AGENTIC_MAX_BUDGET_USD"}
+    ${MAX_BUDGET_USD:+--max-budget-usd "$MAX_BUDGET_USD"} \
+    ${VERIFY_PASS_RUNS:+--verify-pass-runs "$VERIFY_PASS_RUNS"} \
+    ${CLI_TIMEOUT_S:+--cli-timeout-s "$CLI_TIMEOUT_S"}
   AGENT_RC=$?
   set -e
 
-# Clean up the snapshot (kept on KEEP_SOURCE=1 for post-mortem inspection).
+# Clean up the snapshot.
 cleanup_completed_source_dirs() {
   local verdict=""
   if [[ -f "$STEPS_OUT_DIR/run_verdict.txt" ]]; then
@@ -298,20 +336,16 @@ cleanup_completed_source_dirs() {
   fi
 
   if [[ "$verdict" == "PASSED" || "$verdict" == "FAILED" ]]; then
-    if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
-      echo "[cleanup] removing completed-run source dirs: Fixed Flaky Flakym2 FlakyCodeChange"
-      if command -v docker >/dev/null 2>&1; then
-        docker exec -u 0 "$CONTAINER" chown -R "$(id -u):$(id -g)" /app/work >/dev/null 2>&1 || true
-      fi
-      rm -rf "$DATA_DIR/Fixed" "$DATA_DIR/Flaky" "$DATA_DIR/Flakym2" "$DATA_DIR/FlakyCodeChange" ||         echo "[cleanup] WARNING: failed to remove one or more source dirs" >&2
+    echo "[cleanup] removing completed-run source dirs: Fixed Flaky Flakym2 FlakyCodeChange"
+    if command -v docker >/dev/null 2>&1; then
+      docker exec -u 0 "$CONTAINER" chown -R "$(id -u):$(id -g)" /app/work >/dev/null 2>&1 || true
     fi
+    rm -rf "$DATA_DIR/Fixed" "$DATA_DIR/Flaky" "$DATA_DIR/Flakym2" "$DATA_DIR/FlakyCodeChange" ||         echo "[cleanup] WARNING: failed to remove one or more source dirs" >&2
   fi
 }
 cleanup_completed_source_dirs
 
-if [[ "${KEEP_SOURCE:-0}" != "1" ]]; then
-  rm -rf "$DATA_DIR/Flaky.pristine"
-fi
+rm -rf "$DATA_DIR/Flaky.pristine"
 
 echo
 echo "=========================================="

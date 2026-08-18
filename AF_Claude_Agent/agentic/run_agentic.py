@@ -10,6 +10,10 @@ subdirectory.
 Usage:
     python3 run_agentic.py <container> [--models claude] [--runs 3]
                                        [--max-iterations 10]
+                                       [--max-budget-usd 0.50]
+                                       [--verify-pass-runs 10]
+                                       [--cli-timeout-s 2400]
+                                       [--force-rebuild-image]
 
     # multiple models in one shot:
     python3 run_agentic.py <container> --models claude,claude-opus --runs 3
@@ -107,8 +111,14 @@ def main() -> None:
                     default=agentic_config.MAX_ITERATIONS,
                     help=f"Claude Code max turns per run "
                          f"(default from config: {agentic_config.MAX_ITERATIONS})")
-    ap.add_argument("--keep-workspace", action="store_true",
-                    help="keep the docker container after each batch; run folders are always kept")
+    ap.add_argument("--max-budget-usd", default=None,
+                    help="hard Claude Code spend cap per run (e.g. 0.50)")
+    ap.add_argument("--verify-pass-runs", type=int, default=None,
+                    help="extra passing verification runs required after the first pass")
+    ap.add_argument("--cli-timeout-s", type=int, default=None,
+                    help="wall-clock cap in seconds for Claude Code")
+    ap.add_argument("--force-rebuild-image", action="store_true",
+                    help="rebuild the Docker image even if one already exists")
     args = ap.parse_args()
 
     # ---- validate container ----
@@ -156,6 +166,21 @@ def main() -> None:
 
     print(f"[dispatcher] runs        = {args.runs}")
     print(f"[dispatcher] max-iters   = {args.max_iterations}")
+
+    # Optional per-run knobs, forwarded to run_agentic_pass_at_k.py only when set.
+    passthrough = []
+    if args.max_budget_usd is not None:
+        passthrough += ["--max-budget-usd", str(args.max_budget_usd)]
+        print(f"[dispatcher] max-budget  = ${args.max_budget_usd}")
+    if args.verify_pass_runs is not None:
+        passthrough += ["--verify-pass-runs", str(args.verify_pass_runs)]
+        print(f"[dispatcher] verify-runs = {args.verify_pass_runs}")
+    if args.cli_timeout_s is not None:
+        passthrough += ["--cli-timeout-s", str(args.cli_timeout_s)]
+        print(f"[dispatcher] cli-timeout = {args.cli_timeout_s}s")
+    if args.force_rebuild_image:
+        passthrough.append("--force-rebuild-image")
+        print("[dispatcher] force-rebuild-image = on")
     print()
 
     # ---- dispatch once per model ----
@@ -171,9 +196,7 @@ def main() -> None:
             "--runs",           str(args.runs),
             "--max-iterations", str(args.max_iterations),
             "--model",          model_id,
-        ]
-        if args.keep_workspace:
-            cmd.append("--keep-workspace")
+        ] + passthrough
 
         # Inject API key into the subprocess environment so the shell scripts
         # and orchestrator see it even if it was only set in agentic_config.py.

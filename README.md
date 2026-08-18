@@ -88,16 +88,17 @@ Run data for this test is in `AF_Claude_Agent_Data.zip/TD/BOOKKEEPER-846`.
 
 ## Options
 
-| Option / env var | Purpose |
+The values shown below are those defaults.
+
+| Option | Purpose |
 |---|---|
 | `--runs N` | Independent runs for pass@k, which counts a test as repaired if at least one of the N independently sampled runs yields a verified fix. |
 | `--models claude,opus,haiku` | One or more Claude models. |
 | `--max-iterations N` | Max Claude Code turns per run. |
-| `AGENTIC_MAX_BUDGET_USD=0.50` | Hard Claude Code spend cap per run. |
-| `AGENTIC_CLI_TIMEOUT_S=2400` | Wall-clock cap for Claude Code. |
-| `AGENTIC_VERIFY_PASS_RUNS=10` | Extra passing verification runs required after the first pass. |
-| `AGENTIC_FORCE_REBUILD_IMAGE=1` | Rebuild the Docker image for a single run. |
-| `KEEP_SOURCE=1` | Keep the source folders after a completed run. |
+| `--max-budget-usd 0.50` | Hard Claude Code spend cap per run. |
+| `--cli-timeout-s 2400` | Wall-clock cap for Claude Code. |
+| `--verify-pass-runs 10` | Extra passing verification runs required after the first pass. |
+| `--force-rebuild-image` | Rebuild the Docker image for a single run. |
 
 ## Output
 
@@ -124,9 +125,7 @@ AF_Claude_Agent/data/<test>/run_<NN>/
   .run_complete
 ```
 
-The verdict in `verify_after_fix.verdict` is `PASSED` or `FAILED`. Completed runs
-remove the large source folders by default; set `KEEP_SOURCE=1` if you need to
-inspect them.
+The verdict in `verify_after_fix.verdict` is `PASSED` or `FAILED`.
 
 Summaries are written to:
 
