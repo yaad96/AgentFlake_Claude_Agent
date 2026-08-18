@@ -120,7 +120,7 @@ AF_Claude_Agent/data/<test>/run_<NN>/
     verify_after_fix.log
     verify_after_fix.verdict
     meta.json
-  pipeline.log            # full container stdout
+  pipeline.log
   .run_complete
 ```
 
