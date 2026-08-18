@@ -1,52 +1,51 @@
 # AgentFlake Claude Agent
 
-Claude Code CLI pipeline for repairing flaky tests in the AF_Claude_Agent containers.
-
-The tool stages a flaky-test container, reproduces the failure, asks Claude Code
-to edit the project inside Docker, captures Claude's patch, verifies it from a
-clean baseline, and stores the full run under `AF_Claude_Agent/data/<container>/run_<NN>/`.
+Claude Code CLI pipeline for repairing flaky Java tests. The tool stages a flaky
+test, reproduces the failure inside Docker, asks Claude Code to edit the project,
+captures Claude's patch, verifies the patch from a clean baseline, and archives
+the full run under `AF_Claude_Agent/data/<test>/run_<NN>/`. The examples below
+cover the ID, OD, NIO, and TD flaky-test categories.
 
 ## Requirements
 
-The repository can install its Python dependencies and build its Docker images.
-Neede two external things:
+- Docker installed and running (all builds and tests happen inside the container).
+- An Anthropic API key.
 
-- Docker installed and running.
-- A valid Anthropic API key.
+The repository installs its own Python dependencies and builds its own Docker
+images. Claude Code CLI is installed inside the project images: the run scripts
+build the needed image from the included Dockerfile when the image is missing, or
+when an existing local image does not contain `claude`.
 
+## Setup
 
-Claude Code CLI is installed inside the project Docker images. The run scripts
-build the needed image from the included Dockerfile when the image is missing
-or when an existing local image does not contain `claude`.
-
-## One-Command Setup
-
-From the repo root, create a file ".anthropic_api_key" and store your api key there. During the run, the key needed will be accessed from there. It is git-ignored, so its safe.
+From the repo root, create a file `.anthropic_api_key` and store your API key
+there. The key is read from that file during a run. The file is git-ignored, so
+it is safe.
 
 ## Basic Run
 
-Run from the repository root with the venv interpreter:
+Run from the repository root with the venv interpreter, passing the test name:
 
 ```bash
-.venv/bin/python AF_Claude_Agent/agentic/run_agentic.py <container> \
+.venv/bin/python AF_Claude_Agent/agentic/run_agentic.py <test> \
   --runs 1 \
   --models claude \
   --max-iterations 10
 ```
 
+## Model Aliases
 
-Model aliases are defined in `AF_Claude_Agent/agentic/agentic_config.py`.
+Aliases are defined in `AF_Claude_Agent/agentic/agentic_config.py`.
 
 | Alias | Model |
 |---|---|
-| `claude` | `claude-sonnet-4-6` |
-| `sonnet` | `claude-sonnet-4-6` |
+| `claude`, `sonnet` | `claude-sonnet-4-6` |
 | `opus` | `claude-opus-4-7` |
 | `haiku` | `claude-haiku-4-5-20251001` |
 
 ## Examples
 
-ID example:
+### ID
 
 ```bash
 .venv/bin/python AF_Claude_Agent/agentic/run_agentic.py \
@@ -54,9 +53,10 @@ ID example:
   --runs 1 --models claude --max-iterations 10
 ```
 
-Run data for this test can be found in `AF_Claude_Agent_Data.zip/ID/incubatorshardingsphereshardingjdbcshardingjdbccored517e5eassertGetDatabaseProductName`
+Run data for this test is in
+`AF_Claude_Agent_Data.zip/ID/incubatorshardingsphereshardingjdbcshardingjdbccored517e5eassertGetDatabaseProductName`.
 
-OD example:
+### OD
 
 ```bash
 .venv/bin/python AF_Claude_Agent/agentic/run_agentic.py \
@@ -64,55 +64,47 @@ OD example:
   --runs 1 --models claude --max-iterations 10
 ```
 
-Run data for this test can be found in `AF_Claude_Agent_Data.zip/OD/wikidatatoolkitwdtkutil10f9711`
+Run data for this test is in `AF_Claude_Agent_Data.zip/OD/wikidatatoolkitwdtkutil10f9711`.
 
-NIO example:
+### NIO
 
 ```bash
 .venv/bin/python AF_Claude_Agent/agentic/run_agentic.py \
   quickcheckc1c1 \
   --runs 1 --models claude --max-iterations 10
 ```
-Run data for this test can be found in `AF_Claude_Agent_Data.zip/NIO/quickcheckc1c1`
 
-TD example:
+Run data for this test is in `AF_Claude_Agent_Data.zip/NIO/quickcheckc1c1`.
+
+### TD
 
 ```bash
 .venv/bin/python AF_Claude_Agent/agentic/run_agentic.py \
   BOOKKEEPER-846 \
   --runs 1 --models claude --max-iterations 10
 ```
-Run data for this test can be found in `AF_Claude_Agent_Data.zip/TD/BOOKKEEPER-846`
 
-Run all four sequentially:
+Run data for this test is in `AF_Claude_Agent_Data.zip/TD/BOOKKEEPER-846`.
 
-```bash
-cd /path/to/AgentFlake_Claude_Agent
+## Options
 
-.venv/bin/python AF_Claude_Agent/agentic/run_agentic.py incubatorshardingsphereshardingjdbcshardingjdbccored517e5eassertGetDatabaseProductName --runs 1 --models claude --max-iterations 10
-.venv/bin/python AF_Claude_Agent/agentic/run_agentic.py wikidatatoolkitwdtkutil10f9711 --runs 1 --models claude --max-iterations 10
-.venv/bin/python AF_Claude_Agent/agentic/run_agentic.py quickcheckc1c1 --runs 1 --models claude --max-iterations 10
-.venv/bin/python AF_Claude_Agent/agentic/run_agentic.py BOOKKEEPER-846 --runs 1 --models claude --max-iterations 10
-```
-
-## Useful Options
-
-| Option/env var | Purpose |
+| Option / env var | Purpose |
 |---|---|
 | `--runs N` | Independent runs for pass@k. |
+| `--models claude,opus,haiku` | One or more Claude models. |
 | `--max-iterations N` | Max Claude Code turns per run. |
-| `--models claude,opus` | Run one or more Claude models. |
 | `AGENTIC_MAX_BUDGET_USD=0.50` | Hard Claude Code spend cap per run. |
 | `AGENTIC_CLI_TIMEOUT_S=2400` | Wall-clock cap for Claude Code. |
 | `AGENTIC_VERIFY_PASS_RUNS=10` | Extra passing verification runs required after the first pass. |
 | `AGENTIC_FORCE_REBUILD_IMAGE=1` | Rebuild the Docker image for a single run. |
+| `KEEP_SOURCE=1` | Keep the source folders after a completed run. |
 
 ## Output
 
-Each run writes:
+Each run is archived under:
 
 ```text
-AF_Claude_Agent/data/<container>/run_<NN>/
+AF_Claude_Agent/data/<test>/run_<NN>/
   claude_inputs/
     prompt_user.txt
     prompt_system.txt
@@ -128,18 +120,19 @@ AF_Claude_Agent/data/<container>/run_<NN>/
     verify_after_fix.log
     verify_after_fix.verdict
     meta.json
-  pipeline.log
+  pipeline.log            # full container stdout
   .run_complete
 ```
 
-Completed runs remove the large source folders by default. Set `KEEP_SOURCE=1`
-if you need to inspect them.
+The verdict in `verify_after_fix.verdict` is `PASSED` or `FAILED`. Completed runs
+remove the large source folders by default; set `KEEP_SOURCE=1` if you need to
+inspect them.
 
 Summaries are written to:
 
 ```text
+AF_Claude_Agent/data/<test>/summary.csv
 AF_Claude_Agent/Complete_Containers_Summary.csv
-AF_Claude_Agent/data/<container>/summary.csv
 ```
 
-All the run data are in ```AF_Claude_Agent_Data.zip```
+All run data is available in `AF_Claude_Agent_Data.zip`.
