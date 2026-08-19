@@ -36,7 +36,7 @@ def load_csv_row(result_container):
     with open(CSV_FILE, encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            if row.get("result_container", "").strip() == result_container:
+            if (row.get("result_container") or "").strip() == result_container:
                 return row
     return None
 
@@ -733,5 +733,4 @@ def derive_project_package(fqn, depth=3):
     if len(parts) >= depth:
         return ".".join(parts[:depth])
     return class_part
-
 

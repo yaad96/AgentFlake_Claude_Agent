@@ -87,7 +87,7 @@ def load_csv_row(container):
     with open(CSV_FILE, encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            if row.get("result_container", "").strip() == container:
+            if (row.get("result_container") or "").strip() == container:
                 return row
     return None
 

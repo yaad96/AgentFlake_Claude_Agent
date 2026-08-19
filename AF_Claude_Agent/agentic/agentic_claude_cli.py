@@ -814,6 +814,28 @@ def _reclaim_container_path(docker_container: str, container_path: str) -> str:
             or f"docker exec chown returned {proc.returncode}")
 
 
+def _remove_evaluator_git_metadata(work_tree: Path) -> None:
+    """Remove the local Git repository once patch application is complete.
+
+    The repository is created solely so apply_fix.py can target this worktree.
+    Keeping it through Docker compilation makes ownership reclamation recurse
+    into host-created pack files, which Docker Desktop cannot chown and which
+    would turn a successful Maven compile into CANDIDATE_COMPILE_FAILED.
+    """
+    git_path = Path(work_tree) / ".git"
+    try:
+        if git_path.is_symlink() or git_path.is_file():
+            git_path.unlink()
+        elif git_path.is_dir():
+            shutil.rmtree(git_path)
+    except OSError as exc:
+        raise RestoreTreeError(
+            f"could not remove evaluator Git metadata at {git_path}: {exc}") from exc
+    if git_path.exists() or git_path.is_symlink():
+        raise RestoreTreeError(
+            f"evaluator Git metadata still exists after removal: {git_path}")
+
+
 def _replace_tree_from(source: Path, dest: Path, *, docker_container: str = "",
                        container_dest: str = "", symlinks: bool = False,
                        label: str = "tree restore") -> None:
@@ -2010,6 +2032,14 @@ def main():
     log("apply_fix.py")
     run([sys.executable, str(APPLY_FIX), container,
          "--docker-container", docker_container], check=False)
+    # The worktree-local repository has served its only purpose: directing
+    # apply_fix.py's `git apply` at Flaky/ instead of the outer repository.
+    # Remove it before Docker compilation so ownership reclamation only covers
+    # candidate/build files and cannot fail on host-created Git pack objects.
+    try:
+        _remove_evaluator_git_metadata(flaky)
+    except RestoreTreeError as exc:
+        sys.exit(f"ERROR: {exc}")
 
     # ---- NIO oracle integrity: restore the pristine generated wrapper --------
     # The NIO verify oracle is a generated wrapper class (#runTwice) that lives

@@ -87,7 +87,7 @@ def load_csv_row(container: str) -> dict | None:
         sys.exit(f"ERROR: CSV not found: {CSV_FILE}")
     with open(CSV_FILE, encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
-            if row.get("result_container", "").strip() == container:
+            if (row.get("result_container") or "").strip() == container:
                 return row
     return None
 
