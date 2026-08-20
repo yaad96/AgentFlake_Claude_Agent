@@ -1,4 +1,6 @@
-AF_Claude_Agent/data/
+# Per-run data trees: data/, data_td_credible/, data_od_mahbub_5/ and any
+# future data_*. Large, regenerable run artefacts -- never push these.
+AF_Claude_Agent/data*/
 
 # Per-user generated run summary
 AF_Claude_Agent/Complete?Containers?Summary.csv
@@ -28,7 +30,3 @@ AF_Claude_Agent/.anthropic_api_key
 
 # Local Python virtual environment
 .venv/
-
-# staged trees + logs from run_td_credible.sh (results.jsonl is the only artefact worth keeping)
-AF_Claude_Agent/data_td_credible/*
-!AF_Claude_Agent/data_td_credible/results.jsonl

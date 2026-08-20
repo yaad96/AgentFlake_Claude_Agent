@@ -401,6 +401,14 @@ def read_validation_evidence(per_run_dir: Path, meta: dict | None = None):
         if runs_dir.is_dir():
             archive_logs.extend(runs_dir.glob("attempt_[0-9][0-9].log"))
 
+    # Per-attempt archives exist only when agentic_verify.py is invoked with
+    # --attempt, which agentic_claude_cli.py passes for td runs alone. Every
+    # other type writes an aggregate but no archives, so requiring one per
+    # attempt would compare 0 against N and fail every od/id/nio run closed.
+    # Demand them when the writer promises them, or when a partial set is
+    # present -- incomplete archives are still contradictory evidence.
+    archives_expected = ((meta or {}).get("test_type") == "td"
+                         or bool(result_files) or bool(archive_logs))
     # A PASS is a completeness claim, not merely a label.  Every requested
     # attempt must exist, be valid, and pass; contradictory or partial
     # aggregate evidence fails closed even if its top-level verdict says PASS.
@@ -412,8 +420,8 @@ def read_validation_evidence(per_run_dir: Path, meta: dict | None = None):
             or failures != 0
             or incomplete != 0
             or len(embedded_records) != attempts
-            or len(result_files) != attempts
-            or len(set(archive_logs)) != attempts
+            or (archives_expected and len(result_files) != attempts)
+            or (archives_expected and len(set(archive_logs)) != attempts)
             or any(value != "PASSED" for value in attempt_verdicts)):
         evaluation_incomplete = True
     if (aggregate_internal in PUBLIC_VERDICTS
