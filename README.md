@@ -94,11 +94,11 @@ The values shown below are those defaults.
 |---|---|
 | `--runs N` | Independent runs for pass@k, which counts a test as repaired if at least one of the N independently sampled runs yields a verified fix. |
 | `--models claude,opus,haiku` | One or more Claude models. |
+| `--reproduce-only` | Reproduce the flake without repairing it. No API key needed. |
 | `--max-iterations N` | Max Claude Code turns per run. |
 | `--max-budget-usd 0.50` | Hard Claude Code spend cap per run. |
 | `--cli-timeout-s 2400` | Wall-clock cap for Claude Code. |
 | `--verify-pass-runs 10` | Extra passing verification runs required after the first pass. |
-| `--force-rebuild-image` | Rebuild the Docker image for a single run. |
 
 ## Output
 
