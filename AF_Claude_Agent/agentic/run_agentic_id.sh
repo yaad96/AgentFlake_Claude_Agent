@@ -99,6 +99,24 @@ if [[ -z "$NONDEXSEED" ]]; then
   echo "ERROR: ID container '$RESULT_CONTAINER' must have a NonDex seed in CSV."; exit 1
 fi
 
+# JDK for the Docker image: the CSV java column, except for the two crane4j
+# containers below (the CSV row itself is not changed). crane4j-core compiles
+# with -source/-target 1.8, and the javac in maven:3.8.6-openjdk-11 (11.0.16)
+# has an inference bug on the unrelated test
+# OneToOneAssembleOperationHandlerTest.java:[51,63] ("inferred type does not
+# conform to equality constraint(s)"). Whether it fires depends on javac's JVM
+# state, and for a given mvn command it fails every time, so testCompile never
+# succeeds and no test runs. javac 8 compiled the whole tree in every trial.
+CSV_JAVA="$JAVA"
+case "$RESULT_CONTAINER" in
+  crane4jcrane4jcoreb73311aget|crane4jcrane4jcore679c3f8process) JAVA=8 ;;
+esac
+if [[ "$JAVA" != "$CSV_JAVA" ]]; then
+  echo "[setup] java override: CSV java=$CSV_JAVA -> running on JDK $JAVA"
+fi
+# The agent prompt's "Java:" line reads this, so it names the JDK actually used.
+export AGENTIC_JAVA_EFFECTIVE="$JAVA"
+
 case "$JAVA" in
   8)  IMAGE="flaky_base_jdk_8_id_cover_new";  DOCKERFILE="Dockerfile8.id" ;;
   11) IMAGE="flaky_base_jdk_11_id_cover_new"; DOCKERFILE="Dockerfile11.id" ;;
@@ -255,50 +273,46 @@ docker exec "$CONTAINER" bash -c "
     $MVNOPTS 2>&1 | tee /app/work/traces-pass/mvn.log || true
 "
 
-# Run #2: traces-fail (NonDex with seed; captures failure log)
-echo "[step 3 ] /app/work/Flaky -> /app/work/traces-fail (NonDex seed=$NONDEXSEED max-runs=$NONDEX_RUNS)"
+# Run #2: traces-fail. ONE NonDex invocation with the CSV seed and
+# min(iterations,10) runs: NonDex does a clean (unshuffled) run, then shuffled
+# runs with its own seeds seed + i*41444. The Maven arguments are the same as
+# the ones agentic_verify.py uses (same MVNOPTS, same -Dsurefire.timeout=180),
+# and the SAME NONDEXSEED/NONDEX_RUNS are exported below for the agent, the ID
+# gate and verification. Don't pin one failing seed: in FULL mode a single
+# per-JVM Random feeds every shuffled call, so a seed that fails under one
+# command can pass under a slightly different one. A multi-seed window does not
+# depend on that.
+echo "[step 3 ] /app/work/Flaky -> /app/work/traces-fail (NonDex seed=$NONDEXSEED runs=$NONDEX_RUNS)"
 docker exec "$CONTAINER" bash -c "
   set -e
   rm -rf /app/work/traces-fail; mkdir -p /app/work/traces-fail
   cd /app/work/Flaky
-  : > /app/work/traces-fail/mvn.log
-  python3 - <<'PY' > /app/work/traces-fail/seeds.txt
-seed = int('$NONDEXSEED')
-mask = (1 << 48) - 1
-mult = 0x5DEECE66D
-add = 0xB
-state = (seed ^ mult) & mask
-print(seed)
-for _ in range(1, int('$NONDEX_RUNS')):
-    # Java Random.next(32) gives a 32-bit signed int seed. NonDex nondexSeed is
-    # an int parameter, so 64-bit longs overflow it. Keep fallback seeds within
-    # int range -- valid for NonDex 2.1.1 and 2.1.7.
-    state = (state * mult + add) & mask
-    val = state >> 16
-    if val >= (1 << 31):
-        val -= 1 << 32
-    print(val)
-PY
-  i=0
-  while IFS= read -r seed; do
-    i=\$((i + 1))
-    echo \"[nondex] attempt \$i/$NONDEX_RUNS seed=\$seed\" | tee -a /app/work/traces-fail/mvn.log
-    mvn edu.illinois:nondex-maven-plugin:$NONDEX_PLUGIN_VERSION:nondex \
-      -DnondexSeed=\$seed -DnondexRuns=1 \
-      -pl '$MODULE' -Dtest='$VICTIM' \
-      $MVNOPTS 2>&1 | tee -a /app/work/traces-fail/mvn.log || true
-    if tail -n 200 /app/work/traces-fail/mvn.log | grep -Eq 'Tests run:[[:space:]]+[0-9]+,[[:space:]]+Failures:[[:space:]]+[1-9][0-9]*|Tests run:[[:space:]]+[0-9]+,[[:space:]]+Failures:[[:space:]]+[0-9]+,[[:space:]]+Errors:[[:space:]]+[1-9][0-9]*'; then
-      echo \"\$seed\" > /app/work/traces-fail/failing_seed
-      break
-    fi
-  done < /app/work/traces-fail/seeds.txt
+  mvn edu.illinois:nondex-maven-plugin:$NONDEX_PLUGIN_VERSION:nondex \
+    -DnondexSeed=$NONDEXSEED -DnondexRuns=$NONDEX_RUNS \
+    -pl '$MODULE' -Dtest='$VICTIM' -Dsurefire.timeout=180 \
+    $MVNOPTS 2>&1 | tee /app/work/traces-fail/mvn.log || true
 "
 
-if [[ -f "$DATA_DIR/traces-fail/failing_seed" ]]; then
-  NONDEXSEED="$(cat "$DATA_DIR/traces-fail/failing_seed")"
-  NONDEX_RUNS=1
-  echo "[step 4d] using reproduced failing NonDex seed=$NONDEXSEED"
+# Per-seed outcome from the NonDex SUMMARY block: each shuffled run prints
+# "mvn nondex:nondex ... -DnondexSeed=<s> ..." followed by "[WARNING] <test>"
+# lines when that seed failed (or "No Test Failed with this configuration.").
+# Kept in shell variables: traces-fail/ is root-owned on Linux hosts.
+SEED_REPORT="$(awk '
+  /NonDex SUMMARY:/ { s = 1; cur = ""; next }
+  !s { next }
+  /mvn nondex:nondex/ && match($0, /-DnondexSeed=-?[0-9]+/) {
+    cur = substr($0, RSTART + 13, RLENGTH - 13); order[++n] = cur; st[cur] = "PASS"; next
+  }
+  /^\[WARNING\] / && cur != "" { st[cur] = "FAIL"; next }
+  /\*\*\*\*\*\*\*\*\*/ { cur = "" }
+  END { for (i = 1; i <= n; i++) print order[i], st[order[i]] }
+' "$DATA_DIR/traces-fail/mvn.log" 2>/dev/null || true)"
+FAILING_SEEDS="$(awk '$2 == "FAIL" { printf "%s ", $1 }' <<<"$SEED_REPORT")"
+CLEAN_RUN="passed"
+if grep -q "The following tests failed in the clean run" "$DATA_DIR/traces-fail/mvn.log" 2>/dev/null; then
+  CLEAN_RUN="FAILED"
 fi
+echo "[step 3 ] NonDex shuffled seeds: $(grep -c . <<<"$SEED_REPORT" || true) run, failing: ${FAILING_SEEDS:-none}; clean (unshuffled) run: $CLEAN_RUN"
 
 # Sanity: at least one NonDex iteration must have failed.
 echo "[sanity ] Verifying at least one NonDex iteration failed"

@@ -643,8 +643,8 @@ def type_context(test_type: str):
             "not guaranteed. Your fix must make it pass regardless of order "
             "(e.g. sort results, use order-stable collections, or drop the "
             "order assumption).\n\n")
-        return (f"across the NonDex shuffled run(s) (pinned seed {seed}, "
-                f"{runs} run(s))"), note
+        return (f"across the NonDex shuffled run(s) (start seed {seed}, "
+                f"{runs} run(s), each with its own seed)"), note
     if test_type == "td":
         note = (
             "This is a Timing-Dependent (TD) flaky test: it has a latent race / "
@@ -901,7 +901,10 @@ def assemble_prompts(row: dict, base: Path):
     module = (row.get("module") or ".").strip()
     polluter = (row.get("polluter/state setter") or "").strip()
     victim = (row.get("flaky_test") or "").strip()
-    java = (row.get("java") or "").strip()
+    # The ID launcher may run a different JDK than the CSV column (the crane4j
+    # case in run_agentic_id.sh); tell the agent the one in use.
+    java = (os.environ.get("AGENTIC_JAVA_EFFECTIVE")
+            or row.get("java") or "").strip()
     container = (row.get("result_container") or "").strip()
 
     test_code = build_test_code(base, module, [victim, polluter])
@@ -2009,23 +2012,27 @@ def main():
     # victim at least once here — on the pristine tree, BEFORE apply_fix lands the
     # patch — otherwise the verify cannot tell a fix from no-fix and any later
     # PASS is meaningless, so we fail closed. Mirrors the TD forced-verify gate.
-    # Discriminative subjects (e.g. a fixed-seed order reversal) fail on run 1 and
-    # cost a single extra verify; only non-reproducing ones spend the full budget.
+    # The verify is the launcher's reproduction command (CSV seed, NonDex's own
+    # seed + i*41444 sequence over NONDEX_RUNS runs), so a subject that
+    # reproduced there normally fails on run 1 and costs a single extra verify;
+    # only non-reproducing ones spend the full budget. At least one gate run is
+    # always made: with --verify-pass-runs 0 an empty loop would fail closed.
     id_discriminative = True
     if test_type == "id":
+        gate_runs = max(1, VERIFY_PASS_RUNS)
         log(f"ID gate: does the UNFIXED victim fail the verify? "
-            f"(up to {VERIFY_PASS_RUNS} run(s), on the pristine tree)")
+            f"(up to {gate_runs} run(s), on the pristine tree)")
         id_discriminative = False
-        for i in range(1, VERIFY_PASS_RUNS + 1):
+        for i in range(1, gate_runs + 1):
             bv = _verify_once(phase=f"id_discrimination_{i}")["final_verdict"]
-            log(f"  gate {i}/{VERIFY_PASS_RUNS}: unfixed victim -> {bv}")
+            log(f"  gate {i}/{gate_runs}: unfixed victim -> {bv}")
             if bv == "FAILED":
                 id_discriminative = True
                 log(f"  unfixed victim failed on run {i} -> verify is "
                     f"discriminative; proceeding to apply + verify the fix.")
                 break
         if not id_discriminative:
-            log(f"  unfixed victim PASSED all {VERIFY_PASS_RUNS} runs -> the NonDex "
+            log(f"  unfixed victim PASSED all {gate_runs} runs -> the NonDex "
                 f"verify cannot reproduce this container's flakiness; a fix PASS "
                 f"would be meaningless. Fail-closed (verdict FAILED).")
 
