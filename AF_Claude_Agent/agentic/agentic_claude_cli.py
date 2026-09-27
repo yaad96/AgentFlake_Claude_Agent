@@ -435,7 +435,7 @@ MVNOPTS_ID = (
     '-Dossindex.skip=true -Dmaven.bundle.plugin.skip=true '
     '-Dmaven.parallel.force=false')
 MVNOPTS_TD = MVNOPTS_OD
-MVNOPTS_NIO = MVNOPTS_ID + ' -Dfindbugs.skip=true'
+MVNOPTS_NIO = MVNOPTS_ID + ' -Dfindbugs.skip=true -Ddisable.checks=true'
 
 # Per-type initial-failure log directory written by the launcher.
 FAILURE_LOG_DIR = {"od": "traces-flaky", "id": "traces-fail",

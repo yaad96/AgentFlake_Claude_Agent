@@ -2,6 +2,19 @@ FROM maven:3.8.6-openjdk-8
 
 WORKDIR /app
 
+# The base image is Debian 11 (bullseye). Its packages are no longer served by
+# deb.debian.org, so apt-get install 404s (exit 100). The image already ships
+# commented-out snapshot.debian.org sources pinned to 20220801T000000Z; switch to
+# them. That both fixes the 404s and pins the exact package versions the original
+# image was built with, so containers built now match ones built earlier.
+RUN set -eux; \
+    sed -i -e 's|^deb http://deb.debian.org|# deb http://deb.debian.org|' \
+           -e 's|^deb http://security.debian.org|# deb http://security.debian.org|' \
+           -e 's|^# deb http://snapshot.debian.org|deb http://snapshot.debian.org|' \
+           /etc/apt/sources.list; \
+    printf 'Acquire::Check-Valid-Until "false";\nAcquire::Retries "5";\n' \
+      > /etc/apt/apt.conf.d/99snapshot
+
 RUN apt-get update && \
     apt-get install -y autoconf automake libtool curl wget make g++ unzip python3 python3-pip && \
     ln -s /usr/bin/python3 /usr/bin/python && \

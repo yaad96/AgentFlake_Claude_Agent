@@ -100,7 +100,10 @@ MVNOPTS_ID = (
     '-Dmaven.parallel.force=false')
 # NIO MVNOPTS adds the additional skips that the NIO shell script uses; the
 # extra flags are no-ops on projects that don't define the relevant plugins.
-MVNOPTS_NIO = MVNOPTS_ID + ' -Dfindbugs.skip=true'
+# -Ddisable.checks=true: spring-boot binds checkstyle/spring-javaformat
+# validation (which also scan test sources, incl. the generated wrapper) to
+# <skip>${disable.checks}</skip>, which -Dcheckstyle.skip cannot override.
+MVNOPTS_NIO = MVNOPTS_ID + ' -Dfindbugs.skip=true -Ddisable.checks=true'
 
 
 @dataclass

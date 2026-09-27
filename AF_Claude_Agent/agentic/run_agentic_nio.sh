@@ -271,6 +271,24 @@ docker run -d "${DOCKER_PLATFORM_ARGS[@]}" --name "$CONTAINER" \
 
 # STEP 3 — generate wrapper class in BOTH Fixed/ and Flaky/
 echo "[step 3 ] Generating NIO wrapper at $WRAPPER_PATH_REL"
+# HBase registers HBaseClassTestRuleChecker as a surefire listener for every
+# test class. It reads the class's @Category and requires a static @ClassRule
+# HBaseClassTestRule for that class; without them every run of the wrapper adds
+# a "Test mechanism" error (ArrayIndexOutOfBoundsException: 0) and no fix can
+# ever pass verify. When the victim uses HBaseClassTestRule, give the wrapper
+# the same two class-level annotations (fully qualified, so no imports change).
+# Empty for every other project, so their wrapper is byte-for-byte unchanged.
+WRAPPER_CLASS_HEAD=""
+WRAPPER_CLASS_RULE=""
+VICTIM_SRC_FLAKY="$DATA_DIR/Flaky/$VICTIM_FILE_REL"
+if grep -qw 'HBaseClassTestRule' "$VICTIM_SRC_FLAKY" 2>/dev/null; then
+  HBASE_SIZE_FQCN="$(grep -oE '^import[[:space:]]+[A-Za-z0-9_.]+\.(Small|Medium|Large)Tests;' "$VICTIM_SRC_FLAKY" \
+    | head -n 1 | sed -E 's/^import[[:space:]]+//; s/;$//' || true)"
+  HBASE_SIZE_FQCN="${HBASE_SIZE_FQCN:-org.apache.hadoop.hbase.testclassification.MediumTests}"
+  printf -v WRAPPER_CLASS_HEAD '@org.junit.experimental.categories.Category({%s.class})\n' "$HBASE_SIZE_FQCN"
+  printf -v WRAPPER_CLASS_RULE '    @org.junit.ClassRule\n    public static final org.apache.hadoop.hbase.HBaseClassTestRule CLASS_RULE =\n        org.apache.hadoop.hbase.HBaseClassTestRule.forClass(%s.class);\n\n' "$WRAPPER_CLASS_SIMPLE"
+  echo "[step 3 ] HBase victim: wrapper gets @Category(${HBASE_SIZE_FQCN##*.}) and an HBaseClassTestRule @ClassRule"
+fi
 gen_wrapper() {
   local root="$1"
   local out="$root/$WRAPPER_PATH_REL"
@@ -289,8 +307,8 @@ import org.junit.runner.JUnitCore;
 import org.junit.runner.Request;
 import org.junit.runner.Result;
 
-public class ${WRAPPER_CLASS_SIMPLE} {
-    @Test public void runTwice() throws Exception {
+${WRAPPER_CLASS_HEAD}public class ${WRAPPER_CLASS_SIMPLE} {
+${WRAPPER_CLASS_RULE}    @Test public void runTwice() throws Exception {
         Request req = Request.method(${VICTIM_CLASS_SIMPLE}.class, "${VICTIM_METHOD}");
         Result r1 = new JUnitCore().run(req);
         Assert.assertTrue("first invocation should pass: " + r1.getFailures(), r1.wasSuccessful());
@@ -304,8 +322,24 @@ gen_wrapper "$DATA_DIR/Fixed"
 gen_wrapper "$DATA_DIR/Flaky"
 
 # STEP 4 — Run Fixed+wrapper and Flaky+wrapper to capture logs.
-MVNOPTS='-Ddependency-check.skip=true -Dgpg.skip=true -DfailIfNoTests=false -Dskip.installnodenpm -Dskip.npm -Dskip.yarn -Dlicense.skip -Dcheckstyle.skip -Drat.skip -Denforcer.skip -Danimal.sniffer.skip -Dmaven.javadoc.skip -Dwarbucks.skip -Dmodernizer.skip -Dimpsort.skip -Dmdep.analyze.skip -Dpgpverify.skip -Dxml.skip -Dcobertura.skip=true -Dfindbugs.skip=true -Dspotless.skip=true -Dspotless.check.skip=true -Dossindex.skip=true -Dmaven.bundle.plugin.skip=true -Dmaven.parallel.force=false'
+# -Ddisable.checks=true: spring-boot binds checkstyle and spring-javaformat
+# validation (which also scan test sources, i.e. the generated wrapper) to
+# <skip>${disable.checks}</skip>, so -Dcheckstyle.skip has no effect there.
+# Unused elsewhere. Keep in lock-step with MVNOPTS_NIO in agentic_verify.py and
+# agentic_claude_cli.py.
+MVNOPTS='-Ddependency-check.skip=true -Dgpg.skip=true -DfailIfNoTests=false -Dskip.installnodenpm -Dskip.npm -Dskip.yarn -Dlicense.skip -Dcheckstyle.skip -Drat.skip -Denforcer.skip -Danimal.sniffer.skip -Dmaven.javadoc.skip -Dwarbucks.skip -Dmodernizer.skip -Dimpsort.skip -Dmdep.analyze.skip -Dpgpverify.skip -Dxml.skip -Dcobertura.skip=true -Dfindbugs.skip=true -Dspotless.skip=true -Dspotless.check.skip=true -Dossindex.skip=true -Dmaven.bundle.plugin.skip=true -Dmaven.parallel.force=false -Ddisable.checks=true'
 
+# The developer fix is the positive control: Fixed+wrapper must pass. Some
+# dataset zips ship an EMPTY Fixed.patch (no developer fix exists). Then Fixed/
+# is just Flaky/ + wrapper, fails exactly like Flaky/, and cannot be a control,
+# so skip it and apply the stricter NIO-signature check after the Flaky run.
+if [[ -s "$DATA_DIR/Fixed.patch" ]]; then
+  HAVE_REF_FIX=1
+else
+  HAVE_REF_FIX=0
+fi
+
+if (( HAVE_REF_FIX )); then
 echo "[step 4 ] /app/work/Fixed + wrapper -> /app/work/traces-fixed (sanity)"
 docker exec "$CONTAINER" bash -c "
   set -e
@@ -318,6 +352,9 @@ docker exec "$CONTAINER" bash -c "
     -Dtest='${WRAPPER_FQCN}#runTwice' \
     $MVNOPTS 2>&1 | tee /app/work/traces-fixed/mvn.log || true
 "
+else
+  echo "[step 4 ] Fixed.patch is empty (no developer fix in the dataset) -> skipping the Fixed+wrapper run"
+fi
 
 echo "[step 4 ] /app/work/Flaky + wrapper -> /app/work/traces-flaky (failure log)"
 docker exec "$CONTAINER" bash -c "
@@ -344,21 +381,43 @@ parse_summary() {
   echo "$t $f $e"
 }
 
-read -r FT FF FE <<< "$(parse_summary "$DATA_DIR/traces-fixed/mvn.log")"
-echo "[sanity ] Fixed+wrapper:  Tests=$FT Failures=$FF Errors=$FE"
-if (( FT < 1 || FF + FE >= 1 )); then
-  echo "ERROR: Fixed+wrapper did not pass cleanly — pipeline broken"; exit 1
+if (( HAVE_REF_FIX )); then
+  read -r FT FF FE <<< "$(parse_summary "$DATA_DIR/traces-fixed/mvn.log")"
+  echo "[sanity ] Fixed+wrapper:  Tests=$FT Failures=$FF Errors=$FE"
+  if (( FT < 1 || FF + FE >= 1 )); then
+    echo "ERROR: Fixed+wrapper did not pass cleanly — pipeline broken"; exit 1
+  fi
 fi
 read -r KT KF KE <<< "$(parse_summary "$DATA_DIR/traces-flaky/mvn.log")"
 echo "[sanity ] Flaky+wrapper:  Tests=$KT Failures=$KF Errors=$KE"
 if (( KT < 1 || KF + KE < 1 )); then
   echo "ERROR: Flaky+wrapper did not exhibit NIO behaviour — bug not reproduced"; exit 1
 fi
-echo "[sanity ] OK — Fixed passed, Flaky failed (NIO reproduced)"
+if (( HAVE_REF_FIX )); then
+  echo "[sanity ] OK — Fixed passed, Flaky failed (NIO reproduced)"
+else
+  # No developer fix, so no positive control. Require the NIO signature itself:
+  # the first in-JVM invocation passed (the victim can pass in this harness),
+  # only the second failed, and nothing else errored. A harness error (e.g. a
+  # surefire listener exception) would fail every verify, fix or no fix.
+  FLAKY_LOG="$DATA_DIR/traces-flaky/mvn.log"
+  if (( KF < 1 || KE != 0 )) \
+     || ! grep -qF 'second invocation should pass (NIO assertion)' "$FLAKY_LOG" \
+     || grep -qF 'first invocation should pass' "$FLAKY_LOG"; then
+    echo "ERROR: Flaky+wrapper did not show a clean NIO failure (need: 1st invocation passes, 2nd fails, Errors=0) and there is no developer fix to check against — pipeline broken"; exit 1
+  fi
+  echo "[sanity ] OK — no developer fix; Flaky+wrapper passed the 1st in-JVM invocation and failed only the 2nd (NIO reproduced)"
+fi
 
 mkdir -p "$CLAUDE_INPUTS_DIR" "$CLAUDE_OUTPUTS_DIR"
 
 # STEP 9.5 — snapshot
+# Maven ran as root in the container. Hadoop/HBase tests (MiniDFSCluster) leave
+# root-owned mode-700 data dirs in the bind-mounted tree that the host user
+# cannot read, which breaks the cp below and agentic_claude_cli.py's baseline
+# copytree (Permission denied). Hand Flaky/ back to the host user first
+# (same chown + chmod idiom as agentic_claude_cli.py's _reclaim_container_path).
+docker exec -u 0 "$CONTAINER" sh -c "chown -R $(id -u):$(id -g) /app/work/Flaky && chmod -R u+rwX /app/work/Flaky" >/dev/null 2>&1 || true
 echo "[step 9.5] snapshotting Flaky/ -> Flaky.pristine"
 rm -rf "$DATA_DIR/Flaky.pristine"
 cp -r "$DATA_DIR/Flaky" "$DATA_DIR/Flaky.pristine"
