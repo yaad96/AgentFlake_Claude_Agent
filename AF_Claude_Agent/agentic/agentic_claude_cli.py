@@ -24,7 +24,7 @@ Preconditions (all set up by run_agentic_od.sh steps 0-9.5):
     - container tm_<container> running with narrow binds for Flaky/,
       claude_inputs/ (read-only), and claude_outputs/; protected Fixed and
       forcing-reference trees are deliberately not visible to Claude.
-    - Claude Code CLI installed and ANTHROPIC_API_KEY available on the host.
+    - Claude Code CLI installed and the key in AF_Claude_Agent/.anthropic_api_key.
 
 Outputs under data/<container>/run_<NN>/:
     claude_inputs/ contains prompt_user.txt, prompt_system.txt, and trace_config.json.
@@ -1039,24 +1039,21 @@ timeout -k 30s {AGENT_TIMEOUT_S}s claude -p "$(cat /app/work/{input_rel}/prompt_
   --output-format stream-json --verbose --include-partial-messages \
   {turns}{budget}> /app/work/{output_rel}/trial.ndjson 2> /app/work/{output_rel}/claude.stderr
 """
-    # Auth for the in-container `claude` CLI. Prefer an explicit env export;
-    # otherwise fall back to AF_Claude_Agent/.anthropic_api_key via
-    # agentic_config.ANTHROPIC_API_KEY. Without this the agent runs UNAUTHENTICATED
-    # (apiKeySource:none -> "Not logged in") and silently emits an empty patch
-    # that is then misscored as a FAILED repair. Fail closed with a clear
-    # message instead of burning a run.
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    # Auth for the in-container `claude` CLI comes only from
+    # AF_Claude_Agent/.anthropic_api_key (agentic_config.ANTHROPIC_API_KEY); an
+    # ANTHROPIC_API_KEY exported in the shell is ignored. Without a key the agent
+    # runs UNAUTHENTICATED (apiKeySource:none -> "Not logged in") and silently
+    # emits an empty patch that is then misscored as a FAILED repair. Fail closed
+    # with a clear message instead of burning a run.
+    try:
+        from agentic_config import ANTHROPIC_API_KEY as _CFG_KEY  # type: ignore  # noqa: E402
+        api_key = (_CFG_KEY or "").strip()
+    except Exception:
+        api_key = ""
     if not api_key:
-        try:
-            from agentic_config import ANTHROPIC_API_KEY as _CFG_KEY  # type: ignore  # noqa: E402
-            api_key = (_CFG_KEY or "").strip()
-        except Exception:
-            api_key = ""
-    if not api_key:
-        sys.exit("ERROR: no ANTHROPIC_API_KEY in the environment or "
-                 "AF_Claude_Agent/.anthropic_api_key — the Claude Code agent cannot "
-                 "authenticate and would emit an empty patch scored as a "
-                 "false FAILED. Export ANTHROPIC_API_KEY or put the key in "
+        sys.exit("ERROR: no Anthropic API key in AF_Claude_Agent/.anthropic_api_key — "
+                 "the Claude Code agent cannot authenticate and would emit an empty "
+                 "patch scored as a false FAILED. Put the key in "
                  "AF_Claude_Agent/.anthropic_api_key, then re-run.")
     # IS_SANDBOX=1 lets --permission-mode bypassPermissions run as root inside
     # the container (claude otherwise refuses bypass under root/sudo).

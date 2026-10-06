@@ -935,10 +935,9 @@ def main():
     row, test_type, script = preflight(args.container)
 
     api_key_var = _api_key_var(args.model)
-    api_key = (os.environ.get(api_key_var) or
-               getattr(agentic_config, "ANTHROPIC_API_KEY", "") or "").strip()
+    api_key = (getattr(agentic_config, "ANTHROPIC_API_KEY", "") or "").strip()
     if not api_key:
-        sys.exit(f"ERROR: {api_key_var} env var not set and no key found in config "
+        sys.exit("ERROR: no Anthropic API key in AF_Claude_Agent/.anthropic_api_key "
                  f"(required for model '{args.model}')")
     os.environ[api_key_var] = api_key
 

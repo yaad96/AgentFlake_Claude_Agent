@@ -6,7 +6,7 @@ Every value here can also be overridden at run time via CLI flags or env vars
 (env vars always take precedence over values set in this file):
 
   CLI flags:  --max-iterations, --model   on run_agentic.py / agentic_claude_cli.py
-  Env vars:   AGENTIC_MAX_ITERATIONS, AGENTIC_MODEL, ANTHROPIC_API_KEY
+  Env vars:   AGENTIC_MAX_ITERATIONS, AGENTIC_MODEL
 """
 
 from pathlib import Path
@@ -27,9 +27,8 @@ def _read_secret_file(path: Path) -> str:
 
 # ===========================================================================
 # API KEYS
-# Put your Anthropic key in AF_Claude_Agent/.anthropic_api_key, or export
-# ANTHROPIC_API_KEY in the shell. Environment variables always win.
-# Leave the file empty to rely only on the environment variable.
+# Put your Anthropic key in AF_Claude_Agent/.anthropic_api_key. That file is the
+# only source of the key; an ANTHROPIC_API_KEY exported in the shell is ignored.
 # ===========================================================================
 
 ANTHROPIC_API_KEY: str = _read_secret_file(ANTHROPIC_API_KEY_FILE)   # "sk-ant-..."  — used by all claude-* models

@@ -27,10 +27,7 @@ and routes to one of:
 
 ## API Key
 
-The key is loaded in this order:
-
-1. `ANTHROPIC_API_KEY` from the shell.
-2. `AF_Claude_Agent/.anthropic_api_key`.
+The key is read only from `AF_Claude_Agent/.anthropic_api_key`.
 
 The key file is ignored by Git.
 

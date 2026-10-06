@@ -22,7 +22,7 @@
 #   ./run_agentic_od.sh <result_container> [options]
 #
 # Requires:
-#   ANTHROPIC_API_KEY in the environment or .anthropic_api_key + install AF_Claude_Agent/requirements.txt
+#   AF_Claude_Agent/.anthropic_api_key + install AF_Claude_Agent/requirements.txt
 # ============================================================
 
 set -euo pipefail
@@ -71,13 +71,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPROFLAKE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 ANTHROPIC_API_KEY_FILE="$REPROFLAKE_DIR/.anthropic_api_key"
 
-if [[ -z "${ANTHROPIC_API_KEY:-}" && -f "$ANTHROPIC_API_KEY_FILE" ]]; then
+# The key comes only from the key file; an ANTHROPIC_API_KEY exported in the shell is ignored.
+ANTHROPIC_API_KEY=""
+if [[ -f "$ANTHROPIC_API_KEY_FILE" ]]; then
   ANTHROPIC_API_KEY="$(sed -n "s/^[[:space:]]*//; s/[[:space:]]*$//; /^[#]/d; /^$/d; p; q" "$ANTHROPIC_API_KEY_FILE")"
-  export ANTHROPIC_API_KEY
 fi
+export ANTHROPIC_API_KEY
 
-if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
-  echo "ERROR: ANTHROPIC_API_KEY is required. Export it or put it in $ANTHROPIC_API_KEY_FILE."; exit 1
+if [[ -z "$ANTHROPIC_API_KEY" ]]; then
+  echo "ERROR: no Anthropic API key. Put it in $ANTHROPIC_API_KEY_FILE."; exit 1
 fi
 
 DATA_ROOT="$REPROFLAKE_DIR/data/$RESULT_CONTAINER"

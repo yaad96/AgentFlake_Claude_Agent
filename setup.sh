@@ -12,12 +12,14 @@ FORCE_REBUILD_IMAGES=0
 usage() {
   cat <<'USAGE'
 Usage:
-  ANTHROPIC_API_KEY=sk-ant-... bash setup.sh [--build-images]
+  bash setup.sh [--build-images]
+
+Put your Anthropic API key in AF_Claude_Agent/.anthropic_api_key before running.
 
 Options:
   --build-images          Prebuild all Docker images that have Dockerfiles.
   --force-rebuild-images  Rebuild images even when a local image already exists.
-  --skip-docker-check     Install Python deps and key file without checking Docker.
+  --skip-docker-check     Install Python deps and check the key file without checking Docker.
   -h, --help              Show this help.
 
 This script installs repo-local dependencies. It does not install Docker Desktop
@@ -64,18 +66,11 @@ echo "[setup] installing Python dependencies"
 "$VENV_DIR/bin/python" -m pip install --upgrade pip
 "$VENV_DIR/bin/python" -m pip install -r "$PROJECT_DIR/requirements.txt"
 
-if [[ -n "${ANTHROPIC_API_KEY:-}" ]]; then
-  echo "[setup] storing Anthropic API key in AF_Claude_Agent/.anthropic_api_key"
-  umask 077
-  printf '%s\n' "$ANTHROPIC_API_KEY" > "$PROJECT_DIR/.anthropic_api_key"
-elif [[ ! -s "$PROJECT_DIR/.anthropic_api_key" ]]; then
+if [[ ! -s "$PROJECT_DIR/.anthropic_api_key" ]]; then
   cat >&2 <<'MSG'
 ERROR: no Anthropic API key found.
 
-Run setup like this:
-  ANTHROPIC_API_KEY=sk-ant-... bash setup.sh --build-images
-
-Or create AF_Claude_Agent/.anthropic_api_key yourself.
+Create AF_Claude_Agent/.anthropic_api_key containing your key, then re-run setup.
 MSG
   exit 1
 else

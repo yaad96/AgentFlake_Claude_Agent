@@ -25,7 +25,7 @@ Common aliases:
     haiku                   ->  claude-haiku-4-5-20251001
     Any full model ID is passed through unchanged.
 
-ANTHROPIC_API_KEY is read from the environment first, then AF_Claude_Agent/.anthropic_api_key via agentic_config.py.
+The Anthropic API key is read only from AF_Claude_Agent/.anthropic_api_key via agentic_config.py.
 """
 
 from __future__ import annotations
@@ -69,10 +69,7 @@ def resolve_model(alias: str) -> tuple[str, str]:
 
 def get_api_key(provider: str = "anthropic") -> tuple[str, str]:
     """Return (api_key, source) for the Claude CLI backend."""
-    env_val = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     config_val = (agentic_config.ANTHROPIC_API_KEY or "").strip()
-    if env_val:
-        return env_val, "env"
     if config_val:
         return config_val, "config"
     return "", ""
@@ -152,9 +149,8 @@ def main() -> None:
 
         api_key, source = get_api_key(provider)
         if not api_key:
-            sys.exit(f"ERROR: No ANTHROPIC_API_KEY found for '{model_id}'.\n"
-                     "       Set ANTHROPIC_API_KEY in agentic_config.py or export it as "
-                     "an environment variable.")
+            sys.exit(f"ERROR: No Anthropic API key found for '{model_id}'.\n"
+                     "       Put the key in AF_Claude_Agent/.anthropic_api_key.")
 
         resolved.append((alias, model_id, provider))
         key_display = api_key[:8] + "..." + api_key[-4:] if len(api_key) > 12 else "***"
@@ -198,8 +194,8 @@ def main() -> None:
             "--model",          model_id,
         ] + passthrough
 
-        # Inject API key into the subprocess environment so the shell scripts
-        # and orchestrator see it even if it was only set in agentic_config.py.
+        # Hand the key from AF_Claude_Agent/.anthropic_api_key to the shell scripts
+        # and orchestrator; this overrides any ANTHROPIC_API_KEY exported in the shell.
         env = os.environ.copy()
         api_key, _ = get_api_key(provider)
         env["ANTHROPIC_API_KEY"] = api_key

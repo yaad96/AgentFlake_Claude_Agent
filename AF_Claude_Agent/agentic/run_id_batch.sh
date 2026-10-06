@@ -74,8 +74,8 @@ for c in "${CONTAINERS[@]}"; do
   fi
 done
 
-if [[ -z "${ANTHROPIC_API_KEY:-}" && ! -s "$PROJECT_DIR/.anthropic_api_key" ]]; then
-  echo "ERROR: no Anthropic key. Export ANTHROPIC_API_KEY or write $PROJECT_DIR/.anthropic_api_key"
+if [[ ! -s "$PROJECT_DIR/.anthropic_api_key" ]]; then
+  echo "ERROR: no Anthropic key. Write it to $PROJECT_DIR/.anthropic_api_key"
   exit 1
 fi
 
